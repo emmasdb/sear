@@ -840,6 +840,37 @@
     {
       "properties": {
         "operation": {
+          "const": "search"
+        },
+        "admin_type": {
+          "const": "keyring"
+        },
+        "keyring_filter": {
+          "$ref": "#/$defs/resourceName"
+        }
+      },
+      "required": [
+        "operation",
+        "admin_type"
+      ]
+    },
+    {
+      "properties": {
+        "operation": {
+          "const": "refresh"
+        },
+        "admin_type": {
+          "const": "keyring"
+        }
+      },
+      "required": [
+        "operation",
+        "admin_type"
+      ]
+    },
+    {
+      "properties": {
+        "operation": {
           "enum": [
             "add",
             "delete"
@@ -860,6 +891,23 @@
         "admin_type",
         "owner",
         "keyring"
+      ]
+    },
+    {
+      "properties": {
+        "operation": {
+          "const": "search"
+        },
+        "admin_type": {
+          "const": "certificate"
+        },
+        "certificate_filter": {
+          "$ref": "#/$defs/resourceName"
+        }
+      },
+      "required": [
+        "operation",
+        "admin_type"
       ]
     },
     {
