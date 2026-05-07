@@ -12,6 +12,7 @@
 #include <sstream>
 #include <string>
 
+#include "../conversion.hpp"
 #include "irrseq00.hpp"
 #include "sear_error.hpp"
 
