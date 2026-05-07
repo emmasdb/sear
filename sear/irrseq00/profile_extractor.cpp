@@ -361,9 +361,11 @@ void ProfileExtractor::buildGenericExtractRequest(
   std::transform(profile_name.begin(), profile_name.end(), profile_name.begin(),
                  [](unsigned char c) { return std::toupper(c); });
 
-  std::memcpy(args->profile_name, profile_name.c_str(), profile_name.length());
   // Encode profile name as IBM-1047.
-  __a2e_l(args->profile_name, profile_name.length());
+  profile_name = fromUTF8(profile_name);
+
+  std::memcpy(args->profile_name, profile_name.c_str(), profile_name.length());
+
   if (function_code == RESOURCE_EXTRACT_FUNCTION_CODE ||
       function_code == RESOURCE_EXTRACT_NEXT_FUNCTION_CODE) {
     // Automatically convert lowercase class names to uppercase.
