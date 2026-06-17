@@ -13,7 +13,6 @@
       "sear/sear_error.cpp",
       "sear/security_admin.cpp",
       "sear/security_request.cpp",
-      "sear/irrseq00/irrseq00.s",
       "sear/irrsdl00/irrsdl00.cpp",
       "sear/irrsdl00/keyring_extractor.cpp",
       "sear/irrsdl00/keyring_modifier.cpp",
