@@ -22,6 +22,7 @@ function findGnuMake() {
 const makeCommand = process.env.MAKE || findGnuMake();
 const ccWrapperPath = path.join(__dirname, 'cc-wrapper.js');
 const cxxWrapperPath = path.join(__dirname, 'cxx-wrapper.js');
+const irrseqObjectPath = path.join(__dirname, '..', '..', 'artifacts', 'irrseq00.o');
 
 if (!makeCommand) {
     console.error('Unable to find GNU make. Install gmake or set MAKE to a GNU make executable.');
@@ -31,6 +32,9 @@ if (!makeCommand) {
 fs.chmodSync(ccWrapperPath, 0o755);
 fs.chmodSync(cxxWrapperPath, 0o755);
 
+const existingLdflags = process.env.LDFLAGS ? `${process.env.LDFLAGS} ` : '';
+const linkWithIrrseq = `${existingLdflags}${irrseqObjectPath}`;
+
 const result = spawnSync('node-gyp', ['configure', 'build'], {
     stdio: 'inherit',
     env: {
@@ -38,6 +42,7 @@ const result = spawnSync('node-gyp', ['configure', 'build'], {
         MAKE: makeCommand,
         CC: process.env.SEAR_NODE_CC || ccWrapperPath,
         CXX: process.env.SEAR_NODE_CXX || cxxWrapperPath,
+        LDFLAGS: linkWithIrrseq,
     },
     shell: process.platform === 'win32',
 });
