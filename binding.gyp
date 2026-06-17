@@ -40,12 +40,11 @@
       "externals/json-schema-validator",
       "externals/pugixml",
       "externals/iconv",
-      "<(ZOPEN_ROOTFS)/usr/local/include"
     ],
     "libraries": [
-      "<(ZOPEN_ROOTFS)/usr/local/lib/libssl.a",
-      "<(ZOPEN_ROOTFS)/usr/local/lib/libcrypto.a",
-      "<(ZOPEN_ROOTFS)/usr/local/lib/libzoslib.a"
+      "<(OPENSSL_ROOTFS)/lib/libssl.a",
+      "<(OPENSSL_ROOTFS)/lib/libcrypto.a",
+      "<(OPENSSL_ROOTFS)/lib/libzoslib.a"
     ],
     "extra_link_args": ["-m64"],
     "extra_objects": ["<(PRODUCT_DIR)/../../artifacts/irrseq00.o"],
