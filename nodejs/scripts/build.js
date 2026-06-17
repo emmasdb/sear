@@ -20,8 +20,8 @@ function findGnuMake() {
 }
 
 const makeCommand = process.env.MAKE || findGnuMake();
-const ccWrapperPath = path.join(__dirname, 'cc-wrapper.sh');
-const cxxWrapperPath = path.join(__dirname, 'cxx-wrapper.sh');
+const ccWrapperPath = path.join(__dirname, 'cc-wrapper.js');
+const cxxWrapperPath = path.join(__dirname, 'cxx-wrapper.js');
 
 if (!makeCommand) {
     console.error('Unable to find GNU make. Install gmake or set MAKE to a GNU make executable.');
