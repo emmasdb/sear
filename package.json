@@ -9,6 +9,6 @@
     "test": "node --test"
   },
   "gypfile": true,
-  "os": ["zos"],
+  "os": ["os390"],
   "dependencies": {}
 }
