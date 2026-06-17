@@ -1,6 +1,7 @@
 'use strict';
 
 const { spawnSync } = require('child_process');
+const fs = require('fs');
 const path = require('path');
 
 function findGnuMake() {
@@ -19,22 +20,24 @@ function findGnuMake() {
 }
 
 const makeCommand = process.env.MAKE || findGnuMake();
-const wrapperPath = path.join(__dirname, 'compiler-wrapper.js');
-const ccCommand = process.env.SEAR_NODE_CC || `"${process.execPath}" "${wrapperPath}" ibm-clang64`;
-const cxxCommand = process.env.SEAR_NODE_CXX || `"${process.execPath}" "${wrapperPath}" ibm-clang++64`;
+const ccWrapperPath = path.join(__dirname, 'cc-wrapper.sh');
+const cxxWrapperPath = path.join(__dirname, 'cxx-wrapper.sh');
 
 if (!makeCommand) {
     console.error('Unable to find GNU make. Install gmake or set MAKE to a GNU make executable.');
     process.exit(1);
 }
 
+fs.chmodSync(ccWrapperPath, 0o755);
+fs.chmodSync(cxxWrapperPath, 0o755);
+
 const result = spawnSync('node-gyp', ['configure', 'build'], {
     stdio: 'inherit',
     env: {
         ...process.env,
         MAKE: makeCommand,
-        CC: ccCommand,
-        CXX: cxxCommand,
+        CC: process.env.SEAR_NODE_CC || ccWrapperPath,
+        CXX: process.env.SEAR_NODE_CXX || cxxWrapperPath,
     },
     shell: process.platform === 'win32',
 });
