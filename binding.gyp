@@ -67,9 +67,9 @@
       "-Wl,-b,edit=no",
       "-Wl,<(openssl_root)/lib/libcrypto.a",
       "-Wl,<(openssl_root)/lib/libssl.a",
-      "-Wl,<(zoslib_root)/lib/libzoslib.a"
+      "-Wl,<(zoslib_root)/lib/libzoslib.a",
+      "<(module_root_dir)/artifacts/irrseq00.o"
     ],
-    "extra_objects": ["<(module_root_dir)/artifacts/irrseq00.o"],
     "cflags": ["-std=c99", "-m64", "-fzos-le-char-mode=ascii", "-D_POSIX_C_SOURCE=200112L"],
     "cflags_cc": ["-std=c++17", "-m64", "-fzos-le-char-mode=ascii", "-D_POSIX_C_SOURCE=200112L", "-fexceptions"]
   }]
