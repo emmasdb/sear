@@ -51,6 +51,20 @@
       "<(openssl_root)/lib/libcrypto.a",
       "<(zoslib_root)/lib/libzoslib.a"
     ],
+    "cflags!": [
+      "-q64",
+      "-qlonglong",
+      "-qenum=int",
+      "-qxclang=-fexec-charset=ISO8859-1",
+      "-qmakedep=gcc"
+    ],
+    "cflags_cc!": [
+      "-q64",
+      "-qlonglong",
+      "-qenum=int",
+      "-qxclang=-fexec-charset=ISO8859-1",
+      "-qmakedep=gcc"
+    ],
     "extra_link_args": ["-m64"],
     "extra_objects": ["<(PRODUCT_DIR)/../../artifacts/irrseq00.o"],
     "cflags": ["-std=c99", "-m64", "-fzos-le-char-mode=ascii", "-D_POSIX_C_SOURCE=200112L"],
