@@ -1,16 +1,39 @@
 {
   "name": "searjs",
   "version": "0.7.0",
-  "description": "A unified and standardized interface to RACF callable services.",
-  "main": "index.js",
-  "types": "index.d.ts",
+  "description": "A unified and standardized interface to RACF callable services on z/OS.",
+  "main": "nodejs/sear/index.js",
+  "types": "nodejs/sear/index.d.ts",
+  "homepage": "https://github.com/zowe/sear",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zowe/sear.git"
+  },
+  "keywords": [
+    "z/OS",
+    "RACF",
+    "security",
+    "zowe",
+    "native-addon"
+  ],
   "scripts": {
     "prebuild": "node nodejs/scripts/prebuild.js",
     "build": "node nodejs/scripts/build.js",
     "smoke": "node nodejs/smoke_test.js",
-    "test": "node --test"
+    "test": "node --test",
+    "lint": "eslint nodejs/sear/*.js --fix || true",
+    "docs": "jsdoc -c jsdoc.json || true"
   },
   "gypfile": true,
-  "os": ["os390"],
-  "dependencies": {}
+  "os": [
+    "os390"
+  ],
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "eslint": "^8.0.0",
+    "jsdoc": "^4.0.0"
+  }
 }
