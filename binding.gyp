@@ -1,4 +1,8 @@
 {
+  "variables": {
+    "openssl_root%": "<!(node -p \"process.env.OPENSSL_ROOT || ((process.env.ZOPEN_ROOTFS && process.env.ZOPEN_ROOTFS + '/usr/local') || '')\")",
+    "zoslib_root%": "<!(node -p \"process.env.ZOSLIB_ROOT || ((process.env.ZOPEN_ROOTFS && process.env.ZOPEN_ROOTFS + '/usr/local') || '')\")"
+  },
   "targets": [{
     "target_name": "_sear",
     "sources": [
@@ -40,11 +44,12 @@
       "externals/json-schema-validator",
       "externals/pugixml",
       "externals/iconv",
+      "<(openssl_root)/include"
     ],
     "libraries": [
-      "<(OPENSSL_ROOT)/lib/libssl.a",
-      "<(OPENSSL_ROOT)/lib/libcrypto.a",
-      "<(OPENSSL_ROOT)/lib/libzoslib.a"
+      "<(openssl_root)/lib/libssl.a",
+      "<(openssl_root)/lib/libcrypto.a",
+      "<(zoslib_root)/lib/libzoslib.a"
     ],
     "extra_link_args": ["-m64"],
     "extra_objects": ["<(PRODUCT_DIR)/../../artifacts/irrseq00.o"],
