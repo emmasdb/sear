@@ -44,7 +44,7 @@ pip install pysear
 
 Make sure you have the right authorizations, [detailed in the full documentation](https://mainframe-renewal-project.github.io/sear-docs/authorizations/).
 
-How to create a simple userid using SEAR:
+How to create a simple userid using SEAR in Python:
 ```py
 from sear import sear
 
