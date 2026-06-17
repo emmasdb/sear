@@ -229,3 +229,12 @@ sear_schema.hpp
 
 *.ps1
 *.sh
+
+# Node.js stuff
+
+node_modules/
+jspm_packages/
+
+# Optional npm cache directory
+
+.npm
