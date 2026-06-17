@@ -1,5 +1,5 @@
 'use strict';
-const _C = require('../build/Release/_sear.node');
+const _C = require('../../build/Release/_sear.node');
 
 class SecurityResult {
     constructor({ request, raw_request, raw_result, result }) {
