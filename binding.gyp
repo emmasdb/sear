@@ -42,9 +42,9 @@
       "externals/iconv",
     ],
     "libraries": [
-      "<(OPENSSL_ROOTFS)/lib/libssl.a",
-      "<(OPENSSL_ROOTFS)/lib/libcrypto.a",
-      "<(OPENSSL_ROOTFS)/lib/libzoslib.a"
+      "<(OPENSSL_ROOT)/lib/libssl.a",
+      "<(OPENSSL_ROOT)/lib/libcrypto.a",
+      "<(OPENSSL_ROOT)/lib/libzoslib.a"
     ],
     "extra_link_args": ["-m64"],
     "extra_objects": ["<(PRODUCT_DIR)/../../artifacts/irrseq00.o"],
