@@ -10,6 +10,7 @@ const unsupportedArgs = new Set([
     '-qlonglong',
     '-qenum=int',
     '-qxclang=-fexec-charset=ISO8859-1',
+    '-Wc,DLL',
     '-qmakedep=gcc',
 ]);
 
