@@ -67,8 +67,8 @@
       "-qmakedep=gcc",
       "-Wc,DLL"
     ],
-    "extra_link_args": ["-m64"],
-    "extra_objects": ["<(PRODUCT_DIR)/../../artifacts/irrseq00.o"],
+    "extra_link_args": ["-m64", "-Wl,-b,edit=no"],
+    "extra_objects": ["<(module_root_dir)/artifacts/irrseq00.o"],
     "cflags": ["-std=c99", "-m64", "-fzos-le-char-mode=ascii", "-D_POSIX_C_SOURCE=200112L"],
     "cflags_cc": ["-std=c++17", "-m64", "-fzos-le-char-mode=ascii", "-D_POSIX_C_SOURCE=200112L", "-fexceptions"]
   }]
