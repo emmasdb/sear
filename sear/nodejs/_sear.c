@@ -1,6 +1,7 @@
 #include <node_api.h>
 #include <pthread.h>
 #include <stdbool.h>
+#include <stdlib.h>
 #include <string.h>
 #include "sear.h"
 
