@@ -6,7 +6,6 @@
   "targets": [{
     "target_name": "_sear",
     "sources": [
-      "<(module_root_dir)/artifacts/irrseq00.o",
       "sear/nodejs/_sear.c",
       "sear/sear.cpp",
       "sear/conversion.cpp",
@@ -47,11 +46,7 @@
       "externals/iconv",
       "<(openssl_root)/include"
     ],
-    "libraries": [
-      "<(openssl_root)/lib/libssl.a",
-      "<(openssl_root)/lib/libcrypto.a",
-      "<(zoslib_root)/lib/libzoslib.a"
-    ],
+    "libraries": [],
     "cflags!": [
       "-q64",
       "-qlonglong",
@@ -67,7 +62,14 @@
       "-qxclang=-fexec-charset=ISO8859-1",
       "-qmakedep=gcc"
     ],
-    "extra_link_args": ["-m64", "-Wl,-b,edit=no"],
+    "extra_link_args": [
+      "-m64",
+      "-Wl,-b,edit=no",
+      "-Wl,<(openssl_root)/lib/libcrypto.a",
+      "-Wl,<(openssl_root)/lib/libssl.a",
+      "-Wl,<(zoslib_root)/lib/libzoslib.a"
+    ],
+    "extra_objects": ["<(module_root_dir)/artifacts/irrseq00.o"],
     "cflags": ["-std=c99", "-m64", "-fzos-le-char-mode=ascii", "-D_POSIX_C_SOURCE=200112L"],
     "cflags_cc": ["-std=c++17", "-m64", "-fzos-le-char-mode=ascii", "-D_POSIX_C_SOURCE=200112L", "-fexceptions"]
   }]
