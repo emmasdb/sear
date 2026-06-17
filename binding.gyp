@@ -13,6 +13,7 @@
       "sear/sear_error.cpp",
       "sear/security_admin.cpp",
       "sear/security_request.cpp",
+      "sear/irrseq00/irrseq00.s",
       "sear/irrsdl00/irrsdl00.cpp",
       "sear/irrsdl00/keyring_extractor.cpp",
       "sear/irrsdl00/keyring_modifier.cpp",
@@ -67,8 +68,7 @@
       "-Wl,-b,edit=no",
       "-Wl,<(openssl_root)/lib/libcrypto.a",
       "-Wl,<(openssl_root)/lib/libssl.a",
-      "-Wl,<(zoslib_root)/lib/libzoslib.a",
-      "<(module_root_dir)/artifacts/irrseq00.o"
+      "-Wl,<(zoslib_root)/lib/libzoslib.a"
     ],
     "cflags": ["-std=c99", "-m64", "-fzos-le-char-mode=ascii", "-D_POSIX_C_SOURCE=200112L"],
     "cflags_cc": ["-std=c++17", "-m64", "-fzos-le-char-mode=ascii", "-D_POSIX_C_SOURCE=200112L", "-fexceptions"]
