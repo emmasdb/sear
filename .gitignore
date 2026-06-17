@@ -228,7 +228,6 @@ sear_schema.hpp
 # Shell stuff
 
 *.ps1
-!nodejs/scripts/*.sh
 
 # Node.js stuff
 
