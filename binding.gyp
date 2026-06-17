@@ -1,0 +1,55 @@
+{
+  "targets": [{
+    "target_name": "_sear",
+    "sources": [
+      "sear/nodejs/_sear.c",
+      "sear/sear.cpp",
+      "sear/conversion.cpp",
+      "sear/logger.cpp",
+      "sear/sear_error.cpp",
+      "sear/security_admin.cpp",
+      "sear/security_request.cpp",
+      "sear/irrsdl00/irrsdl00.cpp",
+      "sear/irrsdl00/keyring_extractor.cpp",
+      "sear/irrsdl00/keyring_modifier.cpp",
+      "sear/irrsdl00/keyring_post_processor.cpp",
+      "sear/irrseq00/profile_extractor.cpp",
+      "sear/irrseq00/profile_post_processor.cpp",
+      "sear/irrsmo00/irrsmo00.cpp",
+      "sear/irrsmo00/irrsmo00_error.cpp",
+      "sear/irrsmo00/xml_generator.cpp",
+      "sear/irrsmo00/xml_parser.cpp",
+      "sear/key_map/key_map.cpp",
+      "sear/validation/trait_validation.cpp",
+      "externals/json-schema-validator/json-patch.cpp",
+      "externals/json-schema-validator/json-schema-draft7.json.cpp",
+      "externals/json-schema-validator/json-uri.cpp",
+      "externals/json-schema-validator/json-validator.cpp",
+      "externals/json-schema-validator/smtp-address-validator.cpp",
+      "externals/json-schema-validator/string-format-check.cpp",
+      "externals/pugixml/pugixml.cpp"
+    ],
+    "include_dirs": [
+      "sear",
+      "sear/irrsdl00",
+      "sear/irrseq00",
+      "sear/irrsmo00",
+      "sear/key_map",
+      "sear/validation",
+      "externals/json",
+      "externals/json-schema-validator",
+      "externals/pugixml",
+      "externals/iconv",
+      "<(ZOPEN_ROOTFS)/usr/local/include"
+    ],
+    "libraries": [
+      "<(ZOPEN_ROOTFS)/usr/local/lib/libssl.a",
+      "<(ZOPEN_ROOTFS)/usr/local/lib/libcrypto.a",
+      "<(ZOPEN_ROOTFS)/usr/local/lib/libzoslib.a"
+    ],
+    "extra_link_args": ["-m64"],
+    "extra_objects": ["<(PRODUCT_DIR)/../../artifacts/irrseq00.o"],
+    "cflags": ["-std=c99", "-m64", "-fzos-le-char-mode=ascii", "-D_POSIX_C_SOURCE=200112L"],
+    "cflags_cc": ["-std=c++17", "-m64", "-fzos-le-char-mode=ascii", "-D_POSIX_C_SOURCE=200112L"]
+  }]
+}
