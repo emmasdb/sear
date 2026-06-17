@@ -15,7 +15,7 @@ export interface SearResultObject {
  */
 export interface SearRequest {
     /**
-     * Operation to perform: 'extract', 'search', 'list', 'check', 'alter', 'add', 'delete'
+     * Operation to perform: 'extract', 'search', 'alter', 'add', 'delete'
      */
     operation: 'extract' | 'search' | 'alter' | 'add' | 'delete';
 
