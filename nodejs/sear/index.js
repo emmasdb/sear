@@ -22,7 +22,7 @@ try {
 // Constants
 // ============================================================================
 
-const VALID_OPERATIONS = ['extract', 'search', 'list', 'check', 'alter', 'add', 'delete'];
+const VALID_OPERATIONS = ['extract', 'search', 'alter', 'add', 'delete'];
 const VALID_ADMIN_TYPES = [
     'user',
     'group',
@@ -34,6 +34,11 @@ const VALID_ADMIN_TYPES = [
     'resource',
     'racf-rrsf',
 ];
+
+const ADMIN_TYPE_ALIASES = {
+    connect: 'group-connection',
+    permit: 'permission',
+};
 
 // ============================================================================
 // SecurityResult Class
@@ -144,6 +149,27 @@ function validateRequest(request) {
     }
 }
 
+/**
+ * Normalize legacy request aliases to the canonical Python-aligned shape.
+ * @private
+ * @param {Object} request - The request to normalize
+ * @returns {Object} Normalized request object
+ */
+function normalizeRequest(request) {
+    if (!request || typeof request !== 'object') {
+        return request;
+    }
+
+    if (!request.admin_type || !ADMIN_TYPE_ALIASES[request.admin_type]) {
+        return request;
+    }
+
+    return {
+        ...request,
+        admin_type: ADMIN_TYPE_ALIASES[request.admin_type],
+    };
+}
+
 // ============================================================================
 // Core Functions
 // ============================================================================
@@ -151,8 +177,8 @@ function validateRequest(request) {
 /**
  * Execute a SEAR operation synchronously
  * @param {Object} request - The SEAR request object
- * @param {string} request.operation - Operation type: 'extract', 'search', 'list', 'check'
- * @param {string} request.admin_type - Admin type: 'user', 'group', 'dataset', 'connect', 'permit'
+ * @param {string} request.operation - Operation type: 'extract', 'search', 'alter', 'add', or 'delete'
+ * @param {string} request.admin_type - Admin type: 'user', 'group', 'dataset', 'group-connection', 'permission', 'keyring', 'certificate', 'resource', or 'racf-rrsf'
  * @param {boolean} [debug=false] - Enable debug output in native layer
  * @returns {SecurityResult} The operation result
  * @throws {ValidationError} if request is invalid
@@ -166,8 +192,10 @@ function validateRequest(request) {
  * console.log(result.result);
  */
 function sear(request, debug = false) {
+    const normalizedRequest = normalizeRequest(request);
+
     try {
-        validateRequest(request);
+        validateRequest(normalizedRequest);
     } catch (error) {
         if (error instanceof ValidationError) {
             throw error;
@@ -176,14 +204,14 @@ function sear(request, debug = false) {
     }
 
     try {
-        const response = _C.call_sear(JSON.stringify(request), debug);
+        const response = _C.call_sear(JSON.stringify(normalizedRequest), debug);
 
         if (!response || typeof response !== 'object') {
             throw new NativeError('Invalid response from native binding');
         }
 
         const result = new SecurityResult({
-            request,
+            request: normalizedRequest,
             raw_request: response.raw_request,
             raw_result: response.raw_result,
             result: response.result_json ? JSON.parse(response.result_json) : {},
@@ -196,7 +224,7 @@ function sear(request, debug = false) {
         }
         throw new NativeError(
             `Failed to execute SEAR operation: ${error.message}`,
-            { operation: request.operation, admin_type: request.admin_type }
+            { operation: normalizedRequest.operation, admin_type: normalizedRequest.admin_type }
         );
     }
 }
@@ -217,7 +245,9 @@ function sear(request, debug = false) {
  * });
  */
 async function searAsync(request, debug = false) {
-    validateRequest(request);
+    const normalizedRequest = normalizeRequest(request);
+
+    validateRequest(normalizedRequest);
 
     return new Promise((resolve, reject) => {
         const workerCode = `
@@ -252,7 +282,7 @@ async function searAsync(request, debug = false) {
                 if (message.success) {
                     try {
                         const result = new SecurityResult({
-                            request,
+                            request: normalizedRequest,
                             raw_request: message.response.raw_request,
                             raw_result: message.response.raw_result,
                             result: message.response.result_json
@@ -268,7 +298,7 @@ async function searAsync(request, debug = false) {
                 } else {
                     reject(new NativeError(
                         `Worker operation failed: ${message.error}`,
-                        { operation: request.operation }
+                        { operation: normalizedRequest.operation }
                     ));
                 }
             });
@@ -277,218 +307,21 @@ async function searAsync(request, debug = false) {
                 clearTimeout(timeout);
                 reject(new NativeError(
                     `Worker error: ${error.message}`,
-                    { operation: request.operation }
+                    { operation: normalizedRequest.operation }
                 ));
             });
 
             worker.postMessage({
-                request: JSON.stringify(request),
+                request: JSON.stringify(normalizedRequest),
                 debug,
             });
         } catch (error) {
             reject(new NativeError(
                 `Failed to create worker: ${error.message}`,
-                { operation: request.operation }
+                { operation: normalizedRequest.operation }
             ));
         }
     });
-}
-
-// ============================================================================
-// Request Builders - Factory Functions for Common Operations
-// ============================================================================
-
-/**
- * Build an extract request for a user
- * @param {string} userid - The user ID to extract
- * @returns {Object} Complete request object
- * @example
- * const result = sear(extractUser('MYUSER'));
- */
-function extractUser(userid) {
-    return {
-        operation: 'extract',
-        admin_type: 'user',
-        userid,
-    };
-}
-
-/**
- * Build an extract request for a group
- * @param {string} groupid - The group ID to extract
- * @returns {Object} Complete request object
- */
-function extractGroup(groupid) {
-    return {
-        operation: 'extract',
-        admin_type: 'group',
-        groupid,
-    };
-}
-
-/**
- * Build an extract request for a dataset
- * @param {string} dataset - The dataset name to extract
- * @returns {Object} Complete request object
- */
-function extractDataset(dataset) {
-    return {
-        operation: 'extract',
-        admin_type: 'dataset',
-        dataset,
-    };
-}
-
-/**
- * Build a search request for users matching a filter
- * @param {Object} filter - Filter criteria (e.g., { prefix: 'J' })
- * @returns {Object} Complete request object
- */
-function searchUsers(filter = {}) {
-    return {
-        operation: 'search',
-        admin_type: 'user',
-        ...filter,
-    };
-}
-
-/**
- * Build a search request for groups matching a filter
- * @param {Object} filter - Filter criteria
- * @returns {Object} Complete request object
- */
-function searchGroups(filter = {}) {
-    return {
-        operation: 'search',
-        admin_type: 'group',
-        ...filter,
-    };
-}
-
-/**
- * Build a list request for a resource type
- * @param {string} admin_type - Type of resource to list
- * @returns {Object} Complete request object
- */
-function listResources(admin_type) {
-    return {
-        operation: 'list',
-        admin_type,
-    };
-}
-
-/**
- * Build a check request to verify permissions
- * @param {Object} criteria - Check criteria
- * @returns {Object} Complete request object
- */
-function checkPermission(criteria) {
-    return {
-        operation: 'check',
-        ...criteria,
-    };
-}
-
-/**
- * Build an extract request for a keyring
- * @param {string} keyring - The keyring name to extract
- * @param {string} owner - The keyring owner (user ID)
- * @returns {Object} Complete request object
- * @example
- * const result = sear(extractKeyring('MYKEYRING', 'KEYRING_OWNER'));
- */
-function extractKeyring(keyring, owner) {
-    return {
-        operation: 'extract',
-        admin_type: 'keyring',
-        keyring,
-        owner,
-    };
-}
-
-/**
- * Build an extract request for a certificate within a keyring
- * @param {string} keyring - The keyring name
- * @param {string} owner - The keyring owner (user ID)
- * @param {string} [label] - Optional certificate label
- * @returns {Object} Complete request object
- */
-function extractCertificate(keyring, owner, label) {
-    const req = {
-        operation: 'extract',
-        admin_type: 'certificate',
-        keyring,
-        owner,
-    };
-    if (label) {
-        req.label = label;
-    }
-    return req;
-}
-
-/**
- * Build an extract request for RACF RRSF (Resource Set, Function-based)
- * @returns {Object} Complete request object
- * @example
- * const result = sear(extractRRSF());
- */
-function extractRRSF() {
-    return {
-        operation: 'extract',
-        admin_type: 'racf-rrsf',
-    };
-}
-
-/**
- * Build an extract request for a resource
- * @param {string} resource - The resource name to extract
- * @param {string} [profile_type] - Optional resource profile type
- * @returns {Object} Complete request object
- */
-function extractResource(resource, profile_type) {
-    const req = {
-        operation: 'extract',
-        admin_type: 'resource',
-        resource,
-    };
-    if (profile_type) {
-        req.profile_type = profile_type;
-    }
-    return req;
-}
-
-/**
- * Build a request for a group connection
- * @param {Object} criteria - Connection criteria
- * @returns {Object} Complete request object
- * @example
- * const result = sear(groupConnection({ userid: 'USER1', groupid: 'GROUP1' }));
- */
-function groupConnection(criteria) {
-    return {
-        ...criteria,
-        admin_type: 'group-connection',
-    };
-}
-
-/**
- * Build a permission alteration request (grant/revoke access)
- * @param {Object} criteria - Permission criteria with operation, dataset/resource, userid/groupid, and traits
- * @returns {Object} Complete request object
- * @example
- * const result = sear(alterPermission({
- *   operation: 'alter',
- *   dataset: 'PROD.DATA',
- *   userid: 'USER1',
- *   generic: true,
- *   traits: { 'base:access': 'READ' }
- * }));
- */
-function alterPermission(criteria) {
-    return {
-        ...criteria,
-        admin_type: 'permission',
-    };
 }
 
 // ============================================================================
@@ -506,25 +339,6 @@ module.exports = {
     ValidationError,
     RequestError,
     NativeError,
-
-    // Request builders - Extract operations
-    extractUser,
-    extractGroup,
-    extractDataset,
-    extractKeyring,
-    extractCertificate,
-    extractRRSF,
-    extractResource,
-
-    // Request builders - Search/List operations
-    searchUsers,
-    searchGroups,
-    listResources,
-
-    // Request builders - Permission/Connection operations
-    groupConnection,
-    alterPermission,
-    checkPermission,
 
     // Constants
     VALID_OPERATIONS,

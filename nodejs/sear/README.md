@@ -14,18 +14,13 @@ npm run build
 ### Basic Usage
 
 ```javascript
-const { sear, extractUser } = require('./nodejs/sear');
+const { sear } = require('./nodejs/sear');
 
-// Method 1: Direct object
 const result = sear({
   operation: 'extract',
   admin_type: 'user',
   userid: 'MYUSER'
 });
-console.log(result.result);
-
-// Method 2: Using builder functions
-const result = sear(extractUser('MYUSER'));
 console.log(result.result);
 ```
 
@@ -34,13 +29,16 @@ console.log(result.result);
 ```javascript
 const { 
   sear, 
-  extractUser,
   ValidationError, 
   SearError 
 } = require('./nodejs/sear');
 
 try {
-  const result = sear(extractUser('MYUSER'));
+  const result = sear({
+    operation: 'extract',
+    admin_type: 'user',
+    userid: 'MYUSER'
+  });
   if (result.isSuccess()) {
     console.log('Success:', result.result);
   } else {
@@ -62,11 +60,15 @@ try {
 For operations that might take time, use `searAsync()` to prevent blocking the event loop:
 
 ```javascript
-const { searAsync, extractUser } = require('./nodejs/sear');
+const { searAsync } = require('./nodejs/sear');
 
 async function getUser(userid) {
   try {
-    const result = await searAsync(extractUser(userid));
+    const result = await searAsync({
+      operation: 'extract',
+      admin_type: 'user',
+      userid,
+    });
     return result.result;
   } catch (error) {
     console.error('Failed to fetch user:', error.message);
@@ -87,12 +89,14 @@ const user = await getUser('MYUSER');
 Execute a SEAR operation synchronously.
 
 **Parameters:**
+
 - `request` (SearRequest): The operation request with `operation`, `admin_type`, and operation-specific fields
 - `debug` (boolean): Enable debug output in the native layer
 
 **Returns:** `SecurityResult` object with `request`, `raw_request`, `raw_result`, and `result` properties
 
-**Throws:** 
+**Throws:**
+
 - `ValidationError`: Request validation failed
 - `SearError`: Operation failed
 
@@ -111,12 +115,14 @@ Execute a SEAR operation asynchronously using a worker thread. Prevents event lo
 Represents the result of a SEAR operation.
 
 **Properties:**
+
 - `request`: The original request object
 - `raw_request`: Buffer containing raw request data sent to RACF
 - `raw_result`: Buffer containing raw response from RACF
 - `result`: Parsed result object
 
 **Methods:**
+
 - `toJSON()`: Returns JSON string representation
 - `isSuccess()`: Returns boolean indicating success status
 
@@ -128,91 +134,11 @@ All error classes extend `SearError` with detailed error information in `.detail
 - **`RequestError`**: Operation-level failure
 - **`NativeError`**: Native binding failure
 
-### Request Builders
+### Request Shape
 
-Helper functions to construct valid request objects:
+The Node.js interface follows the Python interface: construct a plain request object and pass it to `sear()` or `searAsync()`.
 
-#### `extractUser(userid): SearRequest`
-Extract a user by ID.
-
-#### `extractGroup(groupid): SearRequest`
-Extract a group by ID.
-
-#### `extractDataset(dataset): SearRequest`
-Extract a dataset by name.
-
-#### `searchUsers(filter={}): SearRequest`
-Search for users matching filter criteria.
-
-**Example:**
-```javascript
-const result = sear(searchUsers({ prefix: 'J' }));
-```
-
-#### `searchGroups(filter={}): SearRequest`
-Search for groups matching filter criteria.
-
-#### `listResources(admin_type): SearRequest`
-List all resources of a given type.
-
-**Example:**
-```javascript
-const result = sear(listResources('user'));
-```
-
-#### `extractKeyring(keyring, owner): SearRequest`
-Extract a keyring by name and owner.
-
-**Example:**
-```javascript
-const result = sear(extractKeyring('MYKEYRING', 'KEYRING_OWNER'));
-```
-
-#### `extractCertificate(keyring, owner, label?): SearRequest`
-Extract a certificate from a keyring.
-
-**Example:**
-```javascript
-const result = sear(extractCertificate('MYKEYRING', 'KEYRING_OWNER', 'MYCERT'));
-```
-
-#### `extractRRSF(): SearRequest`
-Extract RACF RRSF (Resource Set, Function-based) information.
-
-**Example:**
-```javascript
-const result = sear(extractRRSF());
-```
-
-#### `extractResource(resource, profile_type?): SearRequest`
-Extract a resource by name.
-
-**Example:**
-```javascript
-const result = sear(extractResource('RESOURCE1'));
-```
-
-#### `groupConnection(criteria): SearRequest`
-Build a group connection request with user and group information.
-
-**Example:**
-```javascript
-const result = sear(groupConnection({ userid: 'USER1', groupid: 'GROUP1' }));
-```
-
-#### `alterPermission(criteria): SearRequest`
-Build a permission alteration request (grant/revoke access to datasets or resources).
-
-**Example:**
-```javascript
-const result = sear(alterPermission({
-    operation: 'alter',
-    dataset: 'PROD.DATA',
-    userid: 'USER1',
-    generic: true,
-    traits: { 'base:access': 'READ' }
-}));
-```
+For backward compatibility, legacy JavaScript admin types `permit` and `connect` are still accepted and are normalized internally to `permission` and `group-connection`.
 
 ### Request Object
 
@@ -229,7 +155,7 @@ Base structure for all SEAR requests:
 **Supported Admin Types:**
 
 | Type | Purpose | Extract Fields |
-|------|---------|-----------------|
+| ---- | ------- | -------------- |
 | `'user'` | RACF user profiles | `userid` |
 | `'group'` | RACF group profiles | `groupid` |
 | `'dataset'` | z/OS dataset profiles | `dataset` |
@@ -243,7 +169,7 @@ Base structure for all SEAR requests:
 **Operation-specific requirements:**
 
 | Operation | Admin Type | Required Fields |
-|-----------|-----------|-----------------|
+| --------- | ---------- | --------------- |
 | extract | user | userid |
 | extract | group | groupid |
 | extract | dataset | dataset |
@@ -261,51 +187,71 @@ Base structure for all SEAR requests:
 ### Extract User Information
 
 ```javascript
-const { sear, extractUser } = require('./nodejs/sear');
+const { sear } = require('./nodejs/sear');
 
-const result = sear(extractUser('FDEGILIO'));
+const result = sear({
+  operation: 'extract',
+  admin_type: 'user',
+  userid: 'FDEGILIO'
+});
 console.log(JSON.stringify(result.result, null, 2));
 ```
 
 ### Search for Users
 
 ```javascript
-const { sear, searchUsers } = require('./nodejs/sear');
+const { sear } = require('./nodejs/sear');
 
-const result = sear(searchUsers({ prefix: 'A' }));
+const result = sear({
+  operation: 'search',
+  admin_type: 'user',
+  prefix: 'A'
+});
 console.log(`Found ${result.result.users?.length || 0} users starting with A`);
 ```
 
 ### Extract Keyring Information
 
 ```javascript
-const { sear, extractKeyring } = require('./nodejs/sear');
+const { sear } = require('./nodejs/sear');
 
-const result = sear(extractKeyring('MYKEYRING', 'KEYRING_OWNER'));
+const result = sear({
+  operation: 'extract',
+  admin_type: 'keyring',
+  keyring: 'MYKEYRING',
+  owner: 'KEYRING_OWNER'
+});
 console.log(JSON.stringify(result.result, null, 2));
 ```
 
 ### Extract Certificate from Keyring
 
 ```javascript
-const { sear, extractCertificate } = require('./nodejs/sear');
+const { sear } = require('./nodejs/sear');
 
-const result = sear(extractCertificate('MYKEYRING', 'KEYRING_OWNER', 'CERT_LABEL'));
+const result = sear({
+  operation: 'extract',
+  admin_type: 'certificate',
+  keyring: 'MYKEYRING',
+  owner: 'KEYRING_OWNER',
+  label: 'CERT_LABEL'
+});
 console.log(JSON.stringify(result.result, null, 2));
 ```
 
 ### Grant Dataset Permission
 
 ```javascript
-const { sear, alterPermission } = require('./nodejs/sear');
+const { sear } = require('./nodejs/sear');
 
-const result = sear(alterPermission({
-    operation: 'alter',
-    dataset: 'PROD.DATA',
-    userid: 'NEWUSER',
-    generic: true,
-    traits: { 'base:access': 'READ' }
-}));
+const result = sear({
+  operation: 'alter',
+  admin_type: 'permission',
+  dataset: 'PROD.DATA',
+  userid: 'NEWUSER',
+  generic: true,
+  traits: { 'base:access': 'READ' }
+});
 
 if (result.isSuccess()) {
     console.log('Permission granted');
@@ -317,11 +263,15 @@ if (result.isSuccess()) {
 ### Batch Processing with Async
 
 ```javascript
-const { searAsync, extractUser } = require('./nodejs/sear');
+const { searAsync } = require('./nodejs/sear');
 
 async function batchExtract(userids) {
   const promises = userids.map(id => 
-    searAsync(extractUser(id)).catch(err => ({ error: err.message }))
+    searAsync({
+      operation: 'extract',
+      admin_type: 'user',
+      userid: id,
+    }).catch(err => ({ error: err.message }))
   );
   return Promise.all(promises);
 }
