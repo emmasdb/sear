@@ -17,6 +17,7 @@
       "sear/irrsdl00/keyring_extractor.cpp",
       "sear/irrsdl00/keyring_modifier.cpp",
       "sear/irrsdl00/keyring_post_processor.cpp",
+      "sear/irrseq00/irrseq00.s",
       "sear/irrseq00/profile_extractor.cpp",
       "sear/irrseq00/profile_post_processor.cpp",
       "sear/irrsmo00/irrsmo00.cpp",
@@ -70,6 +71,7 @@
       "-Wl,<(zoslib_root)/lib/libzoslib.a"
     ],
     "cflags": ["-std=c99", "-m64", "-fzos-le-char-mode=ascii", "-D_POSIX_C_SOURCE=200112L"],
+    "asflags": ["-mGOFF"],
     "cflags_cc": ["-std=c++17", "-m64", "-fzos-le-char-mode=ascii", "-D_POSIX_C_SOURCE=200112L", "-fexceptions"]
   }]
 }
