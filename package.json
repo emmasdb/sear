@@ -7,7 +7,7 @@
   "homepage": "https://github.com/Mainframe-Renewal-Project/sear/",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Mainframe-Renewal-Project/sear/"
+    "url": "git+https://github.com/Mainframe-Renewal-Project/sear.git"
   },
   "bugs": {
     "url": "https://github.com/Mainframe-Renewal-Project/sear/issues"
@@ -34,9 +34,12 @@
   "os": [
     "os390"
   ],
-  "cpu": ["!arm", "!x64"],
+  "cpu": ["s390x", "s390"],
   "engines": {
     "node": ">=16.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "dependencies": {},
   "devDependencies": {
