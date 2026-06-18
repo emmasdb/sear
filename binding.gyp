@@ -64,6 +64,7 @@
     "extra_link_args": [
       "-m64",
       "-Wl,-b,edit=no",
+      "<!(node -p \"require('path').resolve('artifacts/irrseq00.o')\")",
       "-Wl,<(openssl_root)/lib/libcrypto.a",
       "-Wl,<(openssl_root)/lib/libssl.a",
       "-Wl,<(zoslib_root)/lib/libzoslib.a"
