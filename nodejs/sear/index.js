@@ -1,7 +1,5 @@
 'use strict';
 
-// "In space no one can hear you scream." (Alien, 1979)
-
 const { Worker } = require('worker_threads');
 const {
     SearError,
@@ -43,8 +41,6 @@ const VALID_ADMIN_TYPES = [
 // SecurityResult Class
 // ============================================================================
 
-// LV-426 energy: keep the payload clean and readable, like a good Weyland-Yutani report.
-
 /**
  * Represents the result of a SEAR operation
  * @class SecurityResult
@@ -84,8 +80,6 @@ class SecurityResult {
 // ============================================================================
 // Input Validation
 // ============================================================================
-
-// Like Ripley in Aliens (1986), validate first and trust nothing.
 
 /**
  * Validate a request object
@@ -152,27 +146,31 @@ function validateRequest(request) {
     }
 }
 
-/**
- * Normalize request shape.
- * @private
- * @param {Object} request - The request to normalize
- * @returns {Object} Normalized request object
- */
-function normalizeRequest(request) {
-    if (!request || typeof request !== 'object') {
-        return request;
-    }
+function prepareRequest(request) {
+    validateRequest(request);
 
     return {
-        ...request,
+        request,
+        requestJson: JSON.stringify(request),
     };
+}
+
+function buildSecurityResult(request, response) {
+    if (!response || typeof response !== 'object') {
+        throw new NativeError('Invalid response from native binding');
+    }
+
+    return new SecurityResult({
+        request,
+        raw_request: response.raw_request,
+        raw_result: response.raw_result,
+        result: response.result_json ? JSON.parse(response.result_json) : {},
+    });
 }
 
 // ============================================================================
 // Core Functions
 // ============================================================================
-
-// Prometheus-style reminder: clear inputs reduce mysterious failures.
 
 /**
  * Execute a SEAR operation synchronously
@@ -192,39 +190,18 @@ function normalizeRequest(request) {
  * console.log(result.result);
  */
 function sear(request, debug = false) {
-    const normalizedRequest = normalizeRequest(request);
+    const preparedRequest = prepareRequest(request);
 
     try {
-        validateRequest(normalizedRequest);
-    } catch (error) {
-        if (error instanceof ValidationError) {
-            throw error;
-        }
-        throw new ValidationError('Request validation failed', { error: error.message });
-    }
-
-    try {
-        const response = _C.call_sear(JSON.stringify(normalizedRequest), debug);
-
-        if (!response || typeof response !== 'object') {
-            throw new NativeError('Invalid response from native binding');
-        }
-
-        const result = new SecurityResult({
-            request: normalizedRequest,
-            raw_request: response.raw_request,
-            raw_result: response.raw_result,
-            result: response.result_json ? JSON.parse(response.result_json) : {},
-        });
-
-        return result;
+        const response = _C.call_sear(preparedRequest.requestJson, debug);
+        return buildSecurityResult(preparedRequest.request, response);
     } catch (error) {
         if (error instanceof SearError) {
             throw error;
         }
         throw new NativeError(
             `Failed to execute SEAR operation: ${error.message}`,
-            { operation: normalizedRequest.operation, admin_type: normalizedRequest.admin_type }
+            { operation: preparedRequest.request.operation, admin_type: preparedRequest.request.admin_type }
         );
     }
 }
@@ -245,9 +222,7 @@ function sear(request, debug = false) {
  * });
  */
 async function searAsync(request, debug = false) {
-    const normalizedRequest = normalizeRequest(request);
-
-    validateRequest(normalizedRequest);
+    const preparedRequest = prepareRequest(request);
 
     return new Promise((resolve, reject) => {
         const workerCode = `
@@ -270,7 +245,6 @@ async function searAsync(request, debug = false) {
         try {
             const worker = new Worker(workerCode, { eval: true });
 
-            // If this takes too long, we abort before things go full Nostromo.
             const timeout = setTimeout(() => {
                 worker.terminate();
                 reject(new SearError('SEAR operation timeout'));
@@ -282,15 +256,7 @@ async function searAsync(request, debug = false) {
 
                 if (message.success) {
                     try {
-                        const result = new SecurityResult({
-                            request: normalizedRequest,
-                            raw_request: message.response.raw_request,
-                            raw_result: message.response.raw_result,
-                            result: message.response.result_json
-                                ? JSON.parse(message.response.result_json)
-                                : {},
-                        });
-                        resolve(result);
+                        resolve(buildSecurityResult(preparedRequest.request, message.response));
                     } catch (error) {
                         reject(new NativeError('Failed to parse native response', {
                             error: error.message,
@@ -299,7 +265,7 @@ async function searAsync(request, debug = false) {
                 } else {
                     reject(new NativeError(
                         `Worker operation failed: ${message.error}`,
-                        { operation: normalizedRequest.operation }
+                        { operation: preparedRequest.request.operation }
                     ));
                 }
             });
@@ -308,18 +274,18 @@ async function searAsync(request, debug = false) {
                 clearTimeout(timeout);
                 reject(new NativeError(
                     `Worker error: ${error.message}`,
-                    { operation: normalizedRequest.operation }
+                    { operation: preparedRequest.request.operation }
                 ));
             });
 
             worker.postMessage({
-                request: JSON.stringify(normalizedRequest),
+                request: preparedRequest.requestJson,
                 debug,
             });
         } catch (error) {
             reject(new NativeError(
                 `Failed to create worker: ${error.message}`,
-                { operation: normalizedRequest.operation }
+                { operation: preparedRequest.request.operation }
             ));
         }
     });

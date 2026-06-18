@@ -146,7 +146,7 @@ Base structure for all SEAR requests:
 
 ```typescript
 {
-  operation: 'extract' | 'search' | 'list' | 'check' | 'alter' | 'add' | 'delete',
+  operation: 'extract' | 'search' | 'alter' | 'add' | 'delete',
   admin_type: 'user' | 'group' | 'dataset' | 'keyring' | 'certificate' | 'resource' | 'group-connection' | 'permission' | 'racf-rrsf',
   // Additional fields based on operation and admin_type
 }
@@ -178,9 +178,7 @@ Base structure for all SEAR requests:
 | extract | resource | resource |
 | extract | racf-rrsf | (none additional) |
 | search | any | (varies by filter) |
-| list | any | (none additional) |
 | alter | permission | dataset/resource, userid/group, traits |
-| check | any | (criteria-specific) |
 
 ## Examples
 
