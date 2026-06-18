@@ -33,21 +33,6 @@
       "externals/json-schema-validator/string-format-check.cpp",
       "externals/pugixml/pugixml.cpp"
     ],
-    "actions": [{
-      "action_name": "assemble_irrseq00",
-      "inputs": ["sear/irrseq00/irrseq00.s"],
-      "outputs": ["<(INTERMEDIATE_DIR)/irrseq00.o"],
-      "action": [
-        "as",
-        "-mGOFF",
-        "-I", "sear/irrseq00",
-        "-o", "<(INTERMEDIATE_DIR)/irrseq00.o",
-        "sear/irrseq00/irrseq00.s"
-      ]
-    }],
-    "link_settings": {
-      "libraries": ["<(INTERMEDIATE_DIR)/irrseq00.o"]
-    },
     "include_dirs": [
       "sear",
       "sear/irrsdl00",
