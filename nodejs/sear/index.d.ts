@@ -201,7 +201,7 @@ export function searAsync(request: SearRequest, debug?: boolean): Promise<Securi
 /**
  * Valid operation types
  */
-export const VALID_OPERATIONS: readonly ['extract', 'search', 'list', 'check', 'alter', 'add', 'delete'];
+export const VALID_OPERATIONS: readonly ['extract', 'search', 'alter', 'add', 'delete'];
 
 /**
  * Valid admin types
