@@ -1,5 +1,7 @@
 'use strict';
 
+// "In space no one can hear you scream." (Alien, 1979)
+
 const { Worker } = require('worker_threads');
 const {
     SearError,
@@ -41,6 +43,8 @@ const VALID_ADMIN_TYPES = [
 // SecurityResult Class
 // ============================================================================
 
+// LV-426 energy: keep the payload clean and readable, like a good Weyland-Yutani report.
+
 /**
  * Represents the result of a SEAR operation
  * @class SecurityResult
@@ -80,6 +84,8 @@ class SecurityResult {
 // ============================================================================
 // Input Validation
 // ============================================================================
+
+// Like Ripley in Aliens (1986), validate first and trust nothing.
 
 /**
  * Validate a request object
@@ -165,6 +171,8 @@ function normalizeRequest(request) {
 // ============================================================================
 // Core Functions
 // ============================================================================
+
+// Prometheus-style reminder: clear inputs reduce mysterious failures.
 
 /**
  * Execute a SEAR operation synchronously
@@ -262,6 +270,7 @@ async function searAsync(request, debug = false) {
         try {
             const worker = new Worker(workerCode, { eval: true });
 
+            // If this takes too long, we abort before things go full Nostromo.
             const timeout = setTimeout(() => {
                 worker.terminate();
                 reject(new SearError('SEAR operation timeout'));
