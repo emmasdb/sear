@@ -54,6 +54,9 @@ set(CXX_STANDARD 17)
 # This option is used when building the Python wheel
 option(SEAR_ENABLE_PYTHON "Enables building the Python language module." OFF)
 
+# This option is used when building the Lua module
+option(SEAR_ENABLE_LUA "Enables building the Lua language module." OFF)
+
 # This option is used on Linux to build SEAR with mocked unit tests
 option(SEAR_UNIT_TEST "Builds tests" OFF)
 
@@ -163,6 +166,22 @@ if (SEAR_ENABLE_PYTHON)
         cmake_path(GET SEAR_PYTHON_EXTENSION_PATH FILENAME MODULE_FILENAME)
         cmake_path(GET SEAR_PYTHON_EXTENSION_PATH PARENT_PATH MODULE_DIR)
         install(PROGRAMS "$<TARGET_FILE:pysear>" DESTINATION "${MODULE_DIR}" RENAME "${MODULE_FILENAME}")
+    endif()
+endif()
+
+if (SEAR_ENABLE_LUA)
+    find_package(Lua REQUIRED)
+
+    add_library(searlua MODULE sear/lua/_sear.cpp)
+    target_include_directories(searlua PRIVATE ${LUA_INCLUDE_DIR})
+    target_link_libraries(searlua PRIVATE sear ${LUA_LIBRARIES} pthread)
+    set_target_properties(searlua PROPERTIES PREFIX "" OUTPUT_NAME "sear")
+
+    if (DEFINED SEAR_LUA_EXTENSION_PATH)
+        message(STATUS "Installing Lua module to: ${SEAR_LUA_EXTENSION_PATH}")
+        cmake_path(GET SEAR_LUA_EXTENSION_PATH FILENAME MODULE_FILENAME)
+        cmake_path(GET SEAR_LUA_EXTENSION_PATH PARENT_PATH MODULE_DIR)
+        install(PROGRAMS "$<TARGET_FILE:searlua>" DESTINATION "${MODULE_DIR}" RENAME "${MODULE_FILENAME}")
     endif()
 endif()
 

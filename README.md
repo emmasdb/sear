@@ -64,6 +64,27 @@ print(result.result)
 
 Further examples are located [under examples in the documentation](https://mainframe-renewal-project.github.io/sear-docs/examples/).
 
+### Lua interface
+
+The SEAR Lua interface is kept intentionally close to the Python API. When built with `SEAR_ENABLE_LUA=ON`, it exposes a `sear` module that accepts a Lua table request and returns a Lua table with the same high-level fields as Python: `request`, `raw_request`, `raw_result`, and `result`.
+
+```lua
+local sear = require("sear")
+
+local result = sear.sear({
+  operation = "add",
+  admin_type = "user",
+  userid = "FDEGILIO",
+  traits = {
+    ["base:name"] = "FRANK D",
+  },
+})
+
+print(result.result)
+```
+
+The module also provides `sear.call(request, debug)` as an alias for `sear.sear(request, debug)`.
+
 Additional help can be found in the following communities:
 
 * [GitHub Discussions](https://github.com/Mainframe-Renewal-Project/sear/discussions)
@@ -87,6 +108,8 @@ A complete list of available CMake presets can be found in [CMakePresets.json](C
 * `zos` - Applies the `cmake/ibm-clang.cmake` toolchain to the build process. This compiles the project using the IBM-Clang compiler, and works only on z/OS systems.
 
 * `zos-pysear` - Inherits from the `zos` preset. Used internally as part of the Python package build process, and not generally used by hand.
+
+* `searlua` - Builds the Lua module when `SEAR_ENABLE_LUA=on` and Lua development headers are available.
 
 Build artifacts are located within the build directory.
 
