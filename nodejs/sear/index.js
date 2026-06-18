@@ -258,9 +258,14 @@ async function searAsync(request, debug = false) {
 
             parentPort.on('message', (message) => {
                 try {
+                    console.error('[Worker] Received message, calling _C.call_sear');
+                    console.error('[Worker] Request:', message.request);
+                    console.error('[Worker] Debug:', message.debug);
                     const response = _C.call_sear(message.request, message.debug);
+                    console.error('[Worker] call_sear returned');
                     parentPort.postMessage({ success: true, response });
                 } catch (error) {
+                    console.error('[Worker] Exception caught:', error.message);
                     parentPort.postMessage({ 
                         success: false, 
                         error: error.message 
