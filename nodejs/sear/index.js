@@ -9,8 +9,10 @@ const {
 } = require('./errors');
 
 let _C;
+let nativeModulePath;
 try {
-    _C = require('../../build/Release/_sear.node');
+    nativeModulePath = require.resolve('../../build/Release/_sear.node');
+    _C = require(nativeModulePath);
 } catch (error) {
     throw new NativeError(
         'Failed to load native SEAR binding. Ensure the addon is built: npm run build',
@@ -252,7 +254,7 @@ async function searAsync(request, debug = false) {
     return new Promise((resolve, reject) => {
         const workerCode = `
             const { parentPort } = require('worker_threads');
-            const _C = require('../../build/Release/_sear.node');
+            const _C = require('${nativeModulePath}');
 
             parentPort.on('message', (message) => {
                 try {
