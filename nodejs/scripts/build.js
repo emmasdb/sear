@@ -35,7 +35,30 @@ fs.chmodSync(cxxWrapperPath, 0o755);
 const existingLdflags = process.env.LDFLAGS ? `${process.env.LDFLAGS} ` : '';
 const linkWithIrrseq = `${existingLdflags}${irrseqObjectPath}`;
 
-const result = spawnSync('node-gyp', ['configure', 'build'], {
+const realCc = process.env.SEAR_NODE_REAL_CC || 'ibm-clang64';
+const realCxx = process.env.SEAR_NODE_REAL_CXX || 'ibm-clang++64';
+
+const configureResult = spawnSync('node-gyp', ['configure'], {
+    stdio: 'inherit',
+    env: {
+        ...process.env,
+        MAKE: makeCommand,
+        CC: realCc,
+        CXX: realCxx,
+        LDFLAGS: linkWithIrrseq,
+    },
+    shell: process.platform === 'win32',
+});
+
+if (configureResult.error) {
+    throw configureResult.error;
+}
+
+if (configureResult.status !== 0) {
+    process.exit(configureResult.status ?? 1);
+}
+
+const buildResult = spawnSync('node-gyp', ['build'], {
     stdio: 'inherit',
     env: {
         ...process.env,
@@ -47,8 +70,8 @@ const result = spawnSync('node-gyp', ['configure', 'build'], {
     shell: process.platform === 'win32',
 });
 
-if (result.error) {
-    throw result.error;
+if (buildResult.error) {
+    throw buildResult.error;
 }
 
-process.exit(result.status ?? 0);
+process.exit(buildResult.status ?? 0);
