@@ -20,8 +20,7 @@ export interface SearRequest {
     operation: 'extract' | 'search' | 'alter' | 'add' | 'delete';
 
     /**
-     * Type of resource: canonical values are 'user', 'group', 'dataset', 'group-connection', 'permission', 'keyring', 'certificate', 'resource', 'racf-rrsf'.
-     * Legacy aliases 'connect' and 'permit' are also accepted for compatibility.
+     * Type of resource: 'user', 'group', 'dataset', 'group-connection', 'permission', 'keyring', 'certificate', 'resource', 'racf-rrsf'.
      */
     admin_type:
         | 'user'
@@ -32,9 +31,7 @@ export interface SearRequest {
         | 'keyring'
         | 'certificate'
         | 'resource'
-        | 'racf-rrsf'
-        | 'connect'
-        | 'permit';
+        | 'racf-rrsf';
 
     /**
      * User ID (required for extract admin_type='user')
@@ -42,9 +39,9 @@ export interface SearRequest {
     userid?: string;
 
     /**
-     * Group ID (required for extract admin_type='group')
+     * Group name/ID (canonical field for group operations)
      */
-    groupid?: string;
+    group?: string;
 
     /**
      * Dataset name (required for extract admin_type='dataset')

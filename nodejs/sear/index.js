@@ -37,11 +37,6 @@ const VALID_ADMIN_TYPES = [
     'racf-rrsf',
 ];
 
-const ADMIN_TYPE_ALIASES = {
-    connect: 'group-connection',
-    permit: 'permission',
-};
-
 // ============================================================================
 // SecurityResult Class
 // ============================================================================
@@ -116,8 +111,8 @@ function validateRequest(request) {
         if (request.admin_type === 'user' && !request.userid) {
             errors.push('userid is required for user extraction');
         }
-        if (request.admin_type === 'group' && !request.group && !request.groupid) {
-            errors.push('group (or legacy groupid) is required for group extraction');
+        if (request.admin_type === 'group' && !request.group) {
+            errors.push('group is required for group extraction');
         }
         if (request.admin_type === 'dataset' && !request.dataset) {
             errors.push('dataset is required for dataset extraction');
@@ -138,8 +133,8 @@ function validateRequest(request) {
         if (!request.dataset && !request.resource) {
             errors.push('either dataset or resource is required for permission alteration');
         }
-        if (!request.userid && !request.group && !request.groupid) {
-            errors.push('either userid or group (or legacy groupid) is required for permission alteration');
+        if (!request.userid && !request.group) {
+            errors.push('either userid or group is required for permission alteration');
         }
     }
 
@@ -152,7 +147,7 @@ function validateRequest(request) {
 }
 
 /**
- * Normalize legacy request aliases to the canonical Python-aligned shape.
+ * Normalize request shape.
  * @private
  * @param {Object} request - The request to normalize
  * @returns {Object} Normalized request object
@@ -162,30 +157,9 @@ function normalizeRequest(request) {
         return request;
     }
 
-    const normalizedRequest = {
+    return {
         ...request,
     };
-
-    if (normalizedRequest.admin_type && ADMIN_TYPE_ALIASES[normalizedRequest.admin_type]) {
-        normalizedRequest.admin_type = ADMIN_TYPE_ALIASES[normalizedRequest.admin_type];
-    }
-
-    if (normalizedRequest.admin_type === 'group') {
-        if (!normalizedRequest.group && normalizedRequest.groupid) {
-            normalizedRequest.group = normalizedRequest.groupid;
-        }
-        if (!normalizedRequest.group_filter && normalizedRequest.groupid_filter) {
-            normalizedRequest.group_filter = normalizedRequest.groupid_filter;
-        }
-    }
-
-    if (normalizedRequest.admin_type === 'permission') {
-        if (!normalizedRequest.group && normalizedRequest.groupid) {
-            normalizedRequest.group = normalizedRequest.groupid;
-        }
-    }
-
-    return normalizedRequest;
 }
 
 // ============================================================================

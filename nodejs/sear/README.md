@@ -80,6 +80,8 @@ async function getUser(userid) {
 const user = await getUser('MYUSER');
 ```
 
+> **Note on z/OS:** The synchronous `sear()` function is recommended for z/OS deployments. Worker threads may not have the proper security context needed for RACF system calls. Use `searAsync()` only if your deployment requires non-blocking I/O.
+
 ## API Reference
 
 ### Core Functions
@@ -138,8 +140,6 @@ All error classes extend `SearError` with detailed error information in `.detail
 
 The Node.js interface follows the Python interface: construct a plain request object and pass it to `sear()` or `searAsync()`.
 
-For backward compatibility, legacy JavaScript admin types `permit` and `connect` are still accepted and are normalized internally to `permission` and `group-connection`.
-
 ### Request Object
 
 Base structure for all SEAR requests:
@@ -157,21 +157,21 @@ Base structure for all SEAR requests:
 | Type | Purpose | Extract Fields |
 | ---- | ------- | -------------- |
 | `'user'` | RACF user profiles | `userid` |
-| `'group'` | RACF group profiles | `groupid` |
+| `'group'` | RACF group profiles | `group` |
 | `'dataset'` | z/OS dataset profiles | `dataset` |
 | `'keyring'` | RACF keyrings | `keyring`, `owner` |
 | `'certificate'` | Certificates in keyrings | `keyring`, `owner`, `label` (optional) |
 | `'resource'` | RACF resource profiles | `resource`, `profile_type` (optional) |
 | `'racf-rrsf'` | RACF RRSF (Resource Set, Function-based) | (none) |
-| `'group-connection'` | User-group connections | `userid`, `groupid` |
-| `'permission'` | Resource permissions | `dataset`/`resource`, `userid`/`groupid`, `traits` |
+| `'group-connection'` | User-group connections | `userid`, `group` |
+| `'permission'` | Resource permissions | `dataset`/`resource`, `userid`/`group`, `traits` |
 
 **Operation-specific requirements:**
 
 | Operation | Admin Type | Required Fields |
 | --------- | ---------- | --------------- |
 | extract | user | userid |
-| extract | group | groupid |
+| extract | group | group |
 | extract | dataset | dataset |
 | extract | keyring | keyring, owner |
 | extract | certificate | keyring, owner |
@@ -179,7 +179,7 @@ Base structure for all SEAR requests:
 | extract | racf-rrsf | (none additional) |
 | search | any | (varies by filter) |
 | list | any | (none additional) |
-| alter | permission | dataset/resource, userid/groupid, traits |
+| alter | permission | dataset/resource, userid/group, traits |
 | check | any | (criteria-specific) |
 
 ## Examples
@@ -284,9 +284,13 @@ const results = await batchExtract(['USER1', 'USER2', 'USER3']);
 With TypeScript support (index.d.ts provided):
 
 ```typescript
-import { sear, extractUser, ValidationError, SearRequest } from './nodejs/sear';
+import { sear, ValidationError, SearRequest } from './nodejs/sear';
 
-const request: SearRequest = extractUser('MYUSER');
+const request: SearRequest = {
+  operation: 'extract',
+  admin_type: 'user',
+  userid: 'MYUSER',
+};
 const result = sear(request);
 if (result.isSuccess()) {
   console.log(result.result);
