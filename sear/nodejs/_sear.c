@@ -24,8 +24,16 @@ static napi_value call_sear(napi_env env, napi_callback_info info) {
         napi_get_value_bool(env, argv[1], &debug);
     }
 
+    fprintf(stderr, "[_sear.c] call_sear: length=%zu debug=%d\n", request_length, debug);
+    fprintf(stderr, "[_sear.c] request: %s\n", request);
+    fflush(stderr);
+
     pthread_mutex_lock(&sear_mutex);
+    fprintf(stderr, "[_sear.c] calling sear()\n");
+    fflush(stderr);
     sear_result_t* result = sear(request, (int)request_length, debug);
+    fprintf(stderr, "[_sear.c] sear() returned\n");
+    fflush(stderr);
     free(request);
 
     // Build result object { raw_request, raw_result, result_json }
