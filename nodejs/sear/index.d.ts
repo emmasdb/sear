@@ -91,12 +91,12 @@ export class SecurityResult {
     /**
      * Raw request buffer sent to RACF
      */
-    raw_request: Buffer;
+    raw_request: Uint8Array;
 
     /**
      * Raw result buffer from RACF
      */
-    raw_result: Buffer;
+    raw_result: Uint8Array;
 
     /**
      * Parsed result object
@@ -105,8 +105,8 @@ export class SecurityResult {
 
     constructor(options: {
         request: SearRequest;
-        raw_request: Buffer;
-        raw_result: Buffer;
+        raw_request: Uint8Array;
+        raw_result: Uint8Array;
         result: SearResultObject;
     });
 
@@ -125,7 +125,7 @@ export class SecurityResult {
  * Base error class for SEAR-related errors
  */
 export class SearError extends Error {
-    name: 'SearError';
+    name: string;
     code: string;
     details?: Record<string, any>;
     constructor(message: string, code?: string);
