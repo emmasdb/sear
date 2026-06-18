@@ -141,15 +141,6 @@ export class ValidationError extends SearError {
 }
 
 /**
- * Request error for operation failures
- */
-export class RequestError extends SearError {
-    name: 'RequestError';
-    details: Record<string, any>;
-    constructor(message: string, details?: Record<string, any>);
-}
-
-/**
  * Native binding error
  */
 export class NativeError extends SearError {

@@ -133,7 +133,6 @@ Represents the result of a SEAR operation.
 All error classes extend `SearError` with detailed error information in `.details` property:
 
 - **`ValidationError`**: Invalid request (missing required fields, invalid operation/admin_type)
-- **`RequestError`**: Operation-level failure
 - **`NativeError`**: Native binding failure
 
 ### Request Shape

@@ -5,7 +5,6 @@ const { Worker } = require('worker_threads');
 const {
     SearError,
     ValidationError,
-    RequestError,
     NativeError,
 } = require('./errors');
 
@@ -292,7 +291,6 @@ module.exports = {
     // Error classes
     SearError,
     ValidationError,
-    RequestError,
     NativeError,
 
     // Constants
