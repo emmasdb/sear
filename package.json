@@ -4,7 +4,7 @@
   "description": "A unified and standardized interface to RACF callable services on z/OS.",
   "main": "nodejs/sear/index.js",
   "types": "nodejs/sear/index.d.ts",
-  "homepage": "https://github.com/Mainframe-Renewal-Project/sear/",
+  "homepage": "https://github.com/Mainframe-Renewal-Project/sear",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Mainframe-Renewal-Project/sear.git"
