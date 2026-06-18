@@ -54,6 +54,9 @@ set(CXX_STANDARD 17)
 # This option is used when building the Python wheel
 option(SEAR_ENABLE_PYTHON "Enables building the Python language module." OFF)
 
+# This option is used when building the Go interface module
+option(SEAR_ENABLE_GO "Enables building the Go language module." OFF)
+
 # This option is used on Linux to build SEAR with mocked unit tests
 option(SEAR_UNIT_TEST "Builds tests" OFF)
 
@@ -164,6 +167,22 @@ if (SEAR_ENABLE_PYTHON)
         cmake_path(GET SEAR_PYTHON_EXTENSION_PATH PARENT_PATH MODULE_DIR)
         install(PROGRAMS "$<TARGET_FILE:pysear>" DESTINATION "${MODULE_DIR}" RENAME "${MODULE_FILENAME}")
     endif()
+endif()
+
+if (SEAR_ENABLE_GO)
+    find_program(GO_EXECUTABLE go)
+
+    if (NOT GO_EXECUTABLE)
+        message(FATAL_ERROR "SEAR_ENABLE_GO is ON but Go executable was not found in PATH")
+    endif()
+
+    add_custom_target(go-sear
+        COMMAND "${GO_EXECUTABLE}" test ./...
+        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/go"
+        COMMENT "Running Go tests for SEAR Go interface"
+    )
+
+    message(STATUS "Go module target enabled: go-sear")
 endif()
 
 # The test_runner executable
