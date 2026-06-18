@@ -1,5 +1,6 @@
 'use strict';
 
+const path = require('path');
 const { Worker } = require('worker_threads');
 const {
     SearError,
@@ -10,8 +11,10 @@ const {
 
 let _C;
 let nativeModulePath;
+let workerModulePath;
 try {
     nativeModulePath = require.resolve('../../build/Release/_sear.node');
+    workerModulePath = path.join(__dirname, 'sear.worker.js');
     _C = require(nativeModulePath);
 } catch (error) {
     throw new NativeError(
@@ -225,25 +228,10 @@ async function searAsync(request, debug = false) {
     const preparedRequest = prepareRequest(request);
 
     return new Promise((resolve, reject) => {
-        const workerCode = `
-            const { parentPort } = require('worker_threads');
-            const _C = require('${nativeModulePath}');
-
-            parentPort.on('message', (message) => {
-                try {
-                    const response = _C.call_sear(message.request, message.debug);
-                    parentPort.postMessage({ success: true, response });
-                } catch (error) {
-                    parentPort.postMessage({ 
-                        success: false, 
-                        error: error.message 
-                    });
-                }
-            });
-        `;
-
         try {
-            const worker = new Worker(workerCode, { eval: true });
+            const worker = new Worker(workerModulePath, {
+                workerData: { nativeModulePath },
+            });
 
             const timeout = setTimeout(() => {
                 worker.terminate();
