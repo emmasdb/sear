@@ -45,6 +45,7 @@ pip install pysear
 Make sure you have the right authorizations, [detailed in the full documentation](https://mainframe-renewal-project.github.io/sear-docs/authorizations/).
 
 How to create a simple userid using SEAR:
+
 ```py
 from sear import sear
 
@@ -96,7 +97,7 @@ Alternatively to installing from Pip, _SEAR_ can be built from source on a z/OS 
 
 ```shell
 cmake --preset <preset>
-cmake --build --preset <preset> --target <sear,pysear>
+cmake --build --preset <preset> --target <sear,pysear,searlua>
 ```
 
 The first command will configure the build environment and generate build scripts in a directory named `build/<preset>`, then the second command builds the given target.
@@ -109,11 +110,36 @@ A complete list of available CMake presets can be found in [CMakePresets.json](C
 
 * `zos-pysear` - Inherits from the `zos` preset. Used internally as part of the Python package build process, and not generally used by hand.
 
-* `searlua` - Builds the Lua module when `SEAR_ENABLE_LUA=on` and Lua development headers are available.
+* `zos-lua` - Inherits from the `zos` preset and builds the Lua module when Lua development headers are available.
 
 Build artifacts are located within the build directory.
 
 The CMake build process builds static libraries by default. If you instead wish to build shared libraries, append `-DBUILD_SHARED_LIBS=on` to the CMake configure step command (the first of the two) shown above.
+
+### Build and test the Lua interface
+
+Build the Lua module on z/OS:
+
+```shell
+cmake --preset zos-lua
+cmake --build --preset zos-lua
+```
+
+Or build it through LuaRocks:
+
+```shell
+luarocks make sear-lua-scm-1.rockspec
+```
+
+To test the module directly from the CMake build tree, make the built module discoverable by Lua and run the functional smoke test:
+
+```shell
+export LUA_CPATH="$PWD/build/zos-lua/?.so;;"
+export SEAR_FVT_USERID=NOTAREALID
+lua tests/fvt/fvt.lua
+```
+
+`SEAR_FVT_USERID` must be set to a userid that does not exist. The smoke test exercises both `extract` and `delete` style requests, mirroring [tests/fvt/fvt.py](tests/fvt/fvt.py).
 
 ## Maintainers
 

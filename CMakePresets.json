@@ -27,6 +27,14 @@
             }
         },
         {
+            "name": "zos-lua",
+            "inherits": "zos",
+            "binaryDir": "${sourceDir}/build/zos-lua",
+            "cacheVariables": {
+                "SEAR_ENABLE_LUA": "ON"
+            }
+        },
+        {
             "name": "linux-test",
             "displayName": "Linux Testing",
             "description": "Used for unit testing under Linux",
@@ -67,6 +75,12 @@
             "inherits": "zos",
             "configurePreset": "zos-pysear",
             "targets": [ "pysear" ]
+        },
+        {
+            "name": "zos-lua",
+            "inherits": "zos",
+            "configurePreset": "zos-lua",
+            "targets": [ "searlua" ]
         },
         {
             "name": "linux-test",
