@@ -116,8 +116,8 @@ function validateRequest(request) {
         if (request.admin_type === 'user' && !request.userid) {
             errors.push('userid is required for user extraction');
         }
-        if (request.admin_type === 'group' && !request.groupid) {
-            errors.push('groupid is required for group extraction');
+        if (request.admin_type === 'group' && !request.group && !request.groupid) {
+            errors.push('group (or legacy groupid) is required for group extraction');
         }
         if (request.admin_type === 'dataset' && !request.dataset) {
             errors.push('dataset is required for dataset extraction');
@@ -138,8 +138,8 @@ function validateRequest(request) {
         if (!request.dataset && !request.resource) {
             errors.push('either dataset or resource is required for permission alteration');
         }
-        if (!request.userid && !request.groupid) {
-            errors.push('either userid or groupid is required for permission alteration');
+        if (!request.userid && !request.group && !request.groupid) {
+            errors.push('either userid or group (or legacy groupid) is required for permission alteration');
         }
     }
 
@@ -162,14 +162,30 @@ function normalizeRequest(request) {
         return request;
     }
 
-    if (!request.admin_type || !ADMIN_TYPE_ALIASES[request.admin_type]) {
-        return request;
+    const normalizedRequest = {
+        ...request,
+    };
+
+    if (normalizedRequest.admin_type && ADMIN_TYPE_ALIASES[normalizedRequest.admin_type]) {
+        normalizedRequest.admin_type = ADMIN_TYPE_ALIASES[normalizedRequest.admin_type];
     }
 
-    return {
-        ...request,
-        admin_type: ADMIN_TYPE_ALIASES[request.admin_type],
-    };
+    if (normalizedRequest.admin_type === 'group') {
+        if (!normalizedRequest.group && normalizedRequest.groupid) {
+            normalizedRequest.group = normalizedRequest.groupid;
+        }
+        if (!normalizedRequest.group_filter && normalizedRequest.groupid_filter) {
+            normalizedRequest.group_filter = normalizedRequest.groupid_filter;
+        }
+    }
+
+    if (normalizedRequest.admin_type === 'permission') {
+        if (!normalizedRequest.group && normalizedRequest.groupid) {
+            normalizedRequest.group = normalizedRequest.groupid;
+        }
+    }
+
+    return normalizedRequest;
 }
 
 // ============================================================================
