@@ -312,7 +312,7 @@ npm run build
 
 ## Platform Requirements
 
-- Node.js v14+ on z/OS (os390/s390x)
+- Node.js v16+ on z/OS (os390)
 - ibm-clang64/ibm-clang++64 compiler
 - z/OS RACF security kernel
 

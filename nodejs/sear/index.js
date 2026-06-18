@@ -38,6 +38,7 @@ const VALID_ADMIN_TYPES = [
     'resource',
     'racf-rrsf',
 ];
+const DEFAULT_ASYNC_TIMEOUT_MS = 60000;
 
 // ============================================================================
 // SecurityResult Class
@@ -227,6 +228,16 @@ async function searAsync(request, debug = false) {
     const preparedRequest = prepareRequest(request);
 
     return new Promise((resolve, reject) => {
+        let isSettled = false;
+
+        function settle(settleFn, value) {
+            if (isSettled) {
+                return;
+            }
+            isSettled = true;
+            settleFn(value);
+        }
+
         try {
             const worker = new Worker(workerModulePath, {
                 workerData: { nativeModulePath },
@@ -234,8 +245,8 @@ async function searAsync(request, debug = false) {
 
             const timeout = setTimeout(() => {
                 worker.terminate();
-                reject(new SearError('SEAR operation timeout'));
-            }, 60000); // 60 second timeout
+                settle(reject, new SearError('SEAR operation timeout'));
+            }, DEFAULT_ASYNC_TIMEOUT_MS);
 
             worker.on('message', (message) => {
                 clearTimeout(timeout);
@@ -243,14 +254,14 @@ async function searAsync(request, debug = false) {
 
                 if (message.success) {
                     try {
-                        resolve(buildSecurityResult(preparedRequest.request, message.response));
+                        settle(resolve, buildSecurityResult(preparedRequest.request, message.response));
                     } catch (error) {
-                        reject(new NativeError('Failed to parse native response', {
+                        settle(reject, new NativeError('Failed to parse native response', {
                             error: error.message,
                         }));
                     }
                 } else {
-                    reject(new NativeError(
+                    settle(reject, new NativeError(
                         `Worker operation failed: ${message.error}`,
                         { operation: preparedRequest.request.operation }
                     ));
@@ -259,8 +270,20 @@ async function searAsync(request, debug = false) {
 
             worker.on('error', (error) => {
                 clearTimeout(timeout);
-                reject(new NativeError(
+                settle(reject, new NativeError(
                     `Worker error: ${error.message}`,
+                    { operation: preparedRequest.request.operation }
+                ));
+            });
+
+            worker.on('exit', (code) => {
+                if (isSettled || code === 0) {
+                    return;
+                }
+
+                clearTimeout(timeout);
+                settle(reject, new NativeError(
+                    `Worker exited with code ${code}`,
                     { operation: preparedRequest.request.operation }
                 ));
             });
@@ -270,7 +293,7 @@ async function searAsync(request, debug = false) {
                 debug,
             });
         } catch (error) {
-            reject(new NativeError(
+            settle(reject, new NativeError(
                 `Failed to create worker: ${error.message}`,
                 { operation: preparedRequest.request.operation }
             ));

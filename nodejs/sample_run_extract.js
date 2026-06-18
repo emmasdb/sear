@@ -3,7 +3,7 @@
 const { sear } = require('./sear');
 
 try {
-    request = {
+    const request = {
         "operation": "extract",
         "admin_type": "user",
         "userid": "<userid>",

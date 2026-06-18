@@ -23,17 +23,6 @@ class ValidationError extends SearError {
 }
 
 /**
- * Request error for operation failures
- */
-class RequestError extends SearError {
-    constructor(message, details = {}) {
-        super(message, 'REQUEST_ERROR');
-        this.name = 'RequestError';
-        this.details = details;
-    }
-}
-
-/**
  * Native binding error
  */
 class NativeError extends SearError {
@@ -47,6 +36,5 @@ class NativeError extends SearError {
 module.exports = {
     SearError,
     ValidationError,
-    RequestError,
     NativeError,
 };
