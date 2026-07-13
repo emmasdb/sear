@@ -74,6 +74,10 @@ function linkOrCopyFile(source, target) {
 }
 
 function createNodeGypNodeDir(nodeRoot) {
+    if (!nodeRoot) {
+        return null;
+    }
+
     const includeNodeDir = path.join(nodeRoot, 'include', 'node');
     const includeCommonGypi = path.join(includeNodeDir, 'common.gypi');
 
