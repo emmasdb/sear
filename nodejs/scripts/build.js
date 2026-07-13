@@ -26,15 +26,15 @@ const irrseqObjectPath = path.join(__dirname, '..', '..', 'artifacts', 'irrseq00
 const nodeGypNodeDir = path.join(__dirname, '..', '..', 'build', 'node-gyp-node-dir');
 
 function hasNodeGypMetadata(nodeDir) {
-    return Boolean(nodeDir) && fs.existsSync(path.join(nodeDir, 'common.gypi'));
+    return typeof nodeDir === 'string' && fs.existsSync(path.join(nodeDir, 'common.gypi'));
 }
 
 function hasNodeHeaders(nodeDir) {
-    return Boolean(nodeDir) && fs.existsSync(path.join(nodeDir, 'include', 'node', 'node.h'));
+    return typeof nodeDir === 'string' && fs.existsSync(path.join(nodeDir, 'include', 'node', 'node.h'));
 }
 
 function hasIncludeNodeGypMetadata(nodeDir) {
-    return Boolean(nodeDir) && fs.existsSync(path.join(nodeDir, 'include', 'node', 'common.gypi'));
+    return typeof nodeDir === 'string' && fs.existsSync(path.join(nodeDir, 'include', 'node', 'common.gypi'));
 }
 
 function isNodeInstallDir(nodeDir) {
@@ -74,7 +74,7 @@ function linkOrCopyFile(source, target) {
 }
 
 function createNodeGypNodeDir(nodeRoot) {
-    if (!nodeRoot) {
+    if (typeof nodeRoot !== 'string') {
         return null;
     }
 
