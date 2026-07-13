@@ -304,10 +304,8 @@ static napi_value call_sear(napi_env env, napi_callback_info info) {
       security_admin.makeRequest(
           extract_request_json.data(),
           static_cast<int>(extract_request_json.length()));
-      bool profile_exists = result_has_sear_success(extract_result);
-      cleanup_result(&extract_result);
-
-      if (profile_exists) {
+      if (result_has_sear_success(extract_result)) {
+        cleanup_result(&extract_result);
         std::string error_json = build_error_result_json({duplicate_error});
         sear_result_t error_result = {nullptr,
                                       0,
@@ -319,6 +317,8 @@ static napi_value call_sear(napi_env env, napi_callback_info info) {
         pthread_mutex_unlock(&sear_mutex);
         return result_obj;
       }
+
+      cleanup_result(&extract_result);
     }
   }
 
