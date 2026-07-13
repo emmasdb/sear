@@ -4,7 +4,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include <exception>
+#include <string>
+#include <vector>
+
 #include "sear.h"
+#include "sear_error.hpp"
 
 static pthread_mutex_t sear_mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -33,6 +39,37 @@ static napi_status create_string_or_empty(napi_env env, char* data, int length, 
     return napi_create_string_utf8(env, data, (size_t)length, value);
 }
 
+static void append_json_string(std::string* json, const std::string& value) {
+    json->push_back('"');
+    for (char ch : value) {
+        switch (ch) {
+            case '"': json->append("\\\""); break;
+            case '\\': json->append("\\\\"); break;
+            case '\b': json->append("\\b"); break;
+            case '\f': json->append("\\f"); break;
+            case '\n': json->append("\\n"); break;
+            case '\r': json->append("\\r"); break;
+            case '\t': json->append("\\t"); break;
+            default: json->push_back(ch); break;
+        }
+    }
+    json->push_back('"');
+}
+
+static std::string build_error_result_json(const std::vector<std::string>& errors) {
+    std::string json = "{\"errors\":[";
+    for (size_t index = 0; index < errors.size(); index++) {
+        if (index > 0) {
+            json.push_back(',');
+        }
+        append_json_string(&json, errors[index]);
+    }
+    json.append("],\"return_codes\":{\"saf_return_code\":null,");
+    json.append("\"racf_return_code\":null,\"racf_reason_code\":null,");
+    json.append("\"sear_return_code\":4}}");
+    return json;
+}
+
 static napi_value call_sear(napi_env env, napi_callback_info info) {
     size_t argc = 2;
     napi_value argv[2];
@@ -52,7 +89,7 @@ static napi_value call_sear(napi_env env, napi_callback_info info) {
                              "call_sear request must be a string")) {
         return NULL;
     }
-    char* request = malloc(request_length + 1);
+    char* request = (char*)malloc(request_length + 1);
     if (request == NULL) {
         napi_throw_error(env, NULL, "Failed to allocate request buffer");
         return NULL;
@@ -73,15 +110,37 @@ static napi_value call_sear(napi_env env, napi_callback_info info) {
         }
     }
 
-    fprintf(stderr, "[_sear.c] call_sear: length=%zu debug=%d\n", request_length, debug);
-    fprintf(stderr, "[_sear.c] request: %s\n", request);
+    fprintf(stderr, "[_sear.cpp] call_sear: length=%zu debug=%d\n", request_length, debug);
+    fprintf(stderr, "[_sear.cpp] request: %s\n", request);
     fflush(stderr);
 
     pthread_mutex_lock(&sear_mutex);
-    fprintf(stderr, "[_sear.c] calling sear()\n");
+    fprintf(stderr, "[_sear.cpp] calling sear()\n");
     fflush(stderr);
-    sear_result_t* result = sear(request, (int)request_length, debug);
-    fprintf(stderr, "[_sear.c] sear() returned\n");
+
+    sear_result_t* result = NULL;
+    std::string caught_error_json;
+    sear_result_t caught_error_result = {NULL, 0, NULL, 0, NULL, 0};
+    try {
+        result = sear(request, (int)request_length, debug);
+    } catch (const SEAR::SEARError& error) {
+        caught_error_json = build_error_result_json(error.getErrors());
+        caught_error_result.result_json = (char*)caught_error_json.c_str();
+        caught_error_result.result_json_length = (int)caught_error_json.length();
+        result = &caught_error_result;
+    } catch (const std::exception& error) {
+        pthread_mutex_unlock(&sear_mutex);
+        free(request);
+        napi_throw_error(env, NULL, error.what());
+        return NULL;
+    } catch (...) {
+        pthread_mutex_unlock(&sear_mutex);
+        free(request);
+        napi_throw_error(env, NULL, "Unknown SEAR native exception");
+        return NULL;
+    }
+
+    fprintf(stderr, "[_sear.cpp] sear() returned\n");
     fflush(stderr);
     free(request);
 

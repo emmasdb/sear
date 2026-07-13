@@ -6,7 +6,7 @@
   "targets": [{
     "target_name": "_sear",
     "sources": [
-      "sear/nodejs/_sear.c",
+      "sear/nodejs/_sear.cpp",
       "sear/sear.cpp",
       "sear/conversion.cpp",
       "sear/logger.cpp",
