@@ -24,6 +24,7 @@ const ccWrapperPath = path.join(__dirname, 'cc-wrapper.js');
 const cxxWrapperPath = path.join(__dirname, 'cxx-wrapper.js');
 const irrseqObjectPath = path.join(__dirname, '..', '..', 'artifacts', 'irrseq00.o');
 const nodeGypNodeDir = path.join(__dirname, '..', '..', 'build', 'node-gyp-node-dir');
+const buildReleaseDir = path.join(__dirname, '..', '..', 'build', 'Release');
 
 function hasNodeGypMetadata(nodeDir) {
     return typeof nodeDir === 'string' && fs.existsSync(path.join(nodeDir, 'common.gypi'));
@@ -165,6 +166,7 @@ if (!makeCommand) {
 
 fs.chmodSync(ccWrapperPath, 0o755);
 fs.chmodSync(cxxWrapperPath, 0o755);
+removePath(buildReleaseDir);
 
 const existingLdflags = process.env.LDFLAGS ? `${process.env.LDFLAGS} ` : '';
 const linkWithIrrseq = `${existingLdflags}${irrseqObjectPath}`;
