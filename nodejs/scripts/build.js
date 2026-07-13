@@ -37,6 +37,10 @@ function hasIncludeNodeGypMetadata(nodeDir) {
     return Boolean(nodeDir) && fs.existsSync(path.join(nodeDir, 'include', 'node', 'common.gypi'));
 }
 
+function isNodeInstallDir(nodeDir) {
+    return hasIncludeNodeGypMetadata(nodeDir) && hasNodeHeaders(nodeDir);
+}
+
 function isUsableNodeGypDir(nodeDir) {
     return hasNodeGypMetadata(nodeDir) && hasNodeHeaders(nodeDir);
 }
@@ -73,7 +77,7 @@ function createNodeGypNodeDir(nodeRoot) {
     const includeNodeDir = path.join(nodeRoot, 'include', 'node');
     const includeCommonGypi = path.join(includeNodeDir, 'common.gypi');
 
-    if (!hasIncludeNodeGypMetadata(nodeRoot) || !hasNodeHeaders(nodeRoot)) {
+    if (!isNodeInstallDir(nodeRoot)) {
         return null;
     }
 
@@ -122,6 +126,11 @@ function buildEnv(overrides) {
 
     if (process.env.SEAR_NODE_NODEDIR && isUsableNodeGypDir(process.env.SEAR_NODE_NODEDIR)) {
         env.npm_config_nodedir = process.env.SEAR_NODE_NODEDIR;
+    } else if (process.env.SEAR_NODE_NODEDIR && isNodeInstallDir(process.env.SEAR_NODE_NODEDIR) && currentNodeDir) {
+        console.warn(
+            `Using Node headers from SEAR_NODE_NODEDIR (${process.env.SEAR_NODE_NODEDIR}); generated ${currentNodeDir}`
+        );
+        env.npm_config_nodedir = currentNodeDir;
     } else if (process.env.SEAR_NODE_NODEDIR && currentNodeDir) {
         console.warn(
             `Ignoring unusable SEAR_NODE_NODEDIR (${process.env.SEAR_NODE_NODEDIR}); using ${currentNodeDir}`
