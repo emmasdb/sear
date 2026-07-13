@@ -33,6 +33,14 @@ function hasNodeHeaders(nodeDir) {
     return Boolean(nodeDir) && fs.existsSync(path.join(nodeDir, 'include', 'node', 'node.h'));
 }
 
+function hasIncludeNodeGypMetadata(nodeDir) {
+    return Boolean(nodeDir) && fs.existsSync(path.join(nodeDir, 'include', 'node', 'common.gypi'));
+}
+
+function isUsableNodeGypDir(nodeDir) {
+    return hasNodeGypMetadata(nodeDir) && hasNodeHeaders(nodeDir);
+}
+
 function findCurrentNodeRoot() {
     return path.dirname(path.dirname(process.execPath));
 }
@@ -51,16 +59,27 @@ function linkOrCopyDirectory(source, target) {
     }
 }
 
+function linkOrCopyFile(source, target) {
+    removePath(target);
+
+    try {
+        fs.symlinkSync(source, target, 'file');
+    } catch (error) {
+        fs.copyFileSync(source, target);
+    }
+}
+
 function createNodeGypNodeDir(nodeRoot) {
     const includeNodeDir = path.join(nodeRoot, 'include', 'node');
     const includeCommonGypi = path.join(includeNodeDir, 'common.gypi');
 
-    if (!fs.existsSync(includeCommonGypi) || !hasNodeHeaders(nodeRoot)) {
+    if (!hasIncludeNodeGypMetadata(nodeRoot) || !hasNodeHeaders(nodeRoot)) {
         return null;
     }
 
+    removePath(nodeGypNodeDir);
     fs.mkdirSync(path.join(nodeGypNodeDir, 'include'), { recursive: true });
-    fs.copyFileSync(includeCommonGypi, path.join(nodeGypNodeDir, 'common.gypi'));
+    linkOrCopyFile(includeCommonGypi, path.join(nodeGypNodeDir, 'common.gypi'));
     linkOrCopyDirectory(includeNodeDir, path.join(nodeGypNodeDir, 'include', 'node'));
 
     console.warn(`Using local Node headers from ${includeNodeDir}`);
@@ -70,12 +89,17 @@ function createNodeGypNodeDir(nodeRoot) {
 
 function findCurrentNodeDir() {
     const explicitNodeDir = process.env.SEAR_NODE_NODEDIR;
-    if (hasNodeGypMetadata(explicitNodeDir)) {
+    if (isUsableNodeGypDir(explicitNodeDir)) {
         return explicitNodeDir;
     }
 
+    const generatedExplicitNodeDir = createNodeGypNodeDir(explicitNodeDir);
+    if (generatedExplicitNodeDir) {
+        return generatedExplicitNodeDir;
+    }
+
     const executableNodeDir = findCurrentNodeRoot();
-    if (hasNodeGypMetadata(executableNodeDir)) {
+    if (isUsableNodeGypDir(executableNodeDir)) {
         return executableNodeDir;
     }
 
@@ -96,14 +120,22 @@ function buildEnv(overrides) {
     const configuredNodeDir = env.npm_config_nodedir;
     const currentNodeDir = findCurrentNodeDir();
 
-    if (process.env.SEAR_NODE_NODEDIR) {
+    if (process.env.SEAR_NODE_NODEDIR && isUsableNodeGypDir(process.env.SEAR_NODE_NODEDIR)) {
         env.npm_config_nodedir = process.env.SEAR_NODE_NODEDIR;
-    } else if (configuredNodeDir && !hasNodeGypMetadata(configuredNodeDir) && currentNodeDir) {
+    } else if (process.env.SEAR_NODE_NODEDIR && currentNodeDir) {
+        console.warn(
+            `Ignoring unusable SEAR_NODE_NODEDIR (${process.env.SEAR_NODE_NODEDIR}); using ${currentNodeDir}`
+        );
+        env.npm_config_nodedir = currentNodeDir;
+    } else if (process.env.SEAR_NODE_NODEDIR) {
+        console.warn(`Ignoring unusable SEAR_NODE_NODEDIR (${process.env.SEAR_NODE_NODEDIR})`);
+        delete env.npm_config_nodedir;
+    } else if (configuredNodeDir && !isUsableNodeGypDir(configuredNodeDir) && currentNodeDir) {
         console.warn(
             `Ignoring stale npm_config_nodedir (${configuredNodeDir}); using ${currentNodeDir}`
         );
         env.npm_config_nodedir = currentNodeDir;
-    } else if (configuredNodeDir && !hasNodeGypMetadata(configuredNodeDir)) {
+    } else if (configuredNodeDir && !isUsableNodeGypDir(configuredNodeDir)) {
         console.warn(`Ignoring stale npm_config_nodedir (${configuredNodeDir})`);
         delete env.npm_config_nodedir;
     } else if (!configuredNodeDir && currentNodeDir) {
