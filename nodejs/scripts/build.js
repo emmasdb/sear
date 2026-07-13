@@ -63,6 +63,8 @@ function createNodeGypNodeDir(nodeRoot) {
     fs.copyFileSync(includeCommonGypi, path.join(nodeGypNodeDir, 'common.gypi'));
     linkOrCopyDirectory(includeNodeDir, path.join(nodeGypNodeDir, 'include', 'node'));
 
+    console.warn(`Using local Node headers from ${includeNodeDir}`);
+
     return nodeGypNodeDir;
 }
 
