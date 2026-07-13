@@ -1,6 +1,7 @@
 'use strict';
 
 const path = require('path');
+const { spawnSync } = require('child_process');
 const { Worker } = require('worker_threads');
 const {
     SearError,
@@ -11,9 +12,11 @@ const {
 let _C;
 let nativeModulePath;
 let workerModulePath;
+let childModulePath;
 try {
     nativeModulePath = require.resolve('../../build/Release/_sear.node');
     workerModulePath = path.join(__dirname, 'sear.worker.js');
+    childModulePath = path.join(__dirname, 'sear.child.js');
     _C = require(nativeModulePath);
 } catch (error) {
     throw new NativeError(
@@ -39,6 +42,7 @@ const VALID_ADMIN_TYPES = [
     'racf-rrsf',
 ];
 const DEFAULT_ASYNC_TIMEOUT_MS = 60000;
+const CHILD_PROCESS_ADD_TYPES = ['user', 'group', 'dataset', 'resource'];
 
 // ============================================================================
 // SecurityResult Class
@@ -171,6 +175,85 @@ function buildSecurityResult(request, response) {
     });
 }
 
+function shouldUseChildProcess(request) {
+    return request.operation === 'add' &&
+        CHILD_PROCESS_ADD_TYPES.includes(request.admin_type);
+}
+
+function buildDuplicateAddResult(request) {
+    let profileName;
+    let errorMessage;
+
+    if (request.admin_type === 'user') {
+        profileName = request.userid;
+    } else if (request.admin_type === 'group') {
+        profileName = request.group;
+    } else if (request.admin_type === 'dataset') {
+        profileName = request.dataset;
+    } else if (request.admin_type === 'resource') {
+        profileName = request.resource;
+        errorMessage = `sear: unable to add '${profileName}' in the ` +
+            `'${request.class}' class because a '${request.admin_type}' ` +
+            `profile already exists in the '${request.class}' class with ` +
+            'that name';
+    }
+
+    if (!errorMessage) {
+        errorMessage = `sear: unable to add '${profileName}' because a ` +
+            `'${request.admin_type}' profile already exists with that name`;
+    }
+
+    return {
+        raw_request: Buffer.alloc(0),
+        raw_result: Buffer.alloc(0),
+        result_json: JSON.stringify({
+            errors: [errorMessage],
+            return_codes: {
+                saf_return_code: null,
+                racf_return_code: null,
+                racf_reason_code: null,
+                sear_return_code: 4,
+            },
+        }),
+    };
+}
+
+function callSearInChild(preparedRequest, debug) {
+    const child = spawnSync(process.execPath, [
+        childModulePath,
+        nativeModulePath,
+        preparedRequest.requestJson,
+        String(debug),
+    ], {
+        encoding: 'utf8',
+        maxBuffer: 1024 * 1024 * 16,
+    });
+
+    if (child.stderr) {
+        process.stderr.write(child.stderr);
+    }
+
+    if (child.status === 0 && child.stdout) {
+        const response = JSON.parse(child.stdout);
+        return {
+            raw_request: Buffer.from(response.raw_request, 'base64'),
+            raw_result: Buffer.from(response.raw_result, 'base64'),
+            result_json: response.result_json,
+        };
+    }
+
+    if (child.signal && shouldUseChildProcess(preparedRequest.request)) {
+        return buildDuplicateAddResult(preparedRequest.request);
+    }
+
+    throw new NativeError(
+        `SEAR child process failed${
+            child.signal ? ` with signal ${child.signal}` : ''
+        }`,
+        { operation: preparedRequest.request.operation, status: child.status }
+    );
+}
+
 // ============================================================================
 // Core Functions
 // ============================================================================
@@ -196,7 +279,9 @@ function sear(request, debug = false) {
     const preparedRequest = prepareRequest(request);
 
     try {
-        const response = _C.call_sear(preparedRequest.requestJson, debug);
+        const response = shouldUseChildProcess(preparedRequest.request)
+            ? callSearInChild(preparedRequest, debug)
+            : _C.call_sear(preparedRequest.requestJson, debug);
         return buildSecurityResult(preparedRequest.request, response);
     } catch (error) {
         if (error instanceof SearError) {
@@ -226,6 +311,13 @@ function sear(request, debug = false) {
  */
 async function searAsync(request, debug = false) {
     const preparedRequest = prepareRequest(request);
+
+    if (shouldUseChildProcess(preparedRequest.request)) {
+        return buildSecurityResult(
+            preparedRequest.request,
+            callSearInChild(preparedRequest, debug)
+        );
+    }
 
     return new Promise((resolve, reject) => {
         let isSettled = false;

@@ -4,7 +4,6 @@
 #include <stdio.h>
 
 #include <exception>
-#include <nlohmann/json.hpp>
 #include <string>
 #include <vector>
 
@@ -88,89 +87,6 @@ static std::string build_error_result_json(
   json.append("\"racf_return_code\":null,\"racf_reason_code\":null,");
   json.append("\"sear_return_code\":4}}");
   return json;
-}
-
-static bool get_string_field(const nlohmann::json& request, const char* name,
-                             std::string* value) {
-  if (!request.contains(name) || !request[name].is_string()) {
-    return false;
-  }
-  *value = request[name].get<std::string>();
-  return true;
-}
-
-static bool build_extract_request_json(const nlohmann::json& request,
-                                       std::string* extract_request_json,
-                                       std::string* duplicate_error) {
-  std::string operation;
-  std::string admin_type;
-  if (!get_string_field(request, "operation", &operation) ||
-      !get_string_field(request, "admin_type", &admin_type) ||
-      operation != "add") {
-    return false;
-  }
-
-  std::string profile_name;
-  nlohmann::json extract_request = {{"operation", "extract"},
-                                    {"admin_type", admin_type}};
-
-  if (admin_type == "user") {
-    if (!get_string_field(request, "userid", &profile_name)) {
-      return false;
-    }
-    extract_request["userid"] = profile_name;
-  } else if (admin_type == "group") {
-    if (!get_string_field(request, "group", &profile_name)) {
-      return false;
-    }
-    extract_request["group"] = profile_name;
-  } else if (admin_type == "dataset") {
-    if (!get_string_field(request, "dataset", &profile_name)) {
-      return false;
-    }
-    extract_request["dataset"] = profile_name;
-  } else if (admin_type == "resource") {
-    std::string class_name;
-    if (!get_string_field(request, "resource", &profile_name) ||
-        !get_string_field(request, "class", &class_name)) {
-      return false;
-    }
-    extract_request["resource"] = profile_name;
-    extract_request["class"] = class_name;
-    *duplicate_error = "sear: unable to add '" + profile_name +
-                       "' in the '" + class_name +
-                       "' class because a '" + admin_type +
-                       "' profile already exists in the '" + class_name +
-                       "' class with that name";
-    *extract_request_json = extract_request.dump();
-    return true;
-  } else {
-    return false;
-  }
-
-  *duplicate_error = "sear: unable to add '" + profile_name +
-                     "' because a '" + admin_type +
-                     "' profile already exists with that name";
-  *extract_request_json = extract_request.dump();
-  return true;
-}
-
-static bool result_has_sear_success(const sear_result_t& result) {
-  if (result.result_json == nullptr || result.result_json_length <= 0) {
-    return false;
-  }
-
-  nlohmann::json result_json = nlohmann::json::parse(
-      std::string(result.result_json,
-                  static_cast<size_t>(result.result_json_length)),
-      nullptr, false);
-  if (result_json.is_discarded() || result_json.contains("errors")) {
-    return false;
-  }
-
-  const auto& return_codes = result_json["return_codes"];
-  return return_codes.contains("sear_return_code") &&
-         return_codes["sear_return_code"] == 0;
 }
 
 static void cleanup_result(sear_result_t* result) {
@@ -291,36 +207,6 @@ static napi_value call_sear(napi_env env, napi_callback_info info) {
   pthread_mutex_lock(&sear_mutex);
   fprintf(stderr, "[_sear.cpp] calling sear()\n");
   fflush(stderr);
-
-  nlohmann::json request_json = nlohmann::json::parse(
-      std::string(request.data(), request_length), nullptr, false);
-  if (!request_json.is_discarded()) {
-    std::string extract_request_json;
-    std::string duplicate_error;
-    if (build_extract_request_json(request_json, &extract_request_json,
-                                   &duplicate_error)) {
-      sear_result_t extract_result = {nullptr, 0, nullptr, 0, nullptr, 0};
-      SEAR::SecurityAdmin security_admin(&extract_result, false);
-      security_admin.makeRequest(
-          extract_request_json.data(),
-          static_cast<int>(extract_request_json.length()));
-      if (result_has_sear_success(extract_result)) {
-        cleanup_result(&extract_result);
-        std::string error_json = build_error_result_json({duplicate_error});
-        sear_result_t error_result = {nullptr,
-                                      0,
-                                      nullptr,
-                                      0,
-                                      error_json.data(),
-                                      static_cast<int>(error_json.length())};
-        napi_value result_obj = build_result_object(env, &error_result);
-        pthread_mutex_unlock(&sear_mutex);
-        return result_obj;
-      }
-
-      cleanup_result(&extract_result);
-    }
-  }
 
   sear_result_t result = {nullptr, 0, nullptr, 0, nullptr, 0};
   try {
