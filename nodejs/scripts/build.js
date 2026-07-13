@@ -23,9 +23,47 @@ const makeCommand = process.env.MAKE || findGnuMake();
 const ccWrapperPath = path.join(__dirname, 'cc-wrapper.js');
 const cxxWrapperPath = path.join(__dirname, 'cxx-wrapper.js');
 const irrseqObjectPath = path.join(__dirname, '..', '..', 'artifacts', 'irrseq00.o');
+const nodeGypNodeDir = path.join(__dirname, '..', '..', 'build', 'node-gyp-node-dir');
 
 function hasNodeGypMetadata(nodeDir) {
     return Boolean(nodeDir) && fs.existsSync(path.join(nodeDir, 'common.gypi'));
+}
+
+function hasNodeHeaders(nodeDir) {
+    return Boolean(nodeDir) && fs.existsSync(path.join(nodeDir, 'include', 'node', 'node.h'));
+}
+
+function findCurrentNodeRoot() {
+    return path.dirname(path.dirname(process.execPath));
+}
+
+function removePath(targetPath) {
+    fs.rmSync(targetPath, { force: true, recursive: true });
+}
+
+function linkOrCopyDirectory(source, target) {
+    removePath(target);
+
+    try {
+        fs.symlinkSync(source, target, 'dir');
+    } catch (error) {
+        fs.cpSync(source, target, { recursive: true });
+    }
+}
+
+function createNodeGypNodeDir(nodeRoot) {
+    const includeNodeDir = path.join(nodeRoot, 'include', 'node');
+    const includeCommonGypi = path.join(includeNodeDir, 'common.gypi');
+
+    if (!fs.existsSync(includeCommonGypi) || !hasNodeHeaders(nodeRoot)) {
+        return null;
+    }
+
+    fs.mkdirSync(path.join(nodeGypNodeDir, 'include'), { recursive: true });
+    fs.copyFileSync(includeCommonGypi, path.join(nodeGypNodeDir, 'common.gypi'));
+    linkOrCopyDirectory(includeNodeDir, path.join(nodeGypNodeDir, 'include', 'node'));
+
+    return nodeGypNodeDir;
 }
 
 function findCurrentNodeDir() {
@@ -34,9 +72,14 @@ function findCurrentNodeDir() {
         return explicitNodeDir;
     }
 
-    const executableNodeDir = path.dirname(path.dirname(process.execPath));
+    const executableNodeDir = findCurrentNodeRoot();
     if (hasNodeGypMetadata(executableNodeDir)) {
         return executableNodeDir;
+    }
+
+    const generatedNodeDir = createNodeGypNodeDir(executableNodeDir);
+    if (generatedNodeDir) {
+        return generatedNodeDir;
     }
 
     return null;
