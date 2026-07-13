@@ -24,6 +24,50 @@ const ccWrapperPath = path.join(__dirname, 'cc-wrapper.js');
 const cxxWrapperPath = path.join(__dirname, 'cxx-wrapper.js');
 const irrseqObjectPath = path.join(__dirname, '..', '..', 'artifacts', 'irrseq00.o');
 
+function hasNodeGypMetadata(nodeDir) {
+    return Boolean(nodeDir) && fs.existsSync(path.join(nodeDir, 'common.gypi'));
+}
+
+function findCurrentNodeDir() {
+    const explicitNodeDir = process.env.SEAR_NODE_NODEDIR;
+    if (hasNodeGypMetadata(explicitNodeDir)) {
+        return explicitNodeDir;
+    }
+
+    const executableNodeDir = path.dirname(path.dirname(process.execPath));
+    if (hasNodeGypMetadata(executableNodeDir)) {
+        return executableNodeDir;
+    }
+
+    return null;
+}
+
+function buildEnv(overrides) {
+    const env = {
+        ...process.env,
+        ...overrides,
+    };
+
+    const configuredNodeDir = env.npm_config_nodedir;
+    const currentNodeDir = findCurrentNodeDir();
+
+    if (process.env.SEAR_NODE_NODEDIR) {
+        env.npm_config_nodedir = process.env.SEAR_NODE_NODEDIR;
+    } else if (configuredNodeDir && !hasNodeGypMetadata(configuredNodeDir) && currentNodeDir) {
+        console.warn(
+            `Ignoring stale npm_config_nodedir (${configuredNodeDir}); using ${currentNodeDir}`
+        );
+        env.npm_config_nodedir = currentNodeDir;
+    } else if (configuredNodeDir && !hasNodeGypMetadata(configuredNodeDir)) {
+        console.warn(`Ignoring stale npm_config_nodedir (${configuredNodeDir})`);
+        delete env.npm_config_nodedir;
+    } else if (!configuredNodeDir && currentNodeDir) {
+        env.npm_config_nodedir = currentNodeDir;
+    }
+
+    return env;
+}
+
 if (!makeCommand) {
     console.error('Unable to find GNU make. Install gmake or set MAKE to a GNU make executable.');
     process.exit(1);
@@ -40,13 +84,12 @@ const realCxx = process.env.SEAR_NODE_REAL_CXX || 'ibm-clang++64';
 
 const configureResult = spawnSync('node-gyp', ['configure'], {
     stdio: 'inherit',
-    env: {
-        ...process.env,
+    env: buildEnv({
         MAKE: makeCommand,
         CC: realCc,
         CXX: realCxx,
         LDFLAGS: linkWithIrrseq,
-    },
+    }),
     shell: process.platform === 'win32',
 });
 
@@ -60,13 +103,12 @@ if (configureResult.status !== 0) {
 
 const buildResult = spawnSync('node-gyp', ['build'], {
     stdio: 'inherit',
-    env: {
-        ...process.env,
+    env: buildEnv({
         MAKE: makeCommand,
         CC: process.env.SEAR_NODE_CC || ccWrapperPath,
         CXX: process.env.SEAR_NODE_CXX || cxxWrapperPath,
         LDFLAGS: linkWithIrrseq,
-    },
+    }),
     shell: process.platform === 'win32',
 });
 
