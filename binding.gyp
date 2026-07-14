@@ -69,7 +69,7 @@
       "-Wl,<(openssl_root)/lib/libssl.a",
       "-Wl,<(zoslib_root)/lib/libzoslib.a"
     ],
-    "cflags": ["-std=c99", "-m64", "-fzos-le-char-mode=ascii", "-D_POSIX_C_SOURCE=200112L"],
-    "cflags_cc": ["-std=c++17", "-m64", "-fzos-le-char-mode=ascii", "-D_POSIX_C_SOURCE=200112L", "-fexceptions"]
+    "cflags": ["-std=c99", "-m64", "-fzos-le-char-mode=ascii"],
+    "cflags_cc": ["-std=c++17", "-m64", "-fzos-le-char-mode=ascii", "-fexceptions"]
   }]
 }
