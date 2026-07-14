@@ -51,7 +51,6 @@
       "-q64",
       "-qlonglong",
       "-qenum=int",
-      "-fzos-le-char-mode=ascii",
       "-qxclang=-fexec-charset=ISO8859-1",
       "-qmakedep=gcc"
     ],
@@ -60,7 +59,6 @@
       "-q64",
       "-qlonglong",
       "-qenum=int",
-      "-fzos-le-char-mode=ascii",
       "-qxclang=-fexec-charset=ISO8859-1",
       "-qmakedep=gcc"
     ],
@@ -72,7 +70,7 @@
       "-Wl,<(openssl_root)/lib/libssl.a",
       "-Wl,<(zoslib_root)/lib/libzoslib.a"
     ],
-    "cflags": ["-std=c99", "-m64"],
-    "cflags_cc": ["-std=c++17", "-m64", "-fexceptions"]
+    "cflags": ["-std=c99", "-m64", "-fzos-le-char-mode=ascii"],
+    "cflags_cc": ["-std=c++17", "-m64", "-fzos-le-char-mode=ascii", "-fexceptions"]
   }]
 }

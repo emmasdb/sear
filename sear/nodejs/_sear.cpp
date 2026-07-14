@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+#include <cstdlib>
 #include <exception>
 #include <string>
 #include <vector>
@@ -11,6 +12,28 @@
 #include "sear.h"
 
 static pthread_mutex_t sear_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+static void sear_terminate_handler() noexcept {
+  fprintf(stderr, "[_sear.cpp] std::terminate while calling sear()\n");
+  std::exception_ptr exception = std::current_exception();
+  if (exception) {
+    try {
+      std::rethrow_exception(exception);
+    } catch (const SEAR::SEARError& error) {
+      const std::vector<std::string>& errors = error.getErrors();
+      if (!errors.empty()) {
+        fprintf(stderr, "[_sear.cpp] active SEARError: %s\n",
+                errors.front().c_str());
+      }
+    } catch (const std::exception& error) {
+      fprintf(stderr, "[_sear.cpp] active std::exception: %s\n", error.what());
+    } catch (...) {
+      fprintf(stderr, "[_sear.cpp] active non-standard exception\n");
+    }
+  }
+  fflush(stderr);
+  std::abort();
+}
 
 static bool throw_if_napi_failed(napi_env env, napi_status status,
                                  const char* message) {
@@ -195,9 +218,14 @@ static napi_value call_sear(napi_env env, napi_callback_info info) {
   fflush(stderr);
 
   sear_result_t* result = nullptr;
+  std::terminate_handler previous_terminate =
+      std::set_terminate(sear_terminate_handler);
   try {
     result = sear(request.data(), static_cast<int>(request_length), debug);
   } catch (const SEAR::SEARError& error) {
+    std::set_terminate(previous_terminate);
+    fprintf(stderr, "[_sear.cpp] caught SEARError from sear()\n");
+    fflush(stderr);
     std::string error_json = build_error_result_json(error.getErrors());
     sear_result_t error_result = {nullptr,
                                   0,
@@ -209,14 +237,22 @@ static napi_value call_sear(napi_env env, napi_callback_info info) {
     pthread_mutex_unlock(&sear_mutex);
     return result_obj;
   } catch (const std::exception& error) {
+    std::set_terminate(previous_terminate);
+    fprintf(stderr, "[_sear.cpp] caught std::exception from sear(): %s\n",
+            error.what());
+    fflush(stderr);
     pthread_mutex_unlock(&sear_mutex);
     napi_throw_error(env, nullptr, error.what());
     return nullptr;
   } catch (...) {
+    std::set_terminate(previous_terminate);
+    fprintf(stderr, "[_sear.cpp] caught unknown exception from sear()\n");
+    fflush(stderr);
     pthread_mutex_unlock(&sear_mutex);
     napi_throw_error(env, nullptr, "Unknown SEAR native exception");
     return nullptr;
   }
+  std::set_terminate(previous_terminate);
 
   fprintf(stderr, "[_sear.cpp] sear() returned\n");
   fflush(stderr);
