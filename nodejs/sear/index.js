@@ -240,6 +240,9 @@ function callSearInChild(preparedRequest, debug) {
     }
 
     if (child.signal && shouldUseChildProcess(preparedRequest.request)) {
+        if (debug) {
+            console.error(`SEAR child process exited with signal ${child.signal}`);
+        }
         return buildDuplicateAddResult(preparedRequest.request);
     }
 
