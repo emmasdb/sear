@@ -98,6 +98,29 @@ function reportExceptionFlags() {
     }
 }
 
+function reportCharModeFlags() {
+    const buildDir = path.join(__dirname, '..', '..', 'build');
+    const matches = [];
+
+    for (const filePath of listFiles(buildDir)) {
+        if (!filePath.endsWith('.mk') && !filePath.endsWith('.gypi')) {
+            continue;
+        }
+
+        const content = fs.readFileSync(filePath, 'utf8');
+        if (content.includes('-fzos-le-char-mode')) {
+            matches.push(path.relative(path.join(__dirname, '..', '..'), filePath));
+        }
+    }
+
+    if (matches.length === 0) {
+        console.warn('No generated z/OS char-mode flags found in node-gyp build files');
+        return;
+    }
+
+    console.warn(`Generated z/OS char-mode flags found in: ${matches.join(', ')}`);
+}
+
 function linkOrCopyDirectory(source, target) {
     removePath(target);
 
@@ -238,6 +261,7 @@ if (configureResult.status !== 0) {
 }
 
 reportExceptionFlags();
+reportCharModeFlags();
 
 const buildResult = spawnSync('node-gyp', ['build'], {
     stdio: 'inherit',
