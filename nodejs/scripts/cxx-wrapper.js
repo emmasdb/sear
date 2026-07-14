@@ -9,15 +9,21 @@ const unsupportedArgs = new Set([
     '-q64',
     '-qlonglong',
     '-qenum=int',
+    '-fzos-le-char-mode=ascii',
     '-qxclang=-fexec-charset=ISO8859-1',
     '-Wc,DLL',
     '-qmakedep=gcc',
 ]);
 
 const filteredArgs = args.filter((arg) => !unsupportedArgs.has(arg));
+const charModeArgs = args.filter((arg) => arg.startsWith('-fzos-le-char-mode'));
 const exceptionArgs = filteredArgs.filter((arg) => (
     arg === '-fexceptions' || arg === '-fno-exceptions'
 ));
+
+if (charModeArgs.length > 0) {
+    console.warn(`CXX filtered z/OS char-mode flags: ${charModeArgs.join(' ')}`);
+}
 
 if (exceptionArgs.includes('-fno-exceptions')) {
     console.warn(`CXX exception flags: ${exceptionArgs.join(' ')}`);

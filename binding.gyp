@@ -51,6 +51,7 @@
       "-q64",
       "-qlonglong",
       "-qenum=int",
+      "-fzos-le-char-mode=ascii",
       "-qxclang=-fexec-charset=ISO8859-1",
       "-qmakedep=gcc"
     ],
@@ -59,6 +60,7 @@
       "-q64",
       "-qlonglong",
       "-qenum=int",
+      "-fzos-le-char-mode=ascii",
       "-qxclang=-fexec-charset=ISO8859-1",
       "-qmakedep=gcc"
     ],
