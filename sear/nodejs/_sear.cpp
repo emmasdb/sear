@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "sear_error.hpp"
-#include "security_admin.hpp"
+#include "sear.h"
 
 static pthread_mutex_t sear_mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -87,20 +87,6 @@ static std::string build_error_result_json(
   json.append("\"racf_return_code\":null,\"racf_reason_code\":null,");
   json.append("\"sear_return_code\":4}}");
   return json;
-}
-
-static void cleanup_result(sear_result_t* result) {
-  delete[] result->raw_request;
-  result->raw_request = nullptr;
-  result->raw_request_length = 0;
-
-  delete[] result->raw_result;
-  result->raw_result = nullptr;
-  result->raw_result_length = 0;
-
-  delete[] result->result_json;
-  result->result_json = nullptr;
-  result->result_json_length = 0;
 }
 
 static napi_value build_result_object(napi_env env, sear_result_t* result) {
@@ -208,11 +194,9 @@ static napi_value call_sear(napi_env env, napi_callback_info info) {
   fprintf(stderr, "[_sear.cpp] calling sear()\n");
   fflush(stderr);
 
-  sear_result_t result = {nullptr, 0, nullptr, 0, nullptr, 0};
+  sear_result_t* result = nullptr;
   try {
-    SEAR::SecurityAdmin security_admin(&result, debug);
-    security_admin.makeRequest(request.data(),
-                               static_cast<int>(request_length));
+    result = sear(request.data(), static_cast<int>(request_length), debug);
   } catch (const SEAR::SEARError& error) {
     std::string error_json = build_error_result_json(error.getErrors());
     sear_result_t error_result = {nullptr,
@@ -222,16 +206,13 @@ static napi_value call_sear(napi_env env, napi_callback_info info) {
                                   error_json.data(),
                                   static_cast<int>(error_json.length())};
     napi_value result_obj = build_result_object(env, &error_result);
-    cleanup_result(&result);
     pthread_mutex_unlock(&sear_mutex);
     return result_obj;
   } catch (const std::exception& error) {
-    cleanup_result(&result);
     pthread_mutex_unlock(&sear_mutex);
     napi_throw_error(env, nullptr, error.what());
     return nullptr;
   } catch (...) {
-    cleanup_result(&result);
     pthread_mutex_unlock(&sear_mutex);
     napi_throw_error(env, nullptr, "Unknown SEAR native exception");
     return nullptr;
@@ -240,8 +221,13 @@ static napi_value call_sear(napi_env env, napi_callback_info info) {
   fprintf(stderr, "[_sear.cpp] sear() returned\n");
   fflush(stderr);
 
-  napi_value result_obj = build_result_object(env, &result);
-  cleanup_result(&result);
+  if (result == nullptr) {
+    pthread_mutex_unlock(&sear_mutex);
+    napi_throw_error(env, nullptr, "SEAR returned no result");
+    return nullptr;
+  }
+
+  napi_value result_obj = build_result_object(env, result);
   pthread_mutex_unlock(&sear_mutex);
   return result_obj;
 }
