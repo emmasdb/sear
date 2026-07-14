@@ -227,16 +227,8 @@ function callSearInChild(preparedRequest, debug) {
     ], {
         encoding: 'utf8',
         maxBuffer: 1024 * 1024 * 16,
-        stdio: ['ignore', 'pipe', 'pipe', 'pipe'],
+        stdio: ['ignore', 'inherit', 'inherit', 'pipe'],
     });
-
-    if (child.stdout) {
-        process.stdout.write(child.stdout);
-    }
-
-    if (child.stderr) {
-        process.stderr.write(child.stderr);
-    }
 
     if (child.status === 0 && child.output[3]) {
         const response = JSON.parse(child.output[3]);
