@@ -54,6 +54,50 @@ function removePath(targetPath) {
     fs.rmSync(targetPath, { force: true, recursive: true });
 }
 
+function listFiles(directory) {
+    if (!fs.existsSync(directory)) {
+        return [];
+    }
+
+    return fs.readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+        const entryPath = path.join(directory, entry.name);
+        return entry.isDirectory() ? listFiles(entryPath) : [entryPath];
+    });
+}
+
+function reportExceptionFlags() {
+    const buildDir = path.join(__dirname, '..', '..', 'build');
+    const filesWithExceptions = [];
+    const filesWithNoExceptions = [];
+
+    for (const filePath of listFiles(buildDir)) {
+        if (!filePath.endsWith('.mk') && !filePath.endsWith('.gypi')) {
+            continue;
+        }
+
+        const content = fs.readFileSync(filePath, 'utf8');
+        const relativePath = path.relative(path.join(__dirname, '..', '..'), filePath);
+        if (content.includes('-fexceptions')) {
+            filesWithExceptions.push(relativePath);
+        }
+        if (content.includes('-fno-exceptions')) {
+            filesWithNoExceptions.push(relativePath);
+        }
+    }
+
+    if (filesWithExceptions.length === 0 && filesWithNoExceptions.length === 0) {
+        console.warn('No generated exception flags found in node-gyp build files');
+        return;
+    }
+
+    if (filesWithExceptions.length > 0) {
+        console.warn(`Generated -fexceptions found in: ${filesWithExceptions.join(', ')}`);
+    }
+    if (filesWithNoExceptions.length > 0) {
+        console.warn(`Generated -fno-exceptions found in: ${filesWithNoExceptions.join(', ')}`);
+    }
+}
+
 function linkOrCopyDirectory(source, target) {
     removePath(target);
 
@@ -192,6 +236,8 @@ if (configureResult.error) {
 if (configureResult.status !== 0) {
     process.exit(configureResult.status ?? 1);
 }
+
+reportExceptionFlags();
 
 const buildResult = spawnSync('node-gyp', ['build'], {
     stdio: 'inherit',

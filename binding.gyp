@@ -47,6 +47,7 @@
       "<(openssl_root)/include"
     ],
     "cflags!": [
+      "-fno-exceptions",
       "-q64",
       "-qlonglong",
       "-qenum=int",

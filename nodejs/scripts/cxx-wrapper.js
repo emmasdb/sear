@@ -15,6 +15,13 @@ const unsupportedArgs = new Set([
 ]);
 
 const filteredArgs = args.filter((arg) => !unsupportedArgs.has(arg));
+const exceptionArgs = filteredArgs.filter((arg) => (
+    arg === '-fexceptions' || arg === '-fno-exceptions'
+));
+
+if (exceptionArgs.includes('-fno-exceptions')) {
+    console.warn(`CXX exception flags: ${exceptionArgs.join(' ')}`);
+}
 
 const result = spawnSync(compiler, filteredArgs, {
     stdio: 'inherit',
