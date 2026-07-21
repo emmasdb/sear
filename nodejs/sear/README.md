@@ -57,7 +57,7 @@ try {
 
 ### Async Operations
 
-For operations that might take time, use `searAsync()` to prevent blocking the event loop:
+For operations that might take time, use `searAsync()` to run the isolated child process without blocking the event loop:
 
 ```javascript
 const { searAsync } = require('./nodejs/sear');
@@ -80,7 +80,7 @@ async function getUser(userid) {
 const user = await getUser('MYUSER');
 ```
 
-> **Note on z/OS:** The synchronous `sear()` function is recommended for z/OS deployments. Worker threads may not have the proper security context needed for RACF system calls. Use `searAsync()` only if your deployment requires non-blocking I/O.
+> **Note on z/OS:** Native SEAR calls run in a child process so unexpected native termination does not kill the caller's Node.js process.
 
 ## API Reference
 
@@ -104,7 +104,7 @@ Execute a SEAR operation synchronously.
 
 #### `searAsync(request, debug=false): Promise<SecurityResult>`
 
-Execute a SEAR operation asynchronously using a worker thread. Prevents event loop blocking.
+Execute a SEAR operation asynchronously using the same child-process isolation as `sear()`.
 
 **Parameters:** Same as `sear()`
 
@@ -184,7 +184,7 @@ Base structure for all SEAR requests:
 | alter | permission | dataset/resource, userid/group, traits; `class_name` for resource permissions |
 | delete | permission | dataset/resource, userid/group; `class_name` for resource permissions |
 
-For Node.js resource and permission requests, use `class_name`; the wrapper sends it to native SEAR as the core request-format key `class`.
+For Node.js resource and permission requests, use `class_name`; the wrapper sends it to native SEAR as the core request-format key `class`. The public `class` and `resource_class` fields are rejected.
 
 ## Examples
 
@@ -326,13 +326,13 @@ npm run build
 
 ## Thread Safety
 
-The native binding uses pthread mutexes for thread-safe access to RACF callable services. Both `sear()` and `searAsync()` are safe to call concurrently.
+Native SEAR execution is isolated in child processes. `searAsync()` can be used for concurrent request patterns.
 
 ## Performance Considerations
 
-- **Synchronous calls** (`sear()`): Lower latency, blocks the event loop
-- **Async calls** (`searAsync()`): Higher latency (worker thread overhead), non-blocking
-- Use `sear()` for quick operations in non-critical paths
+- **Synchronous calls** (`sear()`): Uses a child process and blocks until it exits
+- **Async calls** (`searAsync()`): Uses a child process and resolves when it exits
+- Use `sear()` for simple scripts and command-line tools
 - Use `searAsync()` for server applications where event loop blocking is unacceptable
 - Batch operations when possible to minimize call overhead
 

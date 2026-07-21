@@ -206,8 +206,7 @@ export class NativeError extends SearError {
 export function sear(request: SearRequest, debug?: boolean): SecurityResult;
 
 /**
- * Execute a SEAR operation asynchronously using worker thread
- * Prevents blocking the Node.js event loop for long-running operations
+ * Execute a SEAR operation asynchronously using child-process isolation
  * @param request - The SEAR request object
  * @param debug - Enable debug output
  * @returns Promise resolving to the operation result

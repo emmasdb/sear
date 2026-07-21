@@ -1,23 +1,18 @@
 'use strict';
 
 const path = require('path');
-const { spawnSync } = require('child_process');
-const { Worker } = require('worker_threads');
+const { spawn, spawnSync } = require('child_process');
 const {
     SearError,
     ValidationError,
     NativeError,
 } = require('./errors');
 
-let _C;
 let nativeModulePath;
-let workerModulePath;
 let childModulePath;
 try {
     nativeModulePath = require.resolve('../../build/Release/_sear.node');
-    workerModulePath = path.join(__dirname, 'sear.worker.js');
     childModulePath = path.join(__dirname, 'sear.child.js');
-    _C = require(nativeModulePath);
 } catch (error) {
     throw new NativeError(
         'Failed to load native SEAR binding. Ensure the addon is built: npm run build',
@@ -42,9 +37,8 @@ const VALID_ADMIN_TYPES = [
     'racf-rrsf',
     'racf-options',
 ];
-const DEFAULT_ASYNC_TIMEOUT_MS = 60000;
+const CHILD_OUTPUT_MAX_BYTES = 1024 * 1024 * 16;
 const CHILD_PROCESS_ADD_TYPES = ['user', 'group', 'dataset', 'resource'];
-const CHILD_PROCESS_EXTRACT_TYPES = ['resource'];
 
 // ============================================================================
 // SecurityResult Class
@@ -125,6 +119,26 @@ function validateRequest(request) {
         errors.push('permission extraction is not supported');
     }
 
+    if (Object.prototype.hasOwnProperty.call(request, 'resource_class')) {
+        errors.push('class_name must be used instead of resource_class');
+    }
+
+    if (Object.prototype.hasOwnProperty.call(request, 'class')) {
+        errors.push('class_name must be used instead of class');
+    }
+
+    if (request.admin_type === 'resource' && ['add', 'alter', 'delete'].includes(request.operation)) {
+        if (!request.resource) {
+            errors.push(`resource is required for resource ${request.operation}`);
+        }
+        if (!request.class_name) {
+            errors.push(`class_name is required for resource ${request.operation}`);
+        }
+        if (request.operation === 'alter' && !request.traits) {
+            errors.push('traits is required for resource alteration');
+        }
+    }
+
     // Operation-specific validation
     if (request.operation === 'extract') {
         if (request.admin_type === 'user' && !request.userid) {
@@ -139,7 +153,7 @@ function validateRequest(request) {
         if (request.admin_type === 'resource' && !request.resource) {
             errors.push('resource is required for resource extraction');
         }
-        if (request.admin_type === 'resource' && !request.class_name && !request.class) {
+        if (request.admin_type === 'resource' && !request.class_name) {
             errors.push('class_name is required for resource extraction');
         }
         if (request.admin_type === 'keyring' && !request.keyring) {
@@ -155,7 +169,7 @@ function validateRequest(request) {
         if (!request.dataset && !request.resource) {
             errors.push(`either dataset or resource is required for permission ${request.operation}`);
         }
-        if (request.resource && !request.class_name && !request.class) {
+        if (request.resource && !request.class_name) {
             errors.push(`class_name is required for resource permission ${request.operation}`);
         }
         if (!request.userid && !request.group) {
@@ -197,7 +211,7 @@ function prepareRequest(request) {
     validateRequest(request);
 
     const nativeRequest = { ...request };
-    if (nativeRequest.class_name && !nativeRequest.class) {
+    if (nativeRequest.class_name) {
         nativeRequest.class = nativeRequest.class_name;
     }
     delete nativeRequest.class_name;
@@ -226,12 +240,6 @@ function isDuplicateAddRequest(request) {
         CHILD_PROCESS_ADD_TYPES.includes(request.admin_type);
 }
 
-function shouldUseChildProcess(request) {
-    return isDuplicateAddRequest(request) ||
-        (request.operation === 'extract' &&
-            CHILD_PROCESS_EXTRACT_TYPES.includes(request.admin_type));
-}
-
 function buildDuplicateAddResult(request) {
     let profileName;
     let errorMessage;
@@ -244,7 +252,7 @@ function buildDuplicateAddResult(request) {
         profileName = request.dataset;
     } else if (request.admin_type === 'resource') {
         profileName = request.resource;
-        const className = request.class_name || request.class;
+        const className = request.class_name;
         errorMessage = `sear: unable to add '${profileName}' in the ` +
             `'${className}' class because a '${request.admin_type}' ` +
             `profile already exists in the '${className}' class with ` +
@@ -279,7 +287,7 @@ function callSearInChild(preparedRequest, debug) {
         String(debug),
     ], {
         encoding: 'utf8',
-        maxBuffer: 1024 * 1024 * 16,
+        maxBuffer: CHILD_OUTPUT_MAX_BYTES,
         stdio: ['ignore', 'inherit', 'inherit', 'pipe'],
     });
 
@@ -309,6 +317,82 @@ function callSearInChild(preparedRequest, debug) {
     );
 }
 
+function callSearInChildAsync(preparedRequest, debug) {
+    return new Promise((resolve, reject) => {
+        const child = spawn(process.execPath, [
+            childModulePath,
+            nativeModulePath,
+            preparedRequest.requestJson,
+            String(debug),
+        ], {
+            stdio: ['ignore', 'inherit', 'inherit', 'pipe'],
+        });
+
+        const responseChunks = [];
+        let responseLength = 0;
+        let isSettled = false;
+
+        function settle(settleFn, value) {
+            if (isSettled) {
+                return;
+            }
+            isSettled = true;
+            settleFn(value);
+        }
+
+        child.stdio[3].on('data', (chunk) => {
+            responseLength += chunk.length;
+            if (responseLength > CHILD_OUTPUT_MAX_BYTES) {
+                child.kill();
+                settle(reject, new NativeError('SEAR child process response exceeded maximum size', {
+                    operation: preparedRequest.request.operation,
+                }));
+                return;
+            }
+            responseChunks.push(chunk);
+        });
+
+        child.on('error', (error) => {
+            settle(reject, new NativeError(`Failed to start SEAR child process: ${error.message}`, {
+                operation: preparedRequest.request.operation,
+            }));
+        });
+
+        child.on('close', (status, signal) => {
+            if (status === 0 && responseChunks.length > 0) {
+                try {
+                    const response = JSON.parse(Buffer.concat(responseChunks).toString('utf8'));
+                    settle(resolve, {
+                        raw_request: Buffer.from(response.raw_request, 'base64'),
+                        raw_result: Buffer.from(response.raw_result, 'base64'),
+                        result_json: response.result_json,
+                    });
+                } catch (error) {
+                    settle(reject, new NativeError(`Failed to parse SEAR child process response: ${error.message}`, {
+                        operation: preparedRequest.request.operation,
+                    }));
+                }
+                return;
+            }
+
+            if (signal) {
+                if (debug) {
+                    console.error(`SEAR child process exited with signal ${signal}`);
+                }
+                if (isDuplicateAddRequest(preparedRequest.request)) {
+                    settle(resolve, buildDuplicateAddResult(preparedRequest.request));
+                    return;
+                }
+            }
+
+            settle(reject, new NativeError(
+                `SEAR child process failed${signal ? ` with signal ${signal}` : ''}`,
+                { operation: preparedRequest.request.operation, status }
+            ));
+        });
+    });
+}
+
 // ============================================================================
 // Core Functions
 // ============================================================================
@@ -334,9 +418,7 @@ function sear(request, debug = false) {
     const preparedRequest = prepareRequest(request);
 
     try {
-        const response = shouldUseChildProcess(preparedRequest.request)
-            ? callSearInChild(preparedRequest, debug)
-            : _C.call_sear(preparedRequest.requestJson, debug);
+        const response = callSearInChild(preparedRequest, debug);
         return buildSecurityResult(preparedRequest.request, response);
     } catch (error) {
         if (error instanceof SearError) {
@@ -350,8 +432,7 @@ function sear(request, debug = false) {
 }
 
 /**
- * Execute a SEAR operation asynchronously using worker thread
- * Prevents blocking the Node.js event loop for long-running operations
+ * Execute a SEAR operation asynchronously
  * @param {Object} request - The SEAR request object (see sear() for properties)
  * @param {boolean} [debug=false] - Enable debug output
  * @returns {Promise<SecurityResult>} Promise resolving to the operation result
@@ -367,85 +448,10 @@ function sear(request, debug = false) {
 async function searAsync(request, debug = false) {
     const preparedRequest = prepareRequest(request);
 
-    if (shouldUseChildProcess(preparedRequest.request)) {
-        return buildSecurityResult(
-            preparedRequest.request,
-            callSearInChild(preparedRequest, debug)
-        );
-    }
-
-    return new Promise((resolve, reject) => {
-        let isSettled = false;
-
-        function settle(settleFn, value) {
-            if (isSettled) {
-                return;
-            }
-            isSettled = true;
-            settleFn(value);
-        }
-
-        try {
-            const worker = new Worker(workerModulePath, {
-                workerData: { nativeModulePath },
-            });
-
-            const timeout = setTimeout(() => {
-                worker.terminate();
-                settle(reject, new SearError('SEAR operation timeout'));
-            }, DEFAULT_ASYNC_TIMEOUT_MS);
-
-            worker.on('message', (message) => {
-                clearTimeout(timeout);
-                worker.terminate();
-
-                if (message.success) {
-                    try {
-                        settle(resolve, buildSecurityResult(preparedRequest.request, message.response));
-                    } catch (error) {
-                        settle(reject, new NativeError('Failed to parse native response', {
-                            error: error.message,
-                        }));
-                    }
-                } else {
-                    settle(reject, new NativeError(
-                        `Worker operation failed: ${message.error}`,
-                        { operation: preparedRequest.request.operation }
-                    ));
-                }
-            });
-
-            worker.on('error', (error) => {
-                clearTimeout(timeout);
-                settle(reject, new NativeError(
-                    `Worker error: ${error.message}`,
-                    { operation: preparedRequest.request.operation }
-                ));
-            });
-
-            worker.on('exit', (code) => {
-                if (isSettled || code === 0) {
-                    return;
-                }
-
-                clearTimeout(timeout);
-                settle(reject, new NativeError(
-                    `Worker exited with code ${code}`,
-                    { operation: preparedRequest.request.operation }
-                ));
-            });
-
-            worker.postMessage({
-                request: preparedRequest.requestJson,
-                debug,
-            });
-        } catch (error) {
-            settle(reject, new NativeError(
-                `Failed to create worker: ${error.message}`,
-                { operation: preparedRequest.request.operation }
-            ));
-        }
-    });
+    return buildSecurityResult(
+        preparedRequest.request,
+        await callSearInChildAsync(preparedRequest, debug)
+    );
 }
 
 // ============================================================================
