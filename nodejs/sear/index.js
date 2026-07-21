@@ -351,6 +351,10 @@ function callSearInChildAsync(preparedRequest, debug) {
             responseChunks.push(chunk);
         });
 
+        child.stdin.on('error', () => {
+            // The child exit handler reports the actual failure.
+        });
+
         child.stdin.end(preparedRequest.requestJson);
 
         child.on('error', (error) => {
