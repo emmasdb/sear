@@ -28,7 +28,6 @@
     "prebuild": "node nodejs/scripts/prebuild.js",
     "build": "node nodejs/scripts/build.js",
     "prepublishOnly": "npm run test && npm run build",
-    "smoke": "node nodejs/smoke_test.js",
     "test": "node --test",
     "lint": "eslint nodejs/sear/*.js --fix || true",
     "docs": "jsdoc -c jsdoc.json || true"
