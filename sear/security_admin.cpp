@@ -46,10 +46,6 @@ static bool handle_nodejs_duplicate_add_result(SecurityRequest &request) {
   }
   return true;
 }
-#else
-static bool handle_nodejs_duplicate_add_result(SecurityRequest &) {
-  return false;
-}
 #endif
 
 SecurityAdmin::SecurityAdmin(sear_result_t *p_result, bool debug) {
@@ -210,9 +206,13 @@ void SecurityAdmin::doAddAlterDelete() {
   request_.setIntermediateResultJSON(XMLParser::buildJSONString(request_));
 
   // Post-Process Result
+#ifdef SEAR_NODEJS_BUILD
   if (!handle_nodejs_duplicate_add_result(request_)) {
     irrsmo00.post_process_smo_json(request_);
   }
+#else
+  irrsmo00.post_process_smo_json(request_);
+#endif
 
   if (void *final_req = request_.getRawRequestPointer()) {
     delete[] static_cast<char *>(final_req);
