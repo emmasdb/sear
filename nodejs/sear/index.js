@@ -38,7 +38,7 @@ const VALID_ADMIN_TYPES = [
     'racf-options',
 ];
 const CHILD_OUTPUT_MAX_BYTES = 1024 * 1024 * 16;
-const CHILD_PROCESS_ADD_TYPES = ['user', 'group', 'dataset', 'resource'];
+const DUPLICATE_ADD_RESULT_TYPES = ['user', 'group', 'dataset', 'resource'];
 
 // ============================================================================
 // SecurityResult Class
@@ -237,7 +237,7 @@ function buildSecurityResult(request, response) {
 
 function isDuplicateAddRequest(request) {
     return request.operation === 'add' &&
-        CHILD_PROCESS_ADD_TYPES.includes(request.admin_type);
+    DUPLICATE_ADD_RESULT_TYPES.includes(request.admin_type);
 }
 
 function buildDuplicateAddResult(request) {
