@@ -1,5 +1,8 @@
 #include "irrsdl00.hpp"
 
+#include <cstdio>
+#include <memory>
+
 namespace SEAR {
 void IRRSDL00::callIRRSDL00(keyring_args_t *p_args,
                             uint32_t *p_parmlist_version, void *p_parmlist) {
@@ -421,25 +424,21 @@ void IRRSDL00::readFile(const std::string &filename, void **p_p_data,
   int data_length;
 
   // open file
-  FILE *fp = fopen(filename.c_str(), "r");
+  std::unique_ptr<FILE, decltype(&std::fclose)> fp(
+      std::fopen(filename.c_str(), "r"), std::fclose);
   if (fp == nullptr) {
     throw SEARError(
         std::string("Unable to open file '" + filename + "' for reading."));
   }
   // get size of file
-  fseek(fp, 0L, SEEK_END);
-  data_length = ftell(fp);
-  rewind(fp);
+  std::fseek(fp.get(), 0L, SEEK_END);
+  data_length = std::ftell(fp.get());
+  std::rewind(fp.get());
   // allocate space to read in data from file
   auto unique_p_data = std::make_unique<char[]>(data_length + 1);
   p_data             = reinterpret_cast<unsigned char *>(unique_p_data.get());
-  if (p_data == nullptr) {
-    fclose(fp);
-    throw SEARError(std::string("Unable to allocate space for data in file."));
-  }
   // read file data
-  fread(p_data, data_length, 1, fp);
-  fclose(fp);
+  std::fread(p_data, data_length, 1, fp.get());
 
   *p_p_data = p_data;
   *p_len    = data_length;
@@ -477,14 +476,17 @@ void IRRSDL00::readFile(const std::string &filename, void **p_p_data,
     auto unique_p_data2 = std::make_unique<char[]>(len_b64_work);
     unsigned char *p_data2 =
         reinterpret_cast<unsigned char *>(unique_p_data2.get());
-    EVP_ENCODE_CTX *ctx = EVP_ENCODE_CTX_new();
-    EVP_DecodeInit(ctx);
+    std::unique_ptr<EVP_ENCODE_CTX, decltype(&EVP_ENCODE_CTX_free)> ctx(
+        EVP_ENCODE_CTX_new(), EVP_ENCODE_CTX_free);
+    if (ctx == nullptr) {
+      throw SEARError(std::string("Unable to allocate OpenSSL decode context."));
+    }
+    EVP_DecodeInit(ctx.get());
     int decode_len = 0;
-    EVP_DecodeUpdate(ctx, p_data2, &decode_len, p_b64, len_b64_work);
+    EVP_DecodeUpdate(ctx.get(), p_data2, &decode_len, p_b64, len_b64_work);
     *p_len = decode_len;
-    EVP_DecodeFinal(ctx, p_data2 + *p_len, &decode_len);
+    EVP_DecodeFinal(ctx.get(), p_data2 + *p_len, &decode_len);
     *p_len += decode_len;
-    EVP_ENCODE_CTX_free(ctx);
     p_data    = nullptr;
     *p_p_data = p_data2;
 
