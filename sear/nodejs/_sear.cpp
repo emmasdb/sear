@@ -13,6 +13,38 @@
 
 static pthread_mutex_t sear_mutex = PTHREAD_MUTEX_INITIALIZER;
 
+static void report_exception_configuration() {
+  static bool reported = false;
+  if (reported) {
+    return;
+  }
+  reported = true;
+
+#ifdef __cpp_exceptions
+  const char* cpp_exceptions = "defined";
+#else
+  const char* cpp_exceptions = "not defined";
+#endif
+
+#ifdef __EXCEPTIONS
+  const char* exceptions = "defined";
+#else
+  const char* exceptions = "not defined";
+#endif
+
+#ifdef JSON_NOEXCEPTION
+  const char* json_noexception = "defined";
+#else
+  const char* json_noexception = "not defined";
+#endif
+
+  fprintf(stderr,
+          "[_sear.cpp] exception config: __cpp_exceptions=%s "
+          "__EXCEPTIONS=%s JSON_NOEXCEPTION=%s\n",
+          cpp_exceptions, exceptions, json_noexception);
+  fflush(stderr);
+}
+
 static void sear_terminate_handler() noexcept {
   fprintf(stderr, "[_sear.cpp] std::terminate while calling sear()\n");
   std::exception_ptr exception = std::current_exception();
@@ -211,6 +243,7 @@ static napi_value call_sear(napi_env env, napi_callback_info info) {
   fprintf(stderr, "[_sear.cpp] call_sear: length=%zu debug=%d\n",
           request_length, debug);
   fprintf(stderr, "[_sear.cpp] request: %s\n", request.data());
+    report_exception_configuration();
   fflush(stderr);
 
   pthread_mutex_lock(&sear_mutex);

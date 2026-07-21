@@ -46,6 +46,9 @@
       "externals/iconv",
       "<(openssl_root)/include"
     ],
+    "defines": [
+      "SEAR_NODEJS_BUILD"
+    ],
     "cflags!": [
       "-fno-exceptions",
       "-q64",
