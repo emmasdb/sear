@@ -146,7 +146,7 @@ Base structure for all SEAR requests:
 ```typescript
 {
   operation: 'extract' | 'search' | 'alter' | 'add' | 'delete',
-  admin_type: 'user' | 'group' | 'dataset' | 'keyring' | 'certificate' | 'resource' | 'group-connection' | 'permission' | 'racf-rrsf',
+  admin_type: 'user' | 'group' | 'dataset' | 'keyring' | 'certificate' | 'resource' | 'group-connection' | 'permission' | 'racf-rrsf' | 'racf-options',
   // Additional fields based on operation and admin_type
 }
 ```
@@ -162,6 +162,7 @@ Base structure for all SEAR requests:
 | `'certificate'` | Certificates in keyrings | `keyring`, `owner`, `label` (optional) |
 | `'resource'` | RACF resource profiles | `resource`, `class_name`, `profile_type` (optional) |
 | `'racf-rrsf'` | RACF RRSF (Resource Set, Function-based) | (none) |
+| `'racf-options'` | RACF options | (none) |
 | `'group-connection'` | User-group connections | `userid`, `group` |
 | `'permission'` | Resource permissions | `dataset`/`resource`, `userid`/`group`, `traits` |
 
@@ -176,6 +177,7 @@ Base structure for all SEAR requests:
 | extract | certificate | keyring, owner |
 | extract | resource | resource, class_name |
 | extract | racf-rrsf | (none additional) |
+| extract | racf-options | (none additional) |
 | search | any | (varies by filter) |
 | alter | permission | dataset/resource, userid/group, traits |
 

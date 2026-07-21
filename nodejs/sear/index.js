@@ -40,6 +40,7 @@ const VALID_ADMIN_TYPES = [
     'certificate',
     'resource',
     'racf-rrsf',
+    'racf-options',
 ];
 const DEFAULT_ASYNC_TIMEOUT_MS = 60000;
 const CHILD_PROCESS_ADD_TYPES = ['user', 'group', 'dataset', 'resource'];
@@ -284,7 +285,7 @@ function callSearInChild(preparedRequest, debug) {
  * Execute a SEAR operation synchronously
  * @param {Object} request - The SEAR request object
  * @param {string} request.operation - Operation type: 'extract', 'search', 'alter', 'add', or 'delete'
- * @param {string} request.admin_type - Admin type: 'user', 'group', 'dataset', 'group-connection', 'permission', 'keyring', 'certificate', 'resource', or 'racf-rrsf'
+ * @param {string} request.admin_type - Admin type: 'user', 'group', 'dataset', 'group-connection', 'permission', 'keyring', 'certificate', 'resource', 'racf-rrsf', or 'racf-options'
  * @param {boolean} [debug=false] - Enable debug output in native layer
  * @returns {SecurityResult} The operation result
  * @throws {ValidationError} if request is invalid

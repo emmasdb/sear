@@ -20,7 +20,7 @@ export interface SearRequest {
     operation: 'extract' | 'search' | 'alter' | 'add' | 'delete';
 
     /**
-     * Type of resource: 'user', 'group', 'dataset', 'group-connection', 'permission', 'keyring', 'certificate', 'resource', 'racf-rrsf'.
+    * Type of resource: 'user', 'group', 'dataset', 'group-connection', 'permission', 'keyring', 'certificate', 'resource', 'racf-rrsf', or 'racf-options'.
      */
     admin_type:
         | 'user'
@@ -31,7 +31,8 @@ export interface SearRequest {
         | 'keyring'
         | 'certificate'
         | 'resource'
-        | 'racf-rrsf';
+        | 'racf-rrsf'
+        | 'racf-options';
 
     /**
      * User ID (required for extract admin_type='user')
@@ -202,4 +203,4 @@ export const VALID_OPERATIONS: readonly ['extract', 'search', 'alter', 'add', 'd
 /**
  * Valid admin types
  */
-export const VALID_ADMIN_TYPES: readonly ['user', 'group', 'dataset', 'group-connection', 'permission', 'keyring', 'certificate', 'resource', 'racf-rrsf'];
+export const VALID_ADMIN_TYPES: readonly ['user', 'group', 'dataset', 'group-connection', 'permission', 'keyring', 'certificate', 'resource', 'racf-rrsf', 'racf-options'];
