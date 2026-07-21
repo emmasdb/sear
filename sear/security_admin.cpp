@@ -18,31 +18,37 @@
 
 namespace SEAR {
 #ifdef SEAR_NODEJS_BUILD
-static void throw_nodejs_duplicate_add_error(SecurityRequest &request) {
+static bool handle_nodejs_duplicate_add_result(SecurityRequest &request) {
   const nlohmann::json &results = request.getIntermediateResultJSON();
   if (request.getOperation() != "add" || results.contains("command") ||
       results.contains("error") || results.contains("errors")) {
-    return;
+    return false;
   }
 
   const std::string &admin_type = request.getAdminType();
   if (admin_type != "user" && admin_type != "group" &&
       admin_type != "dataset" && admin_type != "resource") {
-    return;
+    return false;
   }
 
   request.setSEARReturnCode(4);
   const std::string &profile_name = request.getProfileName();
   const std::string &class_name = request.getClassName();
   if (class_name.empty()) {
-    throw SEARError("unable to add '" + profile_name + "' because a '" +
-                    admin_type + "' profile already exists with that name");
+    request.setErrors({"sear: unable to add '" + profile_name +
+                       "' because a '" + admin_type +
+                       "' profile already exists with that name"});
   } else {
-    throw SEARError("unable to add '" + profile_name + "' in the '" +
-                    class_name + "' class because a '" + admin_type +
-                    "' profile already exists in the '" + class_name +
-                    "' class with that name");
+    request.setErrors({"sear: unable to add '" + profile_name + "' in the '" +
+                       class_name + "' class because a '" + admin_type +
+                       "' profile already exists in the '" + class_name +
+                       "' class with that name"});
   }
+  return true;
+}
+#else
+static bool handle_nodejs_duplicate_add_result(SecurityRequest &) {
+  return false;
 }
 #endif
 
@@ -204,10 +210,9 @@ void SecurityAdmin::doAddAlterDelete() {
   request_.setIntermediateResultJSON(XMLParser::buildJSONString(request_));
 
   // Post-Process Result
-#ifdef SEAR_NODEJS_BUILD
-  throw_nodejs_duplicate_add_error(request_);
-#endif
-  irrsmo00.post_process_smo_json(request_);
+  if (!handle_nodejs_duplicate_add_result(request_)) {
+    irrsmo00.post_process_smo_json(request_);
+  }
 
   if (void *final_req = request_.getRawRequestPointer()) {
     delete[] static_cast<char *>(final_req);
