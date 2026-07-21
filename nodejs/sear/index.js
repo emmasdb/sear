@@ -156,9 +156,14 @@ function validateRequest(request) {
 function prepareRequest(request) {
     validateRequest(request);
 
+    const nativeRequest = { ...request };
+    if (nativeRequest.class_name && !nativeRequest.class) {
+        nativeRequest.class = nativeRequest.class_name;
+    }
+
     return {
         request,
-        requestJson: JSON.stringify(request),
+        requestJson: JSON.stringify(nativeRequest),
     };
 }
 
@@ -192,9 +197,10 @@ function buildDuplicateAddResult(request) {
         profileName = request.dataset;
     } else if (request.admin_type === 'resource') {
         profileName = request.resource;
+        const className = request.class_name || request.class;
         errorMessage = `sear: unable to add '${profileName}' in the ` +
-            `'${request.class}' class because a '${request.admin_type}' ` +
-            `profile already exists in the '${request.class}' class with ` +
+            `'${className}' class because a '${request.admin_type}' ` +
+            `profile already exists in the '${className}' class with ` +
             'that name';
     }
 

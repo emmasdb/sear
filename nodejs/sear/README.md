@@ -160,7 +160,7 @@ Base structure for all SEAR requests:
 | `'dataset'` | z/OS dataset profiles | `dataset` |
 | `'keyring'` | RACF keyrings | `keyring`, `owner` |
 | `'certificate'` | Certificates in keyrings | `keyring`, `owner`, `label` (optional) |
-| `'resource'` | RACF resource profiles | `resource`, `profile_type` (optional) |
+| `'resource'` | RACF resource profiles | `resource`, `class_name`, `profile_type` (optional) |
 | `'racf-rrsf'` | RACF RRSF (Resource Set, Function-based) | (none) |
 | `'group-connection'` | User-group connections | `userid`, `group` |
 | `'permission'` | Resource permissions | `dataset`/`resource`, `userid`/`group`, `traits` |

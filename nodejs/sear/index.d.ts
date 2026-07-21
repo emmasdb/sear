@@ -69,6 +69,11 @@ export interface SearRequest {
     resource?: string;
 
     /**
+     * RACF resource class (required for admin_type='resource')
+     */
+    class_name?: string;
+
+    /**
      * Resource profile type (optional for extract admin_type='resource')
      */
     profile_type?: string;
