@@ -34,18 +34,20 @@ class KeyringPostProcessor {
   static void postProcessAddOrDeleteKeyring(SecurityRequest &request);
 
  private:
-  static void convertASN1TIME(ASN1_TIME *t, char *p_buf, size_t buf_len);
+  static void convertASN1TIME(const ASN1_TIME *t, char *p_buf, size_t buf_len);
   static bool addSignature(nlohmann::json &add_to_json, X509 *x509_cert);
   static bool addHashs(nlohmann::json &add_to_json, void *p_cert,
                        size_t len_cert);
-  static bool addUsages(nlohmann::json &add_to_json, X509_EXTENSION *p_ext);
-  static bool addExtUsages(nlohmann::json &add_to_json, X509_EXTENSION *p_ext);
+  static bool addUsages(nlohmann::json &add_to_json,
+                        const X509_EXTENSION *p_ext);
+  static bool addExtUsages(nlohmann::json &add_to_json,
+                           const X509_EXTENSION *p_ext);
   static bool addSubjectAltName(nlohmann::json &add_to_json,
-                                X509_EXTENSION *p_ext);
+                                const X509_EXTENSION *p_ext);
   static bool addBasicConstraints(nlohmann::json &add_to_json,
-                                  X509_EXTENSION *p_ext);
+                                  const X509_EXTENSION *p_ext);
   static bool addGenericExtension(nlohmann::json &add_to_json,
-                                  X509_EXTENSION *p_ext);
+                                  const X509_EXTENSION *p_ext);
   static std::string strToHex(const std::uint8_t *data, const std::size_t len);
 };
 }  // namespace SEAR
