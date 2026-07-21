@@ -262,7 +262,6 @@ if (configureResult.status !== 0) {
 
 reportExceptionFlags();
 reportCharModeFlags();
-console.warn('SEAR Node build diagnostics enabled');
 
 const buildResult = spawnSync('node-gyp', ['build'], {
     stdio: 'inherit',

@@ -2,7 +2,6 @@
 
 #include <arpa/inet.h>
 
-#include <cstdio>
 #include <memory>
 #include <nlohmann/json.hpp>
 
@@ -19,11 +18,6 @@
 
 namespace SEAR {
 #ifdef SEAR_NODEJS_BUILD
-static void nodejs_phase_log(const char *message) {
-  std::fprintf(stderr, "[security_admin.cpp] %s\n", message);
-  std::fflush(stderr);
-}
-
 static bool handle_nodejs_duplicate_add_result(SecurityRequest &request) {
   const nlohmann::json &results = request.getIntermediateResultJSON();
   if (request.getOperation() != "add" || results.contains("command") ||
@@ -50,12 +44,9 @@ static bool handle_nodejs_duplicate_add_result(SecurityRequest &request) {
                        "' profile already exists in the '" + class_name +
                        "' class with that name"});
   }
-  nodejs_phase_log("handled duplicate add result before IRRSMO00 post-process");
   return true;
 }
 #else
-static void nodejs_phase_log(const char *) {}
-
 static bool handle_nodejs_duplicate_add_result(SecurityRequest &) {
   return false;
 }
@@ -128,19 +119,14 @@ void SecurityAdmin::makeRequest(const char *p_request_json_string, int length) {
       }
     }
   } catch (const SEARError &ex) {
-    nodejs_phase_log("caught SEARError in SecurityAdmin::makeRequest");
     request_.setErrors(ex.getErrors());
   } catch (const IRRSMO00Error &ex) {
-    nodejs_phase_log("caught IRRSMO00Error in SecurityAdmin::makeRequest");
     request_.setErrors(ex.getErrors());
   } catch (const std::exception &ex) {
-    nodejs_phase_log("caught std::exception in SecurityAdmin::makeRequest");
     request_.setSEARReturnCode(8);
     request_.setErrors({ex.what()});
   }
-  nodejs_phase_log("before SecurityRequest::buildResult");
   request_.buildResult();
-  nodejs_phase_log("after SecurityRequest::buildResult");
 }
 
 void SecurityAdmin::doExtract(Extractor &extractor) {
@@ -221,15 +207,11 @@ void SecurityAdmin::doAddAlterDelete() {
   Logger::getInstance().debug("Done");
 
   // Parse Result
-  nodejs_phase_log("before XMLParser::buildJSONString");
   request_.setIntermediateResultJSON(XMLParser::buildJSONString(request_));
-  nodejs_phase_log("after XMLParser::buildJSONString");
 
   // Post-Process Result
-  nodejs_phase_log("before IRRSMO00::post_process_smo_json");
   if (!handle_nodejs_duplicate_add_result(request_)) {
     irrsmo00.post_process_smo_json(request_);
-    nodejs_phase_log("after IRRSMO00::post_process_smo_json");
   }
 
   if (void *final_req = request_.getRawRequestPointer()) {
