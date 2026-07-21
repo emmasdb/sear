@@ -174,7 +174,7 @@ Base structure for all SEAR requests:
 | extract | dataset | dataset |
 | extract | keyring | keyring, owner |
 | extract | certificate | keyring, owner |
-| extract | resource | resource |
+| extract | resource | resource, class_name |
 | extract | racf-rrsf | (none additional) |
 | search | any | (varies by filter) |
 | alter | permission | dataset/resource, userid/group, traits |

@@ -167,6 +167,7 @@ function prepareRequest(request) {
     if (nativeRequest.class_name && !nativeRequest.class) {
         nativeRequest.class = nativeRequest.class_name;
     }
+    delete nativeRequest.class_name;
 
     return {
         request,
