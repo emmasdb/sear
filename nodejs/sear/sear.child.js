@@ -2,8 +2,9 @@
 
 const fs = require('fs');
 
-const [nativeModulePath, requestJson, debugValue] = process.argv.slice(2);
+const [nativeModulePath, debugValue] = process.argv.slice(2);
 const _C = require(nativeModulePath);
+const requestJson = fs.readFileSync(0, 'utf8');
 
 const response = _C.call_sear(requestJson, debugValue === 'true');
 

@@ -202,7 +202,7 @@ function validateRequest(request) {
     if (errors.length > 0) {
         throw new ValidationError(
             `Invalid request: ${errors.join('; ')}`,
-            { errors, request }
+            { errors }
         );
     }
 }
@@ -283,12 +283,12 @@ function callSearInChild(preparedRequest, debug) {
     const child = spawnSync(process.execPath, [
         childModulePath,
         nativeModulePath,
-        preparedRequest.requestJson,
         String(debug),
     ], {
         encoding: 'utf8',
+        input: preparedRequest.requestJson,
         maxBuffer: CHILD_OUTPUT_MAX_BYTES,
-        stdio: ['ignore', 'inherit', 'inherit', 'pipe'],
+        stdio: ['pipe', 'inherit', 'inherit', 'pipe'],
     });
 
     if (child.status === 0 && child.output[3]) {
@@ -322,10 +322,9 @@ function callSearInChildAsync(preparedRequest, debug) {
         const child = spawn(process.execPath, [
             childModulePath,
             nativeModulePath,
-            preparedRequest.requestJson,
             String(debug),
         ], {
-            stdio: ['ignore', 'inherit', 'inherit', 'pipe'],
+            stdio: ['pipe', 'inherit', 'inherit', 'pipe'],
         });
 
         const responseChunks = [];
@@ -351,6 +350,8 @@ function callSearInChildAsync(preparedRequest, debug) {
             }
             responseChunks.push(chunk);
         });
+
+        child.stdin.end(preparedRequest.requestJson);
 
         child.on('error', (error) => {
             settle(reject, new NativeError(`Failed to start SEAR child process: ${error.message}`, {
