@@ -183,7 +183,7 @@ void KeyringPostProcessor::postProcessExtractKeyring(SecurityRequest &request) {
 
         if (p_ext_stack) {
           for (int k = 0; k < sk_X509_EXTENSION_num(p_ext_stack); k++) {
-            const X509_EXTENSION *p_ext =
+            X509_EXTENSION *p_ext =
                 sk_X509_EXTENSION_value(p_ext_stack, k);
             const ASN1_OBJECT *p_obj    = X509_EXTENSION_get_object(p_ext);
 
@@ -344,7 +344,7 @@ bool KeyringPostProcessor::addHashs(nlohmann::json &add_to_json, void *p_cert,
 }
 
 bool KeyringPostProcessor::addUsages(nlohmann::json &add_to_json,
-                                     const X509_EXTENSION *p_ext) {
+                                     X509_EXTENSION *p_ext) {
   bool ret = true;
 
   std::vector<std::string> repeat_group_usages;
@@ -385,7 +385,7 @@ bool KeyringPostProcessor::addUsages(nlohmann::json &add_to_json,
 }
 
 bool KeyringPostProcessor::addExtUsages(nlohmann::json &add_to_json,
-                                        const X509_EXTENSION *p_ext) {
+                                        X509_EXTENSION *p_ext) {
   bool ret = true;
 
   std::vector<std::string> repeat_group_usages;
@@ -407,7 +407,7 @@ bool KeyringPostProcessor::addExtUsages(nlohmann::json &add_to_json,
 }
 
 bool KeyringPostProcessor::addSubjectAltName(nlohmann::json &add_to_json,
-                                             const X509_EXTENSION *p_ext) {
+                                             X509_EXTENSION *p_ext) {
   bool ret = true;
 
   std::vector<nlohmann::json> repeat_group_altnames;
@@ -475,7 +475,7 @@ bool KeyringPostProcessor::addSubjectAltName(nlohmann::json &add_to_json,
 }
 
 bool KeyringPostProcessor::addBasicConstraints(nlohmann::json &add_to_json,
-                                               const X509_EXTENSION *p_ext) {
+                                               X509_EXTENSION *p_ext) {
   bool ret = true;
 
   nlohmann::json constraints;
@@ -496,7 +496,7 @@ bool KeyringPostProcessor::addBasicConstraints(nlohmann::json &add_to_json,
 }
 
 bool KeyringPostProcessor::addGenericExtension(nlohmann::json &add_to_json,
-                                               const X509_EXTENSION *p_ext) {
+                                               X509_EXTENSION *p_ext) {
   bool ret     = true;
 
   BIO *ext_bio = BIO_new(BIO_s_mem());
