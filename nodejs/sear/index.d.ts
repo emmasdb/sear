@@ -15,9 +15,9 @@ export interface SearResultObject {
  */
 export interface SearRequest {
     /**
-     * Operation to perform: 'extract', 'search', 'alter', 'add', 'delete'
+    * Operation to perform: 'extract', 'search', 'alter', 'add', 'delete', 'remove'
      */
-    operation: 'extract' | 'search' | 'alter' | 'add' | 'delete';
+    operation: 'extract' | 'search' | 'alter' | 'add' | 'delete' | 'remove';
 
     /**
     * Type of resource: 'user', 'group', 'dataset', 'group-connection', 'permission', 'keyring', 'certificate', 'resource', 'racf-rrsf', or 'racf-options'.
@@ -50,19 +50,49 @@ export interface SearRequest {
     dataset?: string;
 
     /**
-     * Keyring name (required for extract admin_type='keyring' or 'certificate')
+    * Keyring name (required for keyring and certificate operations)
      */
     keyring?: string;
 
     /**
-     * Keyring owner user ID (required for extract admin_type='keyring' or 'certificate')
+    * Owner user ID (required for keyring and certificate operations)
      */
     owner?: string;
 
     /**
-     * Certificate label (optional for extract admin_type='certificate')
+    * Certificate keyring owner user ID (required for admin_type='certificate')
+    */
+    keyring_owner?: string;
+
+    /**
+    * Certificate label (required for admin_type='certificate')
      */
     label?: string;
+
+    /**
+    * Certificate usage (required for certificate add)
+    */
+    usage?: 'PERSONAL' | 'personal' | 'SITE' | 'site' | 'CERTAUTH' | 'certauth';
+
+    /**
+    * Certificate trust status (required for certificate add)
+    */
+    status?: 'TRUST' | 'trust' | 'HIGHTRUST' | 'hightrust' | 'NOTRUST' | 'notrust';
+
+    /**
+    * Whether the certificate is default for the keyring (optional for certificate add)
+    */
+    default?: 'yes' | 'no';
+
+    /**
+    * Certificate file path (optional for certificate add)
+    */
+    certificate_file?: string;
+
+    /**
+    * Private key file path (optional for certificate add)
+    */
+    private_key_file?: string;
 
     /**
      * Resource name (required for extract admin_type='resource')
@@ -198,7 +228,7 @@ export function searAsync(request: SearRequest, debug?: boolean): Promise<Securi
 /**
  * Valid operation types
  */
-export const VALID_OPERATIONS: readonly ['extract', 'search', 'alter', 'add', 'delete'];
+export const VALID_OPERATIONS: readonly ['extract', 'search', 'alter', 'add', 'delete', 'remove'];
 
 /**
  * Valid admin types

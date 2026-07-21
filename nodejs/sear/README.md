@@ -145,7 +145,7 @@ Base structure for all SEAR requests:
 
 ```typescript
 {
-  operation: 'extract' | 'search' | 'alter' | 'add' | 'delete',
+  operation: 'extract' | 'search' | 'alter' | 'add' | 'delete' | 'remove',
   admin_type: 'user' | 'group' | 'dataset' | 'keyring' | 'certificate' | 'resource' | 'group-connection' | 'permission' | 'racf-rrsf' | 'racf-options',
   // Additional fields based on operation and admin_type
 }
@@ -159,7 +159,7 @@ Base structure for all SEAR requests:
 | `'group'` | RACF group profiles | `group` |
 | `'dataset'` | z/OS dataset profiles | `dataset` |
 | `'keyring'` | RACF keyrings | `keyring`, `owner` |
-| `'certificate'` | Certificates in keyrings | `keyring`, `owner`, `label` (optional) |
+| `'certificate'` | Certificates in keyrings | `owner`, `keyring`, `keyring_owner`, `label` |
 | `'resource'` | RACF resource profiles | `resource`, `class_name`, `profile_type` (optional) |
 | `'racf-rrsf'` | RACF RRSF (Resource Set, Function-based) | (none) |
 | `'racf-options'` | RACF options | (none) |
@@ -174,12 +174,17 @@ Base structure for all SEAR requests:
 | extract | group | group |
 | extract | dataset | dataset |
 | extract | keyring | keyring, owner |
-| extract | certificate | keyring, owner |
 | extract | resource | resource, class_name |
 | extract | racf-rrsf | (none additional) |
 | extract | racf-options | (none additional) |
+| add | certificate | owner, keyring, keyring_owner, label, usage, status |
+| delete/remove | certificate | owner, keyring, keyring_owner, label |
 | search | any | (varies by filter) |
-| alter | permission | dataset/resource, userid/group, traits |
+| alter | racf-options | traits |
+| alter | permission | dataset/resource, userid/group, traits; `class_name` for resource permissions |
+| delete | permission | dataset/resource, userid/group; `class_name` for resource permissions |
+
+For Node.js resource and permission requests, use `class_name`; the wrapper sends it to native SEAR as the core request-format key `class`.
 
 ## Examples
 
@@ -223,16 +228,17 @@ const result = sear({
 console.log(JSON.stringify(result.result, null, 2));
 ```
 
-### Extract Certificate from Keyring
+### Remove Certificate from Keyring
 
 ```javascript
 const { sear } = require('./nodejs/sear');
 
 const result = sear({
-  operation: 'extract',
+  operation: 'remove',
   admin_type: 'certificate',
   keyring: 'MYKEYRING',
   owner: 'KEYRING_OWNER',
+  keyring_owner: 'KEYRING_OWNER',
   label: 'CERT_LABEL'
 });
 console.log(JSON.stringify(result.result, null, 2));

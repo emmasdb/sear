@@ -29,7 +29,7 @@ try {
 // Constants
 // ============================================================================
 
-const VALID_OPERATIONS = ['extract', 'search', 'alter', 'add', 'delete'];
+const VALID_OPERATIONS = ['extract', 'search', 'alter', 'add', 'delete', 'remove'];
 const VALID_ADMIN_TYPES = [
     'user',
     'group',
@@ -115,6 +115,16 @@ function validateRequest(request) {
         errors.push(`admin_type must be one of: ${VALID_ADMIN_TYPES.join(', ')}`);
     }
 
+    if (request.admin_type === 'racf-options' &&
+        request.operation &&
+        !['extract', 'alter'].includes(request.operation)) {
+        errors.push('racf-options only supports extract and alter operations');
+    }
+
+    if (request.admin_type === 'permission' && request.operation === 'extract') {
+        errors.push('permission extraction is not supported');
+    }
+
     // Operation-specific validation
     if (request.operation === 'extract') {
         if (request.admin_type === 'user' && !request.userid) {
@@ -138,18 +148,40 @@ function validateRequest(request) {
         if (request.admin_type === 'keyring' && !request.owner) {
             errors.push('owner is required for keyring extraction');
         }
-        if (request.admin_type === 'certificate' && !request.keyring) {
-            errors.push('keyring is required for certificate extraction');
+        if (request.admin_type === 'certificate') {
+            errors.push('certificate extraction is not supported');
         }
-        if (request.admin_type === 'certificate' && !request.owner) {
-            errors.push('owner is required for certificate extraction');
-        }
-    } else if (request.operation === 'alter' && request.admin_type === 'permission') {
+    } else if (['alter', 'delete'].includes(request.operation) && request.admin_type === 'permission') {
         if (!request.dataset && !request.resource) {
-            errors.push('either dataset or resource is required for permission alteration');
+            errors.push(`either dataset or resource is required for permission ${request.operation}`);
+        }
+        if (request.resource && !request.class_name && !request.class) {
+            errors.push(`class_name is required for resource permission ${request.operation}`);
         }
         if (!request.userid && !request.group) {
-            errors.push('either userid or group is required for permission alteration');
+            errors.push(`either userid or group is required for permission ${request.operation}`);
+        }
+        if (request.operation === 'alter' && !request.traits) {
+            errors.push('traits is required for permission alteration');
+        }
+    } else if (['add', 'delete', 'remove'].includes(request.operation) && request.admin_type === 'certificate') {
+        if (!request.owner) {
+            errors.push(`owner is required for certificate ${request.operation}`);
+        }
+        if (!request.keyring) {
+            errors.push(`keyring is required for certificate ${request.operation}`);
+        }
+        if (!request.keyring_owner) {
+            errors.push(`keyring_owner is required for certificate ${request.operation}`);
+        }
+        if (!request.label) {
+            errors.push(`label is required for certificate ${request.operation}`);
+        }
+        if (request.operation === 'add' && !request.usage) {
+            errors.push('usage is required for certificate add');
+        }
+        if (request.operation === 'add' && !request.status) {
+            errors.push('status is required for certificate add');
         }
     }
 
@@ -284,7 +316,7 @@ function callSearInChild(preparedRequest, debug) {
 /**
  * Execute a SEAR operation synchronously
  * @param {Object} request - The SEAR request object
- * @param {string} request.operation - Operation type: 'extract', 'search', 'alter', 'add', or 'delete'
+ * @param {string} request.operation - Operation type: 'extract', 'search', 'alter', 'add', 'delete', or 'remove'
  * @param {string} request.admin_type - Admin type: 'user', 'group', 'dataset', 'group-connection', 'permission', 'keyring', 'certificate', 'resource', 'racf-rrsf', or 'racf-options'
  * @param {boolean} [debug=false] - Enable debug output in native layer
  * @returns {SecurityResult} The operation result
