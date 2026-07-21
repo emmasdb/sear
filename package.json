@@ -19,7 +19,10 @@
     "RACF",
     "security",
     "native-addon",
-    "security-administration"
+    "security-administration",
+    "automation",
+    "ibm",
+    "mainframe"
   ],
   "scripts": {
     "prebuild": "node nodejs/scripts/prebuild.js",
