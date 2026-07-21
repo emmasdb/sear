@@ -43,6 +43,7 @@ const VALID_ADMIN_TYPES = [
 ];
 const DEFAULT_ASYNC_TIMEOUT_MS = 60000;
 const CHILD_PROCESS_ADD_TYPES = ['user', 'group', 'dataset', 'resource'];
+const CHILD_PROCESS_EXTRACT_TYPES = ['resource'];
 
 // ============================================================================
 // SecurityResult Class
@@ -124,6 +125,12 @@ function validateRequest(request) {
         if (request.admin_type === 'dataset' && !request.dataset) {
             errors.push('dataset is required for dataset extraction');
         }
+        if (request.admin_type === 'resource' && !request.resource) {
+            errors.push('resource is required for resource extraction');
+        }
+        if (request.admin_type === 'resource' && !request.class_name && !request.class) {
+            errors.push('class_name is required for resource extraction');
+        }
         if (request.admin_type === 'keyring' && !request.keyring) {
             errors.push('keyring is required for keyring extraction');
         }
@@ -180,9 +187,15 @@ function buildSecurityResult(request, response) {
     });
 }
 
-function shouldUseChildProcess(request) {
+function isDuplicateAddRequest(request) {
     return request.operation === 'add' &&
         CHILD_PROCESS_ADD_TYPES.includes(request.admin_type);
+}
+
+function shouldUseChildProcess(request) {
+    return isDuplicateAddRequest(request) ||
+        (request.operation === 'extract' &&
+            CHILD_PROCESS_EXTRACT_TYPES.includes(request.admin_type));
 }
 
 function buildDuplicateAddResult(request) {
@@ -245,11 +258,13 @@ function callSearInChild(preparedRequest, debug) {
         };
     }
 
-    if (child.signal && shouldUseChildProcess(preparedRequest.request)) {
+    if (child.signal) {
         if (debug) {
             console.error(`SEAR child process exited with signal ${child.signal}`);
         }
-        return buildDuplicateAddResult(preparedRequest.request);
+        if (isDuplicateAddRequest(preparedRequest.request)) {
+            return buildDuplicateAddResult(preparedRequest.request);
+        }
     }
 
     throw new NativeError(
