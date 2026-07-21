@@ -1,5 +1,8 @@
 #include "keyring_post_processor.hpp"
 
+#include <algorithm>
+#include <cstring>
+
 namespace SEAR {
 void KeyringPostProcessor::postProcessExtractKeyring(SecurityRequest &request) {
   nlohmann::json keyring;
@@ -45,18 +48,20 @@ void KeyringPostProcessor::postProcessExtractKeyring(SecurityRequest &request) {
       repeat_group_certs.push_back(nlohmann::json::object());
 
       std::memset(&union_work.RACF_user_id[0], 0, 9);
-      help_len = *work;
+      help_len = static_cast<unsigned char>(*work);
       work++;
-      std::strncpy(&union_work.RACF_user_id[0], work, help_len);
-      __e2a_l(&union_work.RACF_user_id[0], help_len);
+      int copy_len = std::min(help_len, 8);
+      std::memcpy(&union_work.RACF_user_id[0], work, copy_len);
+      __e2a_l(&union_work.RACF_user_id[0], copy_len);
       repeat_group_certs[j]["owner"] = union_work.RACF_user_id;
       work += help_len;
 
       std::memset(&union_work.label[0], 0, 256);
-      help_len = *work;
+      help_len = static_cast<unsigned char>(*work);
       work++;
-      std::strncpy(&union_work.label[0], work, help_len);
-      __e2a_l(&union_work.label[0], help_len);
+      copy_len = std::min(help_len, 255);
+      std::memcpy(&union_work.label[0], work, copy_len);
+      __e2a_l(&union_work.label[0], copy_len);
       repeat_group_certs[j]["label"] = union_work.label;
       work += help_len;
 

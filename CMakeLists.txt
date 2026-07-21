@@ -49,7 +49,6 @@
 cmake_minimum_required(VERSION 3.24)
 
 project(sear C CXX ASM)
-set(CXX_STANDARD 17)
 
 # This option is used when building the Python wheel
 option(SEAR_ENABLE_PYTHON "Enables building the Python language module." OFF)
@@ -114,6 +113,7 @@ add_library(
 
     externals/pugixml/pugixml.cpp
 )
+target_compile_features(sear PUBLIC cxx_std_17)
 # SEAR's include directories
 target_include_directories(
     sear PUBLIC

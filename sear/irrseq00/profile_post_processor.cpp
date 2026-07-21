@@ -482,8 +482,7 @@ std::string ProfilePostProcessor::postProcessFieldKey(
     const char *p_raw_field_key) {
   std::string field_key =
       ProfilePostProcessor::postProcessKey(p_raw_field_key, 8);
-  const char *sear_field_key =
-      get_sear_key(admin_type.c_str(), segment.c_str(), field_key.c_str());
+    const char *sear_field_key = get_sear_key(admin_type, segment, field_key);
   if (sear_field_key == nullptr) {
     return "experimental:" + field_key;
   }
@@ -508,12 +507,7 @@ std::string ProfilePostProcessor::postProcessKey(const char *p_source_key,
 
 std::string ProfilePostProcessor::decodeEBCDICBytes(const char *p_ebcdic_bytes,
                                                     int length) {
-  auto ebcdic_bytes_unique_ptr          = std::make_unique<char[]>(length);
-  ebcdic_bytes_unique_ptr.get()[length] = 0;
-  // Decode bytes
-  std::strncpy(ebcdic_bytes_unique_ptr.get(), p_ebcdic_bytes, length);
-  
-  std::string ebcdic_string = std::string(ebcdic_bytes_unique_ptr.get());
+  std::string ebcdic_string(p_ebcdic_bytes, length);
 
   std::string utf8_string = toUTF8(ebcdic_string, "IBM-1047");
 

@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <nlohmann/json.hpp>
+#include <string_view>
 
 #include "key_map_dataset.hpp"
 #include "key_map_group.hpp"
@@ -53,18 +54,20 @@ const key_mapping_t KEY_MAP[] = {
 };
 // clang-format on
 
-const char *get_sear_key(const char *profile_type, const char *segment,
-                         const char *racf_key);
+const char *get_sear_key(std::string_view profile_type,
+                         std::string_view segment,
+                         std::string_view racf_key);
 
-const char *get_racf_key(const char *profile_type, const char *segment,
-                         const char *sear_key, int8_t trait_type,
+const char *get_racf_key(std::string_view profile_type,
+                         std::string_view segment,
+                         std::string_view sear_key, int8_t trait_type,
                          int8_t trait_operator);
 
-const char get_trait_type(const std::string &profile_type,
-                          const std::string &segment,
-                          const std::string &sear_key);
+const char get_trait_type(std::string_view profile_type,
+                          std::string_view segment,
+                          std::string_view sear_key);
 
-int8_t map_operator(std::string trait_operator);
+int8_t map_operator(std::string_view trait_operator);
 int8_t map_trait_type(const nlohmann::json &trait);
 std::string decode_data_type(uint8_t data_type_code);
 

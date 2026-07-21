@@ -109,8 +109,8 @@ void validate_traits(const std::string& admin_type,
     if (expected_type == TRAIT_TYPE_PSEUDO_BOOLEAN) {
       trait_type = TRAIT_TYPE_PSEUDO_BOOLEAN;
     }
-    translatedKey = get_racf_key(admin_type.c_str(), item_segment.c_str(),
-                                 (item_segment + ":" + item_trait).c_str(),
+    translatedKey = get_racf_key(admin_type, item_segment,
+                   item_segment + ":" + item_trait,
                                  trait_type, trait_operator);
     // If we could not find the RACF key with this function, the operation is
     // bad because we check the Segment-Trait combination above
