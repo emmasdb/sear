@@ -122,7 +122,8 @@ void ProfileExtractor::extract(SecurityRequest &request) {
     // For search functions first try regular extract in case an existing name
     // was given as filter
     uint8_t save_function_code = function_code;
-    if (!request.getProfileName().empty() && request.getProfileName() != " ") {
+    if (!request.getProfileName().empty() && request.getProfileName() != " " &&
+        request.getProfileName()[0] != '\0') {
       switch (function_code) {
         case USER_EXTRACT_NEXT_FUNCTION_CODE:
           function_code                  = USER_EXTRACT_FUNCTION_CODE;
