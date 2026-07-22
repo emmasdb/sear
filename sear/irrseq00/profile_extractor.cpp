@@ -122,23 +122,25 @@ void ProfileExtractor::extract(SecurityRequest &request) {
     // For search functions first try regular extract in case an existing name
     // was given as filter
     uint8_t save_function_code = function_code;
-    switch (function_code) {
-      case USER_EXTRACT_NEXT_FUNCTION_CODE:
-        function_code                  = USER_EXTRACT_FUNCTION_CODE;
-        p_arg_area->args.function_code = function_code;
-        break;
-      case GROUP_EXTRACT_NEXT_FUNCTION_CODE:
-        function_code                  = GROUP_EXTRACT_FUNCTION_CODE;
-        p_arg_area->args.function_code = function_code;
-        break;
-      case DATASET_EXTRACT_NEXT_FUNCTION_CODE:
-        function_code                  = DATASET_EXTRACT_FUNCTION_CODE;
-        p_arg_area->args.function_code = function_code;
-        break;
-      case RESOURCE_EXTRACT_NEXT_FUNCTION_CODE:
-        function_code                  = RESOURCE_EXTRACT_FUNCTION_CODE;
-        p_arg_area->args.function_code = function_code;
-        break;
+    if (request.getProfileName() != " ") {
+      switch (function_code) {
+        case USER_EXTRACT_NEXT_FUNCTION_CODE:
+          function_code                  = USER_EXTRACT_FUNCTION_CODE;
+          p_arg_area->args.function_code = function_code;
+          break;
+        case GROUP_EXTRACT_NEXT_FUNCTION_CODE:
+          function_code                  = GROUP_EXTRACT_FUNCTION_CODE;
+          p_arg_area->args.function_code = function_code;
+          break;
+        case DATASET_EXTRACT_NEXT_FUNCTION_CODE:
+          function_code                  = DATASET_EXTRACT_FUNCTION_CODE;
+          p_arg_area->args.function_code = function_code;
+          break;
+        case RESOURCE_EXTRACT_NEXT_FUNCTION_CODE:
+          function_code                  = RESOURCE_EXTRACT_FUNCTION_CODE;
+          p_arg_area->args.function_code = function_code;
+          break;
+      }
     }
 
     // Call R_Admin
