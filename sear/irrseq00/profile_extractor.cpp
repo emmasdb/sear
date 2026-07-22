@@ -276,10 +276,12 @@ void ProfileExtractor::extract(SecurityRequest &request) {
           request.getRACFReasonCode() != 0 || rc != 0 ||
           request.getRawResultPointer() == nullptr) {
         request.setSEARReturnCode(4);
-        // Raise Exception if Search Failed.
         const std::string &admin_type = request.getAdminType();
-        throw SEARError("unable to search '" + admin_type + "' profile '" +
-                        request.getProfileName() + "'");
+        request.setErrors({"sear: unable to search '" + admin_type +
+                           "' profile '" + request.getProfileName() + "'"});
+        request.setRawResultLength(0);
+        request.setRawResultPointer(nullptr);
+        return;
       }
     }
   } else {
