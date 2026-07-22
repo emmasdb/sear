@@ -231,7 +231,7 @@ void SecurityRequest::load(const nlohmann::json& request) {
       if (request.contains("resource_filter")) {
         profile_name_ = request["resource_filter"].get<std::string>();
       } else {
-        profile_name_ = std::string(" ");
+        profile_name_ = std::string();
       }
       class_name_ = request["class"].get<std::string>();
     } else {
