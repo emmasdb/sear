@@ -122,26 +122,23 @@ void ProfileExtractor::extract(SecurityRequest &request) {
     // For search functions first try regular extract in case an existing name
     // was given as filter
     uint8_t save_function_code = function_code;
-    if (!request.getProfileName().empty() && request.getProfileName() != " " &&
-        request.getProfileName()[0] != '\0') {
-      switch (function_code) {
-        case USER_EXTRACT_NEXT_FUNCTION_CODE:
-          function_code                  = USER_EXTRACT_FUNCTION_CODE;
-          p_arg_area->args.function_code = function_code;
-          break;
-        case GROUP_EXTRACT_NEXT_FUNCTION_CODE:
-          function_code                  = GROUP_EXTRACT_FUNCTION_CODE;
-          p_arg_area->args.function_code = function_code;
-          break;
-        case DATASET_EXTRACT_NEXT_FUNCTION_CODE:
-          function_code                  = DATASET_EXTRACT_FUNCTION_CODE;
-          p_arg_area->args.function_code = function_code;
-          break;
-        case RESOURCE_EXTRACT_NEXT_FUNCTION_CODE:
-          function_code                  = RESOURCE_EXTRACT_FUNCTION_CODE;
-          p_arg_area->args.function_code = function_code;
-          break;
-      }
+    switch (function_code) {
+      case USER_EXTRACT_NEXT_FUNCTION_CODE:
+        function_code                  = USER_EXTRACT_FUNCTION_CODE;
+        p_arg_area->args.function_code = function_code;
+        break;
+      case GROUP_EXTRACT_NEXT_FUNCTION_CODE:
+        function_code                  = GROUP_EXTRACT_FUNCTION_CODE;
+        p_arg_area->args.function_code = function_code;
+        break;
+      case DATASET_EXTRACT_NEXT_FUNCTION_CODE:
+        function_code                  = DATASET_EXTRACT_FUNCTION_CODE;
+        p_arg_area->args.function_code = function_code;
+        break;
+      case RESOURCE_EXTRACT_NEXT_FUNCTION_CODE:
+        function_code                  = RESOURCE_EXTRACT_FUNCTION_CODE;
+        p_arg_area->args.function_code = function_code;
+        break;
     }
 
     // Call R_Admin
@@ -210,7 +207,7 @@ void ProfileExtractor::extract(SecurityRequest &request) {
         if (profile_len >= filter_len &&
             ((filter_len == 1 && *p_arg_area->args.profile_name == 0x40) ||
              !std::memcmp(p_profile_name, p_arg_area->args.profile_name,
-                          filter_len))) {
+                 filter_len))) {
           Logger::getInstance().hexDump(p_profile_name, profile_len);
 
           auto unique_profile_name = std::make_unique<char[]>(profile_len);
