@@ -119,8 +119,8 @@ void ProfileExtractor::extract(SecurityRequest &request) {
     request.setRawRequestPointer(ProfileExtractor::cloneBuffer(
         reinterpret_cast<char *>(p_arg_area), request.getRawRequestLength()));
 
-    // For search functions first try regular extract in case an existing name
-    // was given as filter
+    // For explicit search filters first try regular extract in case an
+    // existing name was given as filter.
     uint8_t save_function_code = function_code;
     bool default_search_start = request.getProfileName() == " ";
     if (!default_search_start) {
@@ -208,9 +208,9 @@ void ProfileExtractor::extract(SecurityRequest &request) {
             ntohl(p_arg_area->args.profile_extract_parms.profile_name_length);
         uint32_t profile_len = ntohl(p_generic_result->profile_name_length);
         if (profile_len >= filter_len &&
-            ((filter_len == 1 && *p_arg_area->args.profile_name == 0x40) ||
+          ((filter_len == 1 && *p_arg_area->args.profile_name == 0x40) ||
              !std::memcmp(p_profile_name, p_arg_area->args.profile_name,
-                 filter_len))) {
+                          filter_len))) {
           Logger::getInstance().hexDump(p_profile_name, profile_len);
 
           auto unique_profile_name = std::make_unique<char[]>(profile_len);
@@ -378,8 +378,8 @@ void ProfileExtractor::buildGenericExtractRequest(
     std::transform(class_name.begin(), class_name.end(), class_name.begin(),
                    [](unsigned char c) { return std::toupper(c); });
 
-    // Class name must be padded with blanks.
-    std::memset(&profile_extract_parms->class_name, ' ', 8);
+    // Class name must be padded with EBCDIC blanks.
+    std::memset(&profile_extract_parms->class_name, fromUTF8(" ")[0], 8);
 
     // Encode class name as IBM-1047.
     class_name = fromUTF8(class_name);
