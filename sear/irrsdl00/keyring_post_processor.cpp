@@ -267,8 +267,11 @@ bool KeyringPostProcessor::addSignature(nlohmann::json &add_to_json,
 
   X509_get0_signature(&asn1_sig, &sig_type, x509_cert);
 
+  const ASN1_OBJECT *sig_obj = nullptr;
+  X509_ALGOR_get0(&sig_obj, nullptr, nullptr, sig_type);
+
   char algo[128];
-  OBJ_obj2txt(algo, sizeof(algo), sig_type->algorithm, 0);
+  OBJ_obj2txt(algo, sizeof(algo), sig_obj, 0);
 
   signature["algorithm"]   = algo;
   signature["value"]       = strToHex(ASN1_STRING_get0_data(asn1_sig),
