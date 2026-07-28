@@ -6,6 +6,8 @@
 #include <pugixml.hpp>
 #include <regex>
 #include <sstream>
+#include <string>
+#include <string_view>
 #include <unordered_map>
 
 #include "../conversion.hpp"
@@ -116,25 +118,28 @@ void XMLGenerator::buildXMLString(SecurityRequest& request) {
 }
 
 void XMLGenerator::buildPugixmlSingleTrait(pugi::xml_node& node,
-                                           const std::string& tag,
-                                           const std::string& operation,
-                                           const std::string& value) {
+                                           std::string_view tag,
+                                           std::string_view operation,
+                                           std::string_view value) {
   // Combines above functions to build "trait" tags with added options and
   // values Ex: "<base:universal_access
   // operation=set>Read</base:universal_access>"
-  pugi::xml_node trait = node.append_child(tag.c_str());
+  std::string tag_string{tag};
+  pugi::xml_node trait = node.append_child(tag_string.c_str());
 
   if (!operation.empty()) {
-    trait.append_attribute("operation") = operation.c_str();
+    std::string operation_string{operation};
+    trait.append_attribute("operation") = operation_string.c_str();
   }
   if (!value.empty()) {
-    trait.text().set(value.c_str());
+    std::string value_string{value};
+    trait.text().set(value_string.c_str());
   }
 }
 
 void XMLGenerator::buildPugixmlHeaderAttributes(
     pugi::xml_node& node, const SecurityRequest& request,
-    const std::string& true_admin_type) {
+    std::string_view true_admin_type) {
   // Obtain JSON Header information and Build into Admin Object where
   // appropriate
   const std::string& operation    = request.getOperation();
@@ -181,12 +186,14 @@ void XMLGenerator::buildPugixmlHeaderAttributes(
 }
 
 void XMLGenerator::buildPugixmlRequestData(pugi::xml_node& node,
-                                           const std::string& true_admin_type,
-                                           const std::string& admin_type,
+                                           std::string_view true_admin_type,
+                                           std::string_view admin_type,
                                            nlohmann::json request_data) {
   // Build the traits into the XML body. Each trait is represented as a child
   // node under the admin type node. E.g.
   // delete:operparm:receive_internal_console_messages: null
+  std::string admin_type_string{admin_type};
+
   for (auto& [key, value] : request_data.items()) {
     // Replace regex by string splitting
     // Expected format: [operation:][segment]:trait
@@ -251,7 +258,7 @@ void XMLGenerator::buildPugixmlRequestData(pugi::xml_node& node,
     }
 
     const char* translated_key = get_racf_key(
-        admin_type.c_str(), item_segment.c_str(),
+        admin_type_string.c_str(), item_segment.c_str(),
         (item_segment + ":" + item_trait).c_str(), trait_type, trait_operator);
 
     std::string trait_operation = "set";
@@ -304,7 +311,7 @@ void XMLGenerator::buildPugixmlRequestData(pugi::xml_node& node,
   }
 }
 
-std::string XMLGenerator::convertOperation(const std::string& operation) {
+std::string XMLGenerator::convertOperation(std::string_view operation) {
   // Converts the designated function to the correct IRRSMO00 operation.
   auto operator_xml = OPERATION_MAP.find(operation);
   if (operator_xml != OPERATION_MAP.end()) {
@@ -316,15 +323,15 @@ std::string XMLGenerator::convertOperation(const std::string& operation) {
   }
 }
 
-std::string XMLGenerator::convertOperator(const std::string& trait_operator) {
+std::string XMLGenerator::convertOperator(std::string_view trait_operator) {
   // Converts the designated function to the correct IRRSMO00 operator
   if (trait_operator == "delete") {
     return "del";
   }
-  return trait_operator;
+  return std::string(trait_operator);
 }
 
-std::string XMLGenerator::convertAdminType(const std::string& admin_type) {
+std::string XMLGenerator::convertAdminType(std::string_view admin_type) {
   // Converts the admin type between sear's definitions and IRRSMO00's
   // definitions. group-connection to groupconnection, racf-options to
   // systemsettings. All other admin types should be
@@ -339,7 +346,7 @@ std::string XMLGenerator::convertAdminType(const std::string& admin_type) {
     return std::string(admin_type_xml->second);
   } else {
     // Not found, return the original admin type
-    return admin_type;
+    return std::string(admin_type);
   }
 }
 

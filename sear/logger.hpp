@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <string>
+#include <string_view>
 
 namespace SEAR {
 class Logger {
@@ -19,7 +20,7 @@ class Logger {
   void operator=(Logger const&)  = delete;
   static Logger& getInstance();
   void setDebug(bool debug);
-  void debug(const std::string& message, const std::string& body = "") const;
+  void debug(std::string_view message, std::string_view body = "") const;
   void debugAllocate(const void* ptr, int rmode, int byte_count) const;
   void debugFree(const void* ptr) const;
   void hexDump(const char* p_buffer, int length) const;

@@ -9,8 +9,8 @@ IRRSMO00Error::IRRSMO00Error(const std::vector<std::string>& errors)
                 [](std::string& error) { error = "irrsmo00: " + error; });
 }
 
-IRRSMO00Error::IRRSMO00Error(const std::string& error)
-    : errors_({"irrsmo00: " + error}) {}
+IRRSMO00Error::IRRSMO00Error(std::string_view error)
+  : errors_({"irrsmo00: " + std::string(error)}) {}
 
 const std::vector<std::string>& IRRSMO00Error::getErrors() const {
   return errors_;

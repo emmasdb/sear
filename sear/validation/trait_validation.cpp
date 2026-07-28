@@ -5,11 +5,12 @@
 #include <nlohmann/json.hpp>
 #include <regex>
 #include <string>
+#include <string_view>
 
 #include "key_map.hpp"
 #include "sear_error.hpp"
 
-void validate_traits(const std::string& admin_type,
+void validate_traits(std::string_view admin_type,
                      SEAR::SecurityRequest& request) {
   // Parses the json for the traits (segment-trait information) passed in a
   // json object and validates the structure, format and types of this data
@@ -20,6 +21,7 @@ void validate_traits(const std::string& admin_type,
   std::smatch segment_trait_key_data;
 
   std::vector<std::string> errors;
+  std::string admin_type_string{admin_type};
 
   const nlohmann::json& traits = request.getTraits();
 
@@ -109,7 +111,7 @@ void validate_traits(const std::string& admin_type,
     if (expected_type == TRAIT_TYPE_PSEUDO_BOOLEAN) {
       trait_type = TRAIT_TYPE_PSEUDO_BOOLEAN;
     }
-    translatedKey = get_racf_key(admin_type.c_str(), item_segment.c_str(),
+    translatedKey = get_racf_key(admin_type_string.c_str(), item_segment.c_str(),
                                  (item_segment + ":" + item_trait).c_str(),
                                  trait_type, trait_operator);
     // If we could not find the RACF key with this function, the operation is
