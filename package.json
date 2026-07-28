@@ -1,0 +1,51 @@
+{
+  "name": "@mainframe-renewal-project/searjs",
+  "version": "0.7.0",
+  "description": "A unified and standardized interface to RACF callable services on z/OS.",
+  "main": "nodejs/sear/index.js",
+  "types": "nodejs/sear/index.d.ts",
+  "homepage": "https://github.com/Mainframe-Renewal-Project/sear",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mainframe-Renewal-Project/sear.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Mainframe-Renewal-Project/sear/issues"
+  },
+  "author": "Mainframe Renewal Project",
+  "license": "Apache-2.0",
+  "keywords": [
+    "z/OS",
+    "RACF",
+    "security",
+    "native-addon",
+    "security-administration",
+    "automation",
+    "ibm",
+    "mainframe"
+  ],
+  "scripts": {
+    "prebuild": "node nodejs/scripts/prebuild.js",
+    "build": "node nodejs/scripts/build.js",
+    "prepublishOnly": "npm run test && npm run build",
+    "test": "node --test",
+    "lint": "eslint nodejs/sear/*.js --fix || true",
+    "docs": "jsdoc -c jsdoc.json || true"
+  },
+  "gypfile": true,
+  "os": [
+    "os390"
+  ],
+  "cpu": ["s390x", "s390"],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "eslint": "^9.0.0",
+    "jsdoc": "^4.0.0"
+  }
+}

@@ -41,3 +41,9 @@ tests:
 python:
   - changed-files:
     - any-glob-to-any-file: 'python/**.py'
+
+nodejs:
+  - changed-files:
+    - any-glob-to-any-file: 'nodejs/**.js'
+    - any-glob-to-any-file: 'nodejs/**.ts'
+    - any-glob-to-any-file: 'nodejs/**.d.ts'

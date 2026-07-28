@@ -119,26 +119,29 @@ void ProfileExtractor::extract(SecurityRequest &request) {
     request.setRawRequestPointer(ProfileExtractor::cloneBuffer(
         reinterpret_cast<char *>(p_arg_area), request.getRawRequestLength()));
 
-    // For search functions first try regular extract in case an existing name
-    // was given as filter
+    // For explicit search filters first try regular extract in case an
+    // existing name was given as filter.
     uint8_t save_function_code = function_code;
-    switch (function_code) {
-      case USER_EXTRACT_NEXT_FUNCTION_CODE:
-        function_code                  = USER_EXTRACT_FUNCTION_CODE;
-        p_arg_area->args.function_code = function_code;
-        break;
-      case GROUP_EXTRACT_NEXT_FUNCTION_CODE:
-        function_code                  = GROUP_EXTRACT_FUNCTION_CODE;
-        p_arg_area->args.function_code = function_code;
-        break;
-      case DATASET_EXTRACT_NEXT_FUNCTION_CODE:
-        function_code                  = DATASET_EXTRACT_FUNCTION_CODE;
-        p_arg_area->args.function_code = function_code;
-        break;
-      case RESOURCE_EXTRACT_NEXT_FUNCTION_CODE:
-        function_code                  = RESOURCE_EXTRACT_FUNCTION_CODE;
-        p_arg_area->args.function_code = function_code;
-        break;
+    bool default_search_start = request.getProfileName() == " ";
+    if (!default_search_start) {
+      switch (function_code) {
+        case USER_EXTRACT_NEXT_FUNCTION_CODE:
+          function_code                  = USER_EXTRACT_FUNCTION_CODE;
+          p_arg_area->args.function_code = function_code;
+          break;
+        case GROUP_EXTRACT_NEXT_FUNCTION_CODE:
+          function_code                  = GROUP_EXTRACT_FUNCTION_CODE;
+          p_arg_area->args.function_code = function_code;
+          break;
+        case DATASET_EXTRACT_NEXT_FUNCTION_CODE:
+          function_code                  = DATASET_EXTRACT_FUNCTION_CODE;
+          p_arg_area->args.function_code = function_code;
+          break;
+        case RESOURCE_EXTRACT_NEXT_FUNCTION_CODE:
+          function_code                  = RESOURCE_EXTRACT_FUNCTION_CODE;
+          p_arg_area->args.function_code = function_code;
+          break;
+      }
     }
 
     // Call R_Admin
@@ -205,7 +208,7 @@ void ProfileExtractor::extract(SecurityRequest &request) {
             ntohl(p_arg_area->args.profile_extract_parms.profile_name_length);
         uint32_t profile_len = ntohl(p_generic_result->profile_name_length);
         if (profile_len >= filter_len &&
-            ((filter_len == 1 && *p_arg_area->args.profile_name == 0x40) ||
+          ((filter_len == 1 && *p_arg_area->args.profile_name == 0x40) ||
              !std::memcmp(p_profile_name, p_arg_area->args.profile_name,
                           filter_len))) {
           Logger::getInstance().hexDump(p_profile_name, profile_len);
@@ -274,10 +277,12 @@ void ProfileExtractor::extract(SecurityRequest &request) {
           request.getRACFReasonCode() != 0 || rc != 0 ||
           request.getRawResultPointer() == nullptr) {
         request.setSEARReturnCode(4);
-        // Raise Exception if Search Failed.
         const std::string &admin_type = request.getAdminType();
-        throw SEARError("unable to search '" + admin_type + "' profile '" +
-                        request.getProfileName() + "'");
+        request.setErrors({"sear: unable to search '" + admin_type +
+                           "' profile '" + request.getProfileName() + "'"});
+        request.setRawResultLength(0);
+        request.setRawResultPointer(nullptr);
+        return;
       }
     }
   } else {
@@ -373,8 +378,8 @@ void ProfileExtractor::buildGenericExtractRequest(
     std::transform(class_name.begin(), class_name.end(), class_name.begin(),
                    [](unsigned char c) { return std::toupper(c); });
 
-    // Class name must be padded with blanks.
-    std::memset(&profile_extract_parms->class_name, ' ', 8);
+    // Class name must be padded with EBCDIC blanks.
+    std::memset(&profile_extract_parms->class_name, fromUTF8(" ")[0], 8);
 
     // Encode class name as IBM-1047.
     class_name = fromUTF8(class_name);
