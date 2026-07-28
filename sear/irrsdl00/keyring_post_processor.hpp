@@ -34,7 +34,7 @@ class KeyringPostProcessor {
   static void postProcessAddOrDeleteKeyring(SecurityRequest &request);
 
  private:
-  static void convertASN1TIME(ASN1_TIME *t, char *p_buf, size_t buf_len);
+  static void convertASN1TIME(const ASN1_TIME *t, char *p_buf, size_t buf_len);
   static bool addSignature(nlohmann::json &add_to_json, X509 *x509_cert);
   static bool addHashs(nlohmann::json &add_to_json, void *p_cert,
                        size_t len_cert);
