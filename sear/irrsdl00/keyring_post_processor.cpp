@@ -49,7 +49,11 @@ void KeyringPostProcessor::postProcessExtractKeyring(SecurityRequest &request) {
       std::memset(&union_work.RACF_user_id[0], 0, 9);
       help_len = *work;
       work++;
-      std::strncpy(&union_work.RACF_user_id[0], work, help_len);
+      if (static_cast<size_t>(help_len) >= sizeof(union_work.RACF_user_id)) {
+        throw SEARError("Keyring owner length exceeds output buffer");
+      }
+      std::memcpy(&union_work.RACF_user_id[0], work,
+                  static_cast<size_t>(help_len));
       __e2a_l(&union_work.RACF_user_id[0], help_len);
       repeat_group_certs[j]["owner"] = union_work.RACF_user_id;
       work += help_len;
@@ -57,7 +61,10 @@ void KeyringPostProcessor::postProcessExtractKeyring(SecurityRequest &request) {
       std::memset(&union_work.label[0], 0, 256);
       help_len = *work;
       work++;
-      std::strncpy(&union_work.label[0], work, help_len);
+      if (static_cast<size_t>(help_len) >= sizeof(union_work.label)) {
+        throw SEARError("Keyring label length exceeds output buffer");
+      }
+      std::memcpy(&union_work.label[0], work, static_cast<size_t>(help_len));
       __e2a_l(&union_work.label[0], help_len);
       repeat_group_certs[j]["label"] = union_work.label;
       work += help_len;

@@ -104,7 +104,7 @@ void XMLGenerator::buildXMLString(SecurityRequest& request) {
   // Allocate memory for the EBCDIC encoded XML string and copy the string into
   // it
   auto buffer = std::make_unique<char[]>(request_str_ebcdic_length);
-  // std::copy: instead of strncpy, it does not add null terminators
+  // std::copy does not add null terminators.
   std::copy(request_str_ebcdic.begin(), request_str_ebcdic.end(), buffer.get());
 
   Logger::getInstance().debug("EBCDIC encoded request XML:");

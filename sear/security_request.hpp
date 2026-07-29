@@ -2,6 +2,7 @@
 #define __SEAR_SECURITY_REQUEST_H_
 
 #include <nlohmann/json.hpp>
+#include <string>
 #include <vector>
 
 #include "logger.hpp"
@@ -28,7 +29,7 @@ class SecurityRequest {
   std::string default_;
   std::string usage_;
   std::string status_;
-  char surrogate_userid_[8] = {0};
+  std::string surrogate_userid_;
   nlohmann::json traits_;
   uint8_t function_code_ = 0;
   int irrsmo00_options_  = 13;
@@ -59,7 +60,7 @@ class SecurityRequest {
   const std::string& getDefault() const;
   const std::string& getUsage() const;
   const std::string& getStatus() const;
-  const char* getSurrogateUserID() const;
+  const std::string& getSurrogateUserID() const;
   const nlohmann::json& getTraits() const;
   uint8_t getFunctionCode() const;
   int getIRRSMO00Options() const;

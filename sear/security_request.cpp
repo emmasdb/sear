@@ -1,14 +1,17 @@
 #include "security_request.hpp"
 
+#include <algorithm>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <memory>
 #include <new>
+#include <utility>
 
 #include "../conversion.hpp"
 #include "irrsdl00.hpp"
 #include "irrseq00.hpp"
+#include "sear_error.hpp"
 
 #ifdef __TOS_390__
 #include <unistd.h>
@@ -87,7 +90,7 @@ const std::string& SecurityRequest::getUsage() const { return usage_; }
 
 const std::string& SecurityRequest::getStatus() const { return status_; }
 
-const char* SecurityRequest::getSurrogateUserID() const {
+const std::string& SecurityRequest::getSurrogateUserID() const {
   return surrogate_userid_;
 }
 
@@ -330,12 +333,12 @@ void SecurityRequest::load(const nlohmann::json& request) {
   if (request.contains("run_as_userid")) {
     std::string surrogate_userid_string = request["run_as_userid"].get<std::string>();
     surrogate_userid_string = fromUTF8(surrogate_userid_string);
+    if (surrogate_userid_string.length() > 8) {
+      throw SEARError("run_as_userid must not exceed 8 bytes");
+    }
     Logger::getInstance().debug("Running under the authority of user: " +
                                 surrogate_userid_string);
-    const int userid_length = surrogate_userid_string.length();
-    std::strncpy(surrogate_userid_,
-                 surrogate_userid_string.c_str(),
-                 userid_length );
+    surrogate_userid_ = std::move(surrogate_userid_string);
   }
 }
 
@@ -387,8 +390,8 @@ void SecurityRequest::buildResult() {
                                         result_json_string.length() + 1);
     std::memset(result_json_unique_ptr.get(), 0,
                 result_json_string.length() + 1);
-    std::strncpy(result_json_unique_ptr.get(), result_json_string.c_str(),
-                 result_json_string.length());
+    std::copy(result_json_string.begin(), result_json_string.end(),
+          result_json_unique_ptr.get());
     p_result_->result_json        = result_json_unique_ptr.get();
     p_result_->result_json_length = result_json_string.length();
     result_json_unique_ptr.release();
