@@ -337,10 +337,10 @@ typedef struct {
   uint32_t offset_tcpip_tls_rule;
   uint32_t offset_tcpip_cipher_policy;
   uint32_t offset_tcpip_certificate_user;
-  uint8_t offset_tcpip_client_authentication;
+  uint32_t offset_tcpip_client_authentication;
   uint8_t tcpip_listener_status;
-  uint16_t appc_listener_status;
-  uint16_t reserved[2];
+  uint8_t appc_listener_status;
+  uint16_t reserved_space2;
   uint32_t offset_appc_lu_name;
   uint32_t offset_appc_modename;
   uint32_t offset_appc_tp_name;

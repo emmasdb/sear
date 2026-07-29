@@ -248,16 +248,24 @@ void ProfilePostProcessor::postprocessRRSFDirectionFlags(
 void ProfilePostProcessor::postprocessRRSFSetSettings(
     nlohmann::json &profile, const std::string &key,
     const racf_rrsf_set_settings_t *settings) {
+  auto trim_spaces = [](const std::string &value) {
+    const size_t end = value.find_last_not_of(' ');
+    if (end == std::string::npos) {
+      return std::string();
+    }
+    return value.substr(0, end + 1);
+  };
+
   nlohmann::json setting_entries = nlohmann::json::array();
   for (int i = 0; i < 4; i++) {
-    std::string node = ProfilePostProcessor::decodeEBCDICBytes(
-        settings[i].node_notification_destination, 8);
-    std::string userid = ProfilePostProcessor::decodeEBCDICBytes(
-        settings[i].userid_notification_destination, 8);
-    std::string output_level = ProfilePostProcessor::decodeEBCDICBytes(
-        settings[i].output_level, 6);
-    std::string notify_level = ProfilePostProcessor::decodeEBCDICBytes(
-        settings[i].notify_level, 6);
+    std::string node = trim_spaces(ProfilePostProcessor::decodeEBCDICBytes(
+        settings[i].node_notification_destination, 8));
+    std::string userid = trim_spaces(ProfilePostProcessor::decodeEBCDICBytes(
+        settings[i].userid_notification_destination, 8));
+    std::string output_level = trim_spaces(ProfilePostProcessor::decodeEBCDICBytes(
+        settings[i].output_level, 6));
+    std::string notify_level = trim_spaces(ProfilePostProcessor::decodeEBCDICBytes(
+        settings[i].notify_level, 6));
 
     if (node.empty() && userid.empty() &&
       (output_level.empty() || output_level == "N/A") &&
@@ -414,8 +422,7 @@ void ProfilePostProcessor::postProcessRACFRRSF(SecurityRequest &request) {
       node_definition["base:partner_node_template_service_level"] = ntohl(p_nodes->binary_partner_node_template_service_level);
 
       node_definition["base:tcpip_listener_status"] = p_nodes->tcpip_listener_status;
-      node_definition["base:appc_listener_status"] = ntohs(p_nodes->appc_listener_status);
-      const uint16_t appc_listener_status = ntohs(p_nodes->appc_listener_status);
+      node_definition["base:appc_listener_status"] = p_nodes->appc_listener_status;
 
       if (p_nodes->tcpip_listener_status == 2) {
         node_definition["base:tcpip_listener_status_active"] = true;
@@ -423,7 +430,7 @@ void ProfilePostProcessor::postProcessRACFRRSF(SecurityRequest &request) {
         node_definition["base:tcpip_listener_status_active"] = false;
       } 
 
-      if (appc_listener_status == 2) {
+      if (p_nodes->appc_listener_status == 2) {
         node_definition["base:appc_listener_status_active"] = true;
       } else {
         node_definition["base:appc_listener_status_active"] = false;
@@ -448,8 +455,7 @@ void ProfilePostProcessor::postProcessRACFRRSF(SecurityRequest &request) {
         ProfilePostProcessor::postprocessRRSFOffsetField(node_definition, "base:tcpip_attls_rule", p_profile, p_nodes->offset_tcpip_tls_rule);
         ProfilePostProcessor::postprocessRRSFOffsetField(node_definition, "base:tcpip_attls_cipher", p_profile, p_nodes->offset_tcpip_cipher_policy);
         ProfilePostProcessor::postprocessRRSFOffsetField(node_definition, "base:tcpip_attls_certificate_user", p_profile, p_nodes->offset_tcpip_certificate_user);
-        node_definition["base:tcpip_client_authentication"] =
-          p_nodes->offset_tcpip_client_authentication;
+        ProfilePostProcessor::postprocessRRSFOffsetField(node_definition, "base:tcpip_client_authentication", p_profile, p_nodes->offset_tcpip_client_authentication);
       } else {
         node_definition["base:node_protocol"] = "none";
       }
