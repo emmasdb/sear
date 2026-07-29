@@ -6,6 +6,29 @@
     {
       "properties": {
         "operation": {
+          "const": "get-valid-traits"
+        },
+        "admin_type": {
+          "enum": [
+            "user",
+            "group",
+            "dataset",
+            "group-connection",
+            "permission",
+            "resource",
+            "racf-options"
+          ]
+        }
+      },
+      "required": [
+        "operation",
+        "admin_type"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "properties": {
+        "operation": {
           "const": "search"
         },
         "admin_type": {

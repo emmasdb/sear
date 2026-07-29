@@ -7,6 +7,7 @@
 
 #include "irrsmo00.hpp"
 #include "irrsmo00_error.hpp"
+#include "key_map.hpp"
 #include "keyring_extractor.hpp"
 #include "keyring_modifier.hpp"
 #include "keyring_post_processor.hpp"
@@ -78,40 +79,47 @@ void SecurityAdmin::makeRequest(const char *p_request_json_string, int length) {
     }
     Logger::getInstance().debug("Done");
 
-    // Load Request
-    request_.load(request_json);
-
-    // Make Request To Corresponding Callable Service
-    if (request_.getOperation() == "extract" ||
-        request_.getOperation() == "search") {
-      if (request_.getAdminType() != "keyring") {
-        Logger::getInstance().debug("Entering IRRSEQ00 path");
-        ProfileExtractor profile_extractor;
-        SecurityAdmin::doExtract(profile_extractor);
-      } else {
-        Logger::getInstance().debug("Entering IRRSDL00 path");
-        KeyringExtractor keyring_extractor;
-        SecurityAdmin::doExtract(keyring_extractor);
-      }
+    if (request_json["operation"].get<std::string>() == "get-valid-traits") {
+      std::string admin_type = request_json["admin_type"].get<std::string>();
+      request_.setSEARReturnCode(0);
+      request_.setIntermediateResultJSON(
+          {{"valid_traits", get_valid_traits(admin_type)}});
     } else {
-      if (request_.getAdminType() == "keyring" ||
-          request_.getAdminType() == "certificate") {
-        Logger::getInstance().debug("Entering IRRSDL00 path");
-        KeyringModifier keyring_modifier;
-        if (request_.getAdminType() == "keyring") {
-          SecurityAdmin::doAddAlterDeleteKeyring(keyring_modifier);
+      // Load Request
+      request_.load(request_json);
+
+      // Make Request To Corresponding Callable Service
+      if (request_.getOperation() == "extract" ||
+          request_.getOperation() == "search") {
+        if (request_.getAdminType() != "keyring") {
+          Logger::getInstance().debug("Entering IRRSEQ00 path");
+          ProfileExtractor profile_extractor;
+          SecurityAdmin::doExtract(profile_extractor);
         } else {
-          if (request_.getOperation() == "add") {
-            SecurityAdmin::doAddCertificate(keyring_modifier);
-          } else if (request_.getOperation() == "delete") {
-            SecurityAdmin::doDeleteCertificate(keyring_modifier);
-          } else if (request_.getOperation() == "remove") {
-            SecurityAdmin::doRemoveCertificate(keyring_modifier);
-          }
+          Logger::getInstance().debug("Entering IRRSDL00 path");
+          KeyringExtractor keyring_extractor;
+          SecurityAdmin::doExtract(keyring_extractor);
         }
       } else {
-        Logger::getInstance().debug("Entering IRRSMO00 path");
-        SecurityAdmin::doAddAlterDelete();
+        if (request_.getAdminType() == "keyring" ||
+            request_.getAdminType() == "certificate") {
+          Logger::getInstance().debug("Entering IRRSDL00 path");
+          KeyringModifier keyring_modifier;
+          if (request_.getAdminType() == "keyring") {
+            SecurityAdmin::doAddAlterDeleteKeyring(keyring_modifier);
+          } else {
+            if (request_.getOperation() == "add") {
+              SecurityAdmin::doAddCertificate(keyring_modifier);
+            } else if (request_.getOperation() == "delete") {
+              SecurityAdmin::doDeleteCertificate(keyring_modifier);
+            } else if (request_.getOperation() == "remove") {
+              SecurityAdmin::doRemoveCertificate(keyring_modifier);
+            }
+          }
+        } else {
+          Logger::getInstance().debug("Entering IRRSMO00 path");
+          SecurityAdmin::doAddAlterDelete();
+        }
       }
     }
   } catch (const SEARError &ex) {

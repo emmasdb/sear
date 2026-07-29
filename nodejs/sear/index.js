@@ -24,7 +24,15 @@ try {
 // Constants
 // ============================================================================
 
-const VALID_OPERATIONS = ['extract', 'search', 'alter', 'add', 'delete', 'remove'];
+const VALID_OPERATIONS = [
+    'extract',
+    'search',
+    'alter',
+    'add',
+    'delete',
+    'remove',
+    'get-valid-traits',
+];
 const VALID_ADMIN_TYPES = [
     'user',
     'group',
@@ -35,6 +43,15 @@ const VALID_ADMIN_TYPES = [
     'certificate',
     'resource',
     'racf-rrsf',
+    'racf-options',
+];
+const VALID_TRAIT_ADMIN_TYPES = [
+    'user',
+    'group',
+    'dataset',
+    'group-connection',
+    'permission',
+    'resource',
     'racf-options',
 ];
 const CHILD_OUTPUT_MAX_BYTES = 1024 * 1024 * 16;
@@ -103,7 +120,13 @@ function validateRequest(request) {
         errors.push(`operation must be one of: ${VALID_OPERATIONS.join(', ')}`);
     }
 
-    if (!request.admin_type) {
+    if (request.operation === 'get-valid-traits') {
+        if (!request.admin_type) {
+            errors.push('admin_type is required for get-valid-traits');
+        } else if (!VALID_TRAIT_ADMIN_TYPES.includes(request.admin_type)) {
+            errors.push(`admin_type for get-valid-traits must be one of: ${VALID_TRAIT_ADMIN_TYPES.join(', ')}`);
+        }
+    } else if (!request.admin_type) {
         errors.push('admin_type is required');
     } else if (!VALID_ADMIN_TYPES.includes(request.admin_type)) {
         errors.push(`admin_type must be one of: ${VALID_ADMIN_TYPES.join(', ')}`);

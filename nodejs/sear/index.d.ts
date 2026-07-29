@@ -15,9 +15,9 @@ export interface SearResultObject {
  */
 export interface SearRequest {
     /**
-    * Operation to perform: 'extract', 'search', 'alter', 'add', 'delete', 'remove'
+    * Operation to perform: 'extract', 'search', 'alter', 'add', 'delete', 'remove', or 'get-valid-traits'
      */
-    operation: 'extract' | 'search' | 'alter' | 'add' | 'delete' | 'remove';
+    operation: 'extract' | 'search' | 'alter' | 'add' | 'delete' | 'remove' | 'get-valid-traits';
 
     /**
     * Type of resource: 'user', 'group', 'dataset', 'group-connection', 'permission', 'keyring', 'certificate', 'resource', 'racf-rrsf', or 'racf-options'.
@@ -227,7 +227,7 @@ export function searAsync(request: SearRequest, debug?: boolean): Promise<Securi
 /**
  * Valid operation types
  */
-export const VALID_OPERATIONS: readonly ['extract', 'search', 'alter', 'add', 'delete', 'remove'];
+export const VALID_OPERATIONS: readonly ['extract', 'search', 'alter', 'add', 'delete', 'remove', 'get-valid-traits'];
 
 /**
  * Valid admin types

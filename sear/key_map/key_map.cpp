@@ -19,6 +19,8 @@ static bool check_trait_type(int8_t actual, int8_t expected);
 static bool check_trait_operator(int8_t trait_operator,
                                  const operators_allowed_t *operators_allowed);
 
+static const char *trait_type_to_json_type(int8_t trait_type);
+
 const char *get_sear_key(const char *profile_type, const char *segment,
                          const char *racf_key) {
   const trait_key_mapping_t *key_mapping =
@@ -52,6 +54,31 @@ const char get_trait_type(const std::string &profile_type,
     return TRAIT_TYPE_BAD;
   }
   return key_mapping->trait_type;
+}
+
+nlohmann::json get_valid_traits(const std::string &profile_type) {
+  for (const auto &profile_mapping : KEY_MAP) {
+    if (profile_type != profile_mapping.profile_type) {
+      continue;
+    }
+    nlohmann::json profile_traits = nlohmann::json::object();
+    for (int segment_index = 0; segment_index < profile_mapping.size;
+         segment_index++) {
+      const segment_key_mapping_t &segment_mapping =
+          profile_mapping.segments[segment_index];
+      nlohmann::json segment_traits = nlohmann::json::object();
+      for (int trait_index = 0; trait_index < segment_mapping.size;
+           trait_index++) {
+        const trait_key_mapping_t &trait_mapping =
+            segment_mapping.traits[trait_index];
+        segment_traits[trait_mapping.sear_key] =
+            trait_type_to_json_type(trait_mapping.trait_type);
+      }
+      profile_traits[segment_mapping.segment] = segment_traits;
+    }
+    return profile_traits;
+  }
+  return nlohmann::json::object();
 }
 
 static const trait_key_mapping_t *get_key_mapping(
@@ -150,6 +177,22 @@ static bool check_trait_operator(int8_t trait_operator,
       return operators_allowed->delete_allowed;
     default:
       return false;
+  }
+}
+
+static const char *trait_type_to_json_type(int8_t trait_type) {
+  switch (trait_type) {
+    case TRAIT_TYPE_BOOLEAN:
+    case TRAIT_TYPE_PSEUDO_BOOLEAN:
+      return "bool";
+    case TRAIT_TYPE_STRING:
+      return "string";
+    case TRAIT_TYPE_UINT:
+      return "uint";
+    case TRAIT_TYPE_REPEAT:
+      return "repeat";
+    default:
+      return "any";
   }
 }
 
