@@ -15,6 +15,25 @@ def test_rsf_extract():
     )
     assert "errors" not in str(extract_result.result)
     assert extract_result.result["return_codes"] == successful_return_codes
+    base = extract_result.result["profile"]["base"]
+    for direction_key in [
+        "base:automatic_command_direction",
+        "base:automatic_password_direction",
+        "base:password_synchronization",
+        "base:automatic_application_update_direction",
+    ]:
+        assert base[direction_key]["base:notification_active"] in [True, False]
+        assert base[direction_key]["base:output_active"] in [True, False]
+    for settings_key in [
+        "base:automatic_command_direction_settings",
+        "base:automatic_password_direction_settings",
+        "base:password_synchronization_settings",
+        "base:automatic_application_update_direction_settings",
+    ]:
+        assert isinstance(base[settings_key], list)
+    assert isinstance(base["base:local_node_index"], int)
+    assert base["base:password_synchronization_active"] in [True, False]
+    assert base["base:rrsf_trace_active"] in [True, False]
 
 def test_rsf_extract_missing_operation():
     """This test is supposed to fail"""

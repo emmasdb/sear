@@ -228,12 +228,63 @@ void ProfilePostProcessor::postProcessRACFOptions(SecurityRequest &request) {
 // This function allow offset fields to easily be processed
 void ProfilePostProcessor::postprocessRRSFOffsetField(nlohmann::json &profile, const std::string &key, const char *p_profile, int offset) {
   const racf_rrsf_offset_field_t *p_field =
-    reinterpret_cast<const racf_rrsf_offset_field_t *>(p_profile + offset);
+    reinterpret_cast<const racf_rrsf_offset_field_t *>(p_profile + ntohl(offset));
+  const uint32_t field_length = ntohl(p_field->length);
   
   // Only create the key if there actually is any data in the offset field, avoids empty quotes
-  if (p_field->length > 0) {
-    profile[key] = ProfilePostProcessor::decodeEBCDICBytes(p_field->data,p_field->length);
+  if (field_length > 0) {
+    profile[key] = ProfilePostProcessor::decodeEBCDICBytes(p_field->data,field_length);
   }
+}
+
+void ProfilePostProcessor::postprocessRRSFDirectionFlags(
+    nlohmann::json &profile, const std::string &key, uint8_t flags) {
+  profile[key]["base:notification_active"] =
+      (flags & RRSF_DIRECTION_FLAG_NOTIFICATION_ACTIVE) != 0;
+  profile[key]["base:output_active"] =
+      (flags & RRSF_DIRECTION_FLAG_OUTPUT_ACTIVE) != 0;
+}
+
+void ProfilePostProcessor::postprocessRRSFSetSettings(
+    nlohmann::json &profile, const std::string &key,
+    const racf_rrsf_set_settings_t *settings) {
+  auto trim_spaces = [](const std::string &value) {
+    const size_t end = value.find_last_not_of(' ');
+    if (end == std::string::npos) {
+      return std::string();
+    }
+    return value.substr(0, end + 1);
+  };
+
+  nlohmann::json setting_entries = nlohmann::json::array();
+  for (int i = 0; i < 4; i++) {
+    std::string node = trim_spaces(ProfilePostProcessor::decodeEBCDICBytes(
+        settings[i].node_notification_destination, 8));
+    std::string userid = trim_spaces(ProfilePostProcessor::decodeEBCDICBytes(
+        settings[i].userid_notification_destination, 8));
+    std::string output_level = trim_spaces(ProfilePostProcessor::decodeEBCDICBytes(
+        settings[i].output_level, 6));
+    std::string notify_level = trim_spaces(ProfilePostProcessor::decodeEBCDICBytes(
+        settings[i].notify_level, 6));
+
+    if (node.empty() && userid.empty() &&
+      (output_level.empty() || output_level == "N/A") &&
+      (notify_level.empty() || notify_level == "N/A")) {
+      continue;
+    }
+
+    nlohmann::json setting_entry;
+    if (!node.empty()) {
+      setting_entry["base:node"] = node;
+    }
+    if (!userid.empty()) {
+      setting_entry["base:userid"] = userid;
+    }
+    setting_entry["base:output_level"] = output_level;
+    setting_entry["base:notify_level"] = notify_level;
+    setting_entries.push_back(setting_entry);
+  }
+  profile[key] = setting_entries;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -256,12 +307,40 @@ void ProfilePostProcessor::postProcessRACFRRSF(SecurityRequest &request) {
   profile["profile"]["base"]["base:subsystem_name"] = ProfilePostProcessor::decodeEBCDICBytes(rrsf_extract_result->racf_subsystem_name, 4);
   profile["profile"]["base"]["base:subsystem_userid"] = ProfilePostProcessor::decodeEBCDICBytes(rrsf_extract_result->racf_subsystem_userid, 8);
   profile["profile"]["base"]["base:subsystem_operator_prefix"] = ProfilePostProcessor::decodeEBCDICBytes(rrsf_extract_result->subsystem_prefix, 8);
-  profile["profile"]["base"]["base:number_of_defined_nodes"] = rrsf_extract_result->number_of_rrsf_nodes;
+  profile["profile"]["base"]["base:local_node_index"] = ntohl(rrsf_extract_result->rrsf_node_index);
+  profile["profile"]["base"]["base:number_of_defined_nodes"] = ntohl(rrsf_extract_result->number_of_rrsf_nodes);
+
+  ProfilePostProcessor::postprocessRRSFDirectionFlags(
+      profile["profile"]["base"], "base:automatic_command_direction",
+      rrsf_extract_result->automatic_command_redirection);
+  ProfilePostProcessor::postprocessRRSFSetSettings(
+      profile["profile"]["base"], "base:automatic_command_direction_settings",
+      rrsf_extract_result->command_redirection_settings);
+  ProfilePostProcessor::postprocessRRSFDirectionFlags(
+      profile["profile"]["base"], "base:automatic_password_direction",
+      rrsf_extract_result->automatic_password_redirection);
+  ProfilePostProcessor::postprocessRRSFSetSettings(
+      profile["profile"]["base"], "base:automatic_password_direction_settings",
+      rrsf_extract_result->password_redirection_settings);
+  ProfilePostProcessor::postprocessRRSFDirectionFlags(
+      profile["profile"]["base"], "base:password_synchronization",
+      rrsf_extract_result->password_synchronization);
+  ProfilePostProcessor::postprocessRRSFSetSettings(
+      profile["profile"]["base"], "base:password_synchronization_settings",
+      rrsf_extract_result->password_synchronization_settings);
+  ProfilePostProcessor::postprocessRRSFDirectionFlags(
+      profile["profile"]["base"],
+      "base:automatic_application_update_direction",
+      rrsf_extract_result->automatic_redirection_application_updates);
+  ProfilePostProcessor::postprocessRRSFSetSettings(
+      profile["profile"]["base"],
+      "base:automatic_application_update_direction_settings",
+      rrsf_extract_result->application_updates_redirection_settings);
 
   // Post process nodes if any are defined
-  if (rrsf_extract_result->number_of_rrsf_nodes > 0) {
+  if (ntohl(rrsf_extract_result->number_of_rrsf_nodes) > 0) {
     // Retrieve local node index
-    const int &local_node = rrsf_extract_result->rrsf_node_index;
+    const uint32_t local_node = ntohl(rrsf_extract_result->rrsf_node_index);
 
     // Node definitions start at 544, per IBM documentation,
     // it dynamically calculates it in case it ever changes to be beyond 544
@@ -276,12 +355,6 @@ void ProfilePostProcessor::postProcessRACFRRSF(SecurityRequest &request) {
       
       nlohmann::json node_definition;
 
-      if (i == local_node) {
-        node_definition["base:is_local_node"] = true;
-      } else {
-        node_definition["base:is_local_node"] = false;
-      }
-
       node_definition["base:node_name"] = ProfilePostProcessor::decodeEBCDICBytes(p_nodes->rrsf_node_name,8);
       node_definition["base:multisystem_node_name"] = ProfilePostProcessor::decodeEBCDICBytes(p_nodes->rrsf_multinode_system_node_name,8);
       node_definition["base:date_of_last_received_work"] = ProfilePostProcessor::decodeEBCDICBytes(p_nodes->date_of_last_received_work,8);
@@ -289,6 +362,30 @@ void ProfilePostProcessor::postProcessRACFRRSF(SecurityRequest &request) {
       node_definition["base:date_of_last_sent_work"] = ProfilePostProcessor::decodeEBCDICBytes(p_nodes->date_of_last_sent_work,8);
       node_definition["base:time_of_last_sent_work"] = ProfilePostProcessor::decodeEBCDICBytes(p_nodes->time_of_last_sent_work,8);
       node_definition["base:node_state"] = p_nodes->rrsf_node_state;
+
+      const uint32_t node_flags = ntohl(p_nodes->bit_flags);
+      node_definition["base:is_local_node"] =
+          (node_flags & RRSF_NODE_LOCAL) != 0 || i == local_node;
+      node_definition["base:is_multisystem_node"] =
+          (node_flags & RRSF_NODE_MULTISYSTEM_NODE) != 0;
+      node_definition["base:is_main_node"] =
+          (node_flags & RRSF_NODE_MAIN_NODE) != 0;
+      node_definition["base:in_message_dataset_allocated"] =
+          (node_flags & RRSF_NODE_INMSG_ALLOCATED) != 0;
+      node_definition["base:out_message_dataset_allocated"] =
+          (node_flags & RRSF_NODE_OUTMSG_ALLOCATED) != 0;
+      node_definition["base:temporary_in_message_dataset_allocated"] =
+          (node_flags & RRSF_NODE_INMSG2_ALLOCATED) != 0;
+      node_definition["base:temporary_out_message_dataset_allocated"] =
+          (node_flags & RRSF_NODE_OUTMSG2_ALLOCATED) != 0;
+      node_definition["base:out_message_dataset_being_read"] =
+          (node_flags & RRSF_NODE_OUTMSG_BEING_READ) != 0;
+      node_definition["base:temporary_out_message_dataset_being_read"] =
+          (node_flags & RRSF_NODE_OUTMSG2_BEING_READ) != 0;
+      node_definition["base:multisystem_node_pending_ex_main"] =
+          (node_flags & RRSF_NODE_MSN_PENDING_EX_MAIN) != 0;
+      node_definition["base:is_second_protocol_node"] =
+          (node_flags & RRSF_NODE_SECOND_PROTOCOL_NODE) != 0;
 
       ProfilePostProcessor::postprocessRRSFOffsetField(node_definition, "base:node_description", p_profile, p_nodes->offset_rrsf_node_description);
       ProfilePostProcessor::postprocessRRSFOffsetField(node_definition, "base:partner_node_dynamic_parse_level",p_profile, p_nodes->offset_partner_node_parse_level);
@@ -301,7 +398,7 @@ void ProfilePostProcessor::postProcessRACFRRSF(SecurityRequest &request) {
       ProfilePostProcessor::postprocessRRSFOffsetField(node_definition, "base:workspace_dataset_sms_data_class", p_profile, p_nodes->offset_rrsf_workspace_data_class);
       ProfilePostProcessor::postprocessRRSFOffsetField(node_definition, "base:workspace_dataset_volume", p_profile, p_nodes->offset_rrsf_workspace_dataset_volume);
 
-      node_definition["base:workspace_file_size"] = p_nodes->rrsf_workspace_file_size;
+      node_definition["base:workspace_file_size"] = ntohl(p_nodes->rrsf_workspace_file_size);
 
       // inmsg and outmsg dataset information
       ProfilePostProcessor::postprocessRRSFOffsetField(node_definition, "base:in_message_dataset_name", p_profile, p_nodes->offset_inmsg_dataset_name);
@@ -310,19 +407,22 @@ void ProfilePostProcessor::postProcessRACFRRSF(SecurityRequest &request) {
       ProfilePostProcessor::postprocessRRSFOffsetField(node_definition, "base:temporary_in_message_dataset_name", p_profile, p_nodes->offset_inmsg2_dataset_name);
       ProfilePostProcessor::postprocessRRSFOffsetField(node_definition, "base:temporary_out_message_dataset_name", p_profile, p_nodes->offset_outmsg2_dataset_name);
 
-      node_definition["base:in_message_records"] = p_nodes->inmsg_records;
-      node_definition["base:out_message_records"] = p_nodes->outmsg_records;
-      node_definition["base:temporary_in_message_records"] = p_nodes->inmsg2_records;
-      node_definition["base:temporary_out_message_records"] = p_nodes->outmsg2_records;
-      node_definition["base:in_message_extents"] = p_nodes->inmsg_extents;
-      node_definition["base:out_message_extents"] = p_nodes->outmsg_extents;
-      node_definition["base:temporary_in_message_extents"] = p_nodes->inmsg2_extents;
-      node_definition["base:temporary_out_message_extents"] = p_nodes->outmsg2_extents;
+      node_definition["base:in_message_records"] = ntohl(p_nodes->inmsg_records);
+      node_definition["base:out_message_records"] = ntohl(p_nodes->outmsg_records);
+      node_definition["base:temporary_in_message_records"] = ntohl(p_nodes->inmsg2_records);
+      node_definition["base:temporary_out_message_records"] = ntohl(p_nodes->outmsg2_records);
+      node_definition["base:in_message_extents"] = ntohl(p_nodes->inmsg_extents);
+      node_definition["base:out_message_extents"] = ntohl(p_nodes->outmsg_extents);
+      node_definition["base:temporary_in_message_extents"] = ntohl(p_nodes->inmsg2_extents);
+      node_definition["base:temporary_out_message_extents"] = ntohl(p_nodes->outmsg2_extents);
 
       // Partner node information
-      node_definition["base:partner_node_operating_system_version"] = p_nodes->partner_node_os_version;
-      node_definition["base:partner_node_template_release_level"] = p_nodes->binary_partner_node_template_release_level;
-      node_definition["base:partner_node_template_service_level"] = p_nodes->binary_partner_node_template_service_level;
+      node_definition["base:partner_node_operating_system_version"] = ntohl(p_nodes->partner_node_os_version);
+      node_definition["base:partner_node_template_release_level"] = ntohl(p_nodes->binary_partner_node_template_release_level);
+      node_definition["base:partner_node_template_service_level"] = ntohl(p_nodes->binary_partner_node_template_service_level);
+
+      node_definition["base:tcpip_listener_status"] = p_nodes->tcpip_listener_status;
+      node_definition["base:appc_listener_status"] = p_nodes->appc_listener_status;
 
       if (p_nodes->tcpip_listener_status == 2) {
         node_definition["base:tcpip_listener_status_active"] = true;
@@ -355,11 +455,12 @@ void ProfilePostProcessor::postProcessRACFRRSF(SecurityRequest &request) {
         ProfilePostProcessor::postprocessRRSFOffsetField(node_definition, "base:tcpip_attls_rule", p_profile, p_nodes->offset_tcpip_tls_rule);
         ProfilePostProcessor::postprocessRRSFOffsetField(node_definition, "base:tcpip_attls_cipher", p_profile, p_nodes->offset_tcpip_cipher_policy);
         ProfilePostProcessor::postprocessRRSFOffsetField(node_definition, "base:tcpip_attls_certificate_user", p_profile, p_nodes->offset_tcpip_certificate_user);
+        ProfilePostProcessor::postprocessRRSFOffsetField(node_definition, "base:tcpip_client_authentication", p_profile, p_nodes->offset_tcpip_client_authentication);
       } else {
         node_definition["base:node_protocol"] = "none";
       }
 
-      node_definition["base:requests_denied"] = p_nodes->node_requests_denied;
+      node_definition["base:requests_denied"] = ntohl(p_nodes->node_requests_denied);
 
       // Add node definition to result JSON
       nodes.push_back(node_definition);
@@ -391,6 +492,12 @@ void ProfilePostProcessor::postProcessRACFRRSF(SecurityRequest &request) {
       profile["profile"]["base"]["base:autodirect_application_updates"] = false;
     }
 
+    if (ntohl(rrsf_extract_result->bit_flags) & RRSF_SET_PASSWORD_SYNC_ACTIVE) {
+      profile["profile"]["base"]["base:password_synchronization_active"] = true;
+    } else {
+      profile["profile"]["base"]["base:password_synchronization_active"] = false;
+    }
+
     if (ntohl(rrsf_extract_result->bit_flags) & RRSF_SET_AUTO_PASSWORD_DIRECTION) {
       profile["profile"]["base"]["base:autodirect_passwords"] = true;
     } else {
@@ -413,6 +520,12 @@ void ProfilePostProcessor::postProcessRACFRRSF(SecurityRequest &request) {
       profile["profile"]["base"]["base:ssl_trace_active"] = true;
     } else {
       profile["profile"]["base"]["base:ssl_trace_active"] = false;
+    }
+
+    if (ntohl(rrsf_extract_result->bit_flags) & RRSF_SET_TRACE_RRSF_ACTIVE) {
+      profile["profile"]["base"]["base:rrsf_trace_active"] = true;
+    } else {
+      profile["profile"]["base"]["base:rrsf_trace_active"] = false;
     }
 
     if (ntohl(rrsf_extract_result->bit_flags) & RRSF_PRIVILEGED_ATTRIBUTE) {
