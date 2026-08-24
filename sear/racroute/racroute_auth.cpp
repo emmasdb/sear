@@ -68,16 +68,16 @@ int RACRouteAuth::statusCode(const nlohmann::json &options) {
 }
 
 void RACRouteAuth::check(SecurityRequest &request) {
-  if (!request.getGroup().empty()) {
-    throw SEARError("RACROUTE AUTH group checks are not supported");
+  if (!request.getUserID().empty() || !request.getGroup().empty()) {
+    throw SEARError(
+        "RACROUTE AUTH checks the current security context; userid and "
+        "group are not supported");
   }
 
   const std::string class_name_ebcdic = fromUTF8(request.getClassName());
   const std::string entity_ebcdic     = fromUTF8(request.getProfileName());
-  const std::string authid_ebcdic     = fromUTF8(request.getUserID());
   const std::string_view class_name_view(class_name_ebcdic);
   const std::string_view entity_view(entity_ebcdic);
-  const std::string_view authid_view(authid_ebcdic);
   const int access_code               = accessCode(request.getAccess());
   const int status_code               = statusCode(request.getRACRouteOptions());
 
@@ -90,11 +90,6 @@ void RACRouteAuth::check(SecurityRequest &request) {
   std::memcpy(raw_request->entity, entity_view.data(), entity_view.length());
   raw_request->access_code = access_code;
   raw_request->status_code = status_code;
-  if (!authid_view.empty()) {
-    raw_request->identity_type = RACROUTE_AUTH_IDENTITY_USER;
-    raw_request->authid_length = authid_view.length();
-    std::memcpy(raw_request->authid, authid_view.data(), authid_view.length());
-  }
 
   Logger::getInstance().debug("RACROUTE AUTH request buffer:");
   Logger::getInstance().hexDump(reinterpret_cast<char *>(raw_request.get()),

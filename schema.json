@@ -970,9 +970,6 @@
         "class": {
           "$ref": "#/$defs/eightCharacterString"
         },
-        "userid": {
-          "$ref": "#/$defs/eightCharacterString"
-        },
         "access": {
           "$ref": "#/$defs/accessLevel"
         },
@@ -999,9 +996,6 @@
         },
         "dataset": {
           "$ref": "#/$defs/dataSetName"
-        },
-        "userid": {
-          "$ref": "#/$defs/eightCharacterString"
         },
         "access": {
           "$ref": "#/$defs/accessLevel"

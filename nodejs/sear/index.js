@@ -147,9 +147,10 @@ function validateRequest(request) {
         if (request.admin_type === 'dataset' && !request.dataset) {
             errors.push('dataset is required for dataset auth');
         }
+        const hasUserid = Object.prototype.hasOwnProperty.call(request, 'userid');
         const hasGroup = Object.prototype.hasOwnProperty.call(request, 'group');
-        if (hasGroup) {
-            errors.push('auth group checks are not supported');
+        if (hasUserid || hasGroup) {
+            errors.push('auth checks the current security context; userid and group are not supported');
         }
         if (!request.access) {
             errors.push('access is required for auth');
