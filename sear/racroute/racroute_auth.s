@@ -115,17 +115,18 @@ RACFAUTH LOCTR
          L     R2,RACREQ_AUTHIDLEN(,R9)
          LTGR  R1,R1
          JZ    BADINPUT
-         LTR   R2,R2
-         BNP   BADINPUT
          CHI   R2,8
          JH    BADINPUT
 
          MVI   AUTHIDB31,C' '
          MVC   AUTHIDB31+1(7),AUTHIDB31
+         LTR   R2,R2
+         BZ    CHECKIDTYPE
          LR    R3,R2
          BCTR  R3,0
          EX    R3,COPYAUTH
 
+CHECKIDTYPE DS 0H
          L     R2,RACREQ_IDTYPE(,R9)
          CHI   R2,0
          JE    CHECKSTAT
