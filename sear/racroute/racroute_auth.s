@@ -27,7 +27,7 @@ RACFAUTH TITLE 'RACROUTE AUTHORIZATION'
 
 RACFAUTH CELQPRLG DSASIZE=DSASIZ,                                      X
                BASEREG=R12,                                            X
-               PARMWRDS=7,                                             X
+               PARMWRDS=8,                                             X
                PARMREG=R11,                                            X
                ENTNAME=callRauth
 
@@ -47,8 +47,9 @@ callRauth ALIAS C'sear_racroute_auth_asm'
          CHI   R2,8
          JH    BADINPUT
 
-         MVI   CLASSBUF,C' '
-         MVC   CLASSBUF+1(7),CLASSBUF
+         STC   R2,CLASSBUF
+         MVI   CLASSBUF+1,C' '
+         MVC   CLASSBUF+2(7),CLASSBUF+1
          LR    R3,R2
          BCTR  R3,0
          EX    R3,COPYCLASS
@@ -63,20 +64,29 @@ callRauth ALIAS C'sear_racroute_auth_asm'
          JH    BADINPUT
 
          STH   R2,ENTITYBUF
-         MVI   ENTITYBUF+2,C' '
-         MVC   ENTITYBUF+3(245),ENTITYBUF+2
+         STH   R2,ENTITYBUF+2
+         MVI   ENTITYBUF+4,C' '
+         MVC   ENTITYBUF+5(245),ENTITYBUF+4
          LR    R3,R2
          BCTR  R3,0
          EX    R3,COPYENTITY
 
-         L     R2,ACCESSCODE
+         L     R2,STATUSCODE
+         CHI   R2,0
+         JE    CHECKACCESS
          CHI   R2,1
+         JE    AUTHACCESS
+         J     BADINPUT
+
+CHECKACCESS DS 0H
+         L     R2,ACCESSCODE
+         CHI   R2,X'02'
          JE    AUTHREAD
-         CHI   R2,2
+         CHI   R2,X'04'
          JE    AUTHUPDATE
-         CHI   R2,3
+         CHI   R2,X'08'
          JE    AUTHCONTROL
-         CHI   R2,4
+         CHI   R2,X'80'
          JE    AUTHALTER
          J     BADINPUT
 
@@ -116,6 +126,15 @@ AUTHALTER DS   0H
          ST    R1,RACF_RSN
          J     SAVERC
 
+AUTHACCESS DS  0H
+         MVC   RACFPL(RACFPLSL),RACFPLS
+         RACROUTE REQUEST=AUTH,RELEASE=2.4,                            X
+               ENTITYX=ENTITYBUF,CLASS=CLASSBUF,WORKA=RACFWA,          X
+               MF=(E,RACFPL)
+         ST    R0,RACF_RC
+         ST    R1,RACF_RSN
+         J     SAVERC
+
 BADINPUT DS    0H
          LHI   R15,8
 
@@ -130,8 +149,8 @@ SAVERC   DS    0H
          L     R3,RETURN_CODE
          CELQEPLG ,
 
-COPYCLASS  MVC CLASSBUF(0),0(R1)
-COPYENTITY MVC ENTITYBUF+2(0),0(R1)
+COPYCLASS  MVC CLASSBUF+1(0),0(R1)
+COPYENTITY MVC ENTITYBUF+4(0),0(R1)
 
          DS    0D
 RACFPLR  RACROUTE REQUEST=AUTH,ATTR=READ,CLASS='DUMMY',                X
@@ -146,7 +165,10 @@ RACFPLCL EQU   *-RACFPLC
 RACFPLA  RACROUTE REQUEST=AUTH,ATTR=ALTER,CLASS='DUMMY',               X
                RELEASE=2.4,MF=L
 RACFPLAL EQU   *-RACFPLA
-RACFPLTL EQU   RACFPLRL
+RACFPLS  RACROUTE REQUEST=AUTH,STATUS=ACCESS,CLASS='DUMMY',            X
+               RELEASE=2.4,MF=L
+RACFPLSL EQU   *-RACFPLS
+RACFPLTL EQU   RACFPLSL
 
 AUTOSTG  DSECT ,
          CEEDSA SECTYPE=XPLINK
@@ -157,6 +179,9 @@ PARM2    DS    AD
 PARM3    DS    AD
 PARM4    DS    AD
 PARM5    DS    AD
+PARM6    DS    AD
+PARM7    DS    AD
+PARM8    DS    AD
 
 RETURN_CODE DS F
 RACF_RC  DS    F
@@ -164,9 +189,10 @@ RACF_RSN DS    F
 
          DS    0D
 RACFPL   DS    CL(RACFPLTL)
-CLASSBUF DS    CL8
+CLASSBUF DS    CL9
          DS    0H
 ENTITYBUF DS   H
+         DS    H
          DS    CL246
          DS    0D
 RACFWA   DS    CL512
@@ -180,6 +206,7 @@ CLASSLEN DS    FD
 ENTITYPTR DS   AD
 ENTITYLEN DS   FD
 ACCESSCODE DS  FD
+STATUSCODE DS  FD
 RETCODEPTR DS  AD
 RSNCODEPTR DS  AD
 

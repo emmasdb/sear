@@ -972,6 +972,9 @@
         },
         "access": {
           "$ref": "#/$defs/accessLevel"
+        },
+        "racroute_options": {
+          "$ref": "#/$defs/racrouteAuthOptions"
         }
       },
       "required": [
@@ -996,6 +999,9 @@
         },
         "access": {
           "$ref": "#/$defs/accessLevel"
+        },
+        "racroute_options": {
+          "$ref": "#/$defs/racrouteAuthOptions"
         }
       },
       "required": [
@@ -1080,16 +1086,20 @@
       "maxLength": 6
     },
     "accessLevel": {
-      "enum": [
-        "READ",
-        "read",
-        "UPDATE",
-        "update",
-        "CONTROL",
-        "control",
-        "ALTER",
-        "alter"
-      ]
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 7
+    },
+    "racrouteAuthOptions": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 6
+        }
+      },
+      "additionalProperties": false
     }
   }
 }

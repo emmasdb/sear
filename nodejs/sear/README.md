@@ -183,8 +183,8 @@ Base structure for all SEAR requests:
 | alter | racf-options | traits |
 | alter | permission | dataset/resource, userid/group, traits; `class_name` for resource permissions |
 | delete | permission | dataset/resource, userid/group; `class_name` for resource permissions |
-| auth | dataset | dataset, access |
-| auth | resource | resource, class_name, access |
+| auth | dataset | dataset, access; optional `racroute_options` |
+| auth | resource | resource, class_name, access; optional `racroute_options` |
 
 For Node.js resource and permission requests, use `class_name`; the wrapper sends it to native SEAR as the core request-format key `class`. The public `class` and `resource_class` fields are rejected.
 
@@ -277,10 +277,12 @@ const result = sear({
   admin_type: 'resource',
   resource: 'APP.SERVER.START',
   class_name: 'FACILITY',
-  access: 'READ'
+  access: 'READ',
+  racroute_options: { status: 'ACCESS' }
 });
 
 console.log(result.result.authorized);
+console.log(result.result.access);
 ```
 
 ### Batch Processing with Async

@@ -149,8 +149,16 @@ function validateRequest(request) {
         }
         if (!request.access) {
             errors.push('access is required for auth');
-        } else if (!['READ', 'read', 'UPDATE', 'update', 'CONTROL', 'control', 'ALTER', 'alter'].includes(request.access)) {
+        } else if (typeof request.access !== 'string' || !['READ', 'UPDATE', 'CONTROL', 'ALTER'].includes(request.access.toUpperCase())) {
             errors.push('access must be one of: READ, UPDATE, CONTROL, ALTER');
+        }
+        if (request.racroute_options !== undefined) {
+            if (!request.racroute_options || typeof request.racroute_options !== 'object' || Array.isArray(request.racroute_options)) {
+                errors.push('racroute_options must be an object');
+            } else if (request.racroute_options.status !== undefined &&
+                (typeof request.racroute_options.status !== 'string' || !['NONE', 'ACCESS'].includes(request.racroute_options.status.toUpperCase()))) {
+                errors.push('racroute_options.status must be one of: NONE, ACCESS');
+            }
         }
     }
 

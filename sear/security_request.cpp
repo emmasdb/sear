@@ -95,6 +95,10 @@ const char* SecurityRequest::getSurrogateUserID() const {
 
 const nlohmann::json& SecurityRequest::getTraits() const { return traits_; }
 
+const nlohmann::json& SecurityRequest::getRACRouteOptions() const {
+  return racroute_options_;
+}
+
 uint8_t SecurityRequest::getFunctionCode() const { return function_code_; }
 
 int SecurityRequest::getIRRSMO00Options() const { return irrsmo00_options_; }
@@ -192,6 +196,10 @@ void SecurityRequest::load(const nlohmann::json& request) {
 
   if (request.contains("traits")) {
     traits_ = request["traits"].get<nlohmann::json>();
+  }
+
+  if (request.contains("racroute_options")) {
+    racroute_options_ = request["racroute_options"].get<nlohmann::json>();
   }
 
   if (admin_type_ == "user") {

@@ -1,0 +1,10 @@
+{
+  "operation": "auth",
+  "admin_type": "resource",
+  "resource": "IRR.IRRSMO00.PRECHECK",
+  "class": "XFACILIT",
+  "access": "READ",
+  "racroute_options": {
+    "status": "ACCESS"
+  }
+}

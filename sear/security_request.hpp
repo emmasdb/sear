@@ -31,6 +31,7 @@ class SecurityRequest {
   std::string status_;
   char surrogate_userid_[8] = {0};
   nlohmann::json traits_;
+  nlohmann::json racroute_options_;
   uint8_t function_code_ = 0;
   int irrsmo00_options_  = 13;
   // Result
@@ -63,6 +64,7 @@ class SecurityRequest {
   const std::string& getStatus() const;
   const char* getSurrogateUserID() const;
   const nlohmann::json& getTraits() const;
+  const nlohmann::json& getRACRouteOptions() const;
   uint8_t getFunctionCode() const;
   int getIRRSMO00Options() const;
   // Result Getters & Setters

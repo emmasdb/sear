@@ -11,6 +11,16 @@ export interface SearResultObject {
 }
 
 /**
+ * Optional RACROUTE REQUEST=AUTH operands exposed by SEAR.
+ */
+export interface RACRouteAuthOptions {
+    /**
+     * RACROUTE AUTH status option. ACCESS returns the caller's current access in the result.
+     */
+    status?: string;
+}
+
+/**
  * SEAR request object
  */
 export interface SearRequest {
@@ -112,7 +122,12 @@ export interface SearRequest {
     /**
      * RACROUTE access level for operation='auth'
      */
-    access?: 'READ' | 'read' | 'UPDATE' | 'update' | 'CONTROL' | 'control' | 'ALTER' | 'alter';
+    access?: string;
+
+    /**
+     * Optional RACROUTE REQUEST=AUTH operands.
+     */
+    racroute_options?: RACRouteAuthOptions;
 
     /**
      * Additional filter/criteria fields
