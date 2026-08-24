@@ -90,6 +90,10 @@ callRauth ALIAS C'sear_racroute_auth_asm'
          BCTR  R3,0
          EX    R3,COPYAUTH
 
+         MVI   NONEID,C' '
+         MVC   NONEID+1(7),NONEID
+         MVC   NONEID(6),=C'*NONE*'
+
          L     R2,RACREQ_IDTYPE(,R9)
          CHI   R2,0
          JE    CHECKSTAT
@@ -316,7 +320,7 @@ ENTITYBUF DS   H
          DS    H
          DS    CL246
 AUTHIDB  DS    CL8
-NONEID   DC    CL8'*NONE*'
+NONEID   DS    CL8
          DS    0D
 RACFWA   DS    CL512
 
