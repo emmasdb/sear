@@ -1,6 +1,6 @@
 {
   "errors": [
-    "sear: RACROUTE AUTH checks the current security context; userid and group are not supported"
+    "sear: RACROUTE AUTH group checks are not supported"
   ],
   "return_codes": {
     "racf_reason_code": null,

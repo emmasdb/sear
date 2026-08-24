@@ -185,6 +185,7 @@ AUTHRDG DS     0H
          STMH  R2,R14,SAVEHIGH
          RACROUTE REQUEST=AUTH,RELEASE=2.4,                            X
                ENTITYX=ENTITYBUF31,CLASS=CLASSBUF31,WORKA=RACFWA31,    X
+               USERID=AUTHIDB31,                                       X
                MF=(E,RACFPL31)
          LMH   R2,R14,SAVEHIGH
          SAM64
@@ -226,6 +227,7 @@ AUTHUPG DS     0H
          STMH  R2,R14,SAVEHIGH
          RACROUTE REQUEST=AUTH,RELEASE=2.4,                            X
                ENTITYX=ENTITYBUF31,CLASS=CLASSBUF31,WORKA=RACFWA31,    X
+               USERID=AUTHIDB31,                                       X
                MF=(E,RACFPL31)
          LMH   R2,R14,SAVEHIGH
          SAM64
@@ -267,6 +269,7 @@ AUTHCTG DS     0H
          STMH  R2,R14,SAVEHIGH
          RACROUTE REQUEST=AUTH,RELEASE=2.4,                            X
                ENTITYX=ENTITYBUF31,CLASS=CLASSBUF31,WORKA=RACFWA31,    X
+               USERID=AUTHIDB31,                                       X
                MF=(E,RACFPL31)
          LMH   R2,R14,SAVEHIGH
          SAM64
@@ -308,6 +311,7 @@ AUTHALG DS     0H
          STMH  R2,R14,SAVEHIGH
          RACROUTE REQUEST=AUTH,RELEASE=2.4,                            X
                ENTITYX=ENTITYBUF31,CLASS=CLASSBUF31,WORKA=RACFWA31,    X
+               USERID=AUTHIDB31,                                       X
                MF=(E,RACFPL31)
          LMH   R2,R14,SAVEHIGH
          SAM64
@@ -349,6 +353,7 @@ AUTHACG DS     0H
          STMH  R2,R14,SAVEHIGH
          RACROUTE REQUEST=AUTH,RELEASE=2.4,                            X
                ENTITYX=ENTITYBUF31,CLASS=CLASSBUF31,WORKA=RACFWA31,    X
+               USERID=AUTHIDB31,                                       X
                MF=(E,RACFPL31)
          LMH   R2,R14,SAVEHIGH
          SAM64

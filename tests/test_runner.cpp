@@ -25,6 +25,7 @@ int main() {
   RUN_TEST(test_parse_extraneous_and_missing_parameters_error);
   RUN_TEST(test_parse_parameters_nonstring_error);
     RUN_TEST(test_auth_resource_allowed);
+    RUN_TEST(test_auth_resource_userid_allowed);
         RUN_TEST(test_auth_resource_access_status);
     RUN_TEST(test_auth_dataset_denied);
     RUN_TEST(test_auth_unsupported_identity_error);

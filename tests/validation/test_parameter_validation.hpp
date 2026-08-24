@@ -26,6 +26,8 @@
   "test_extraneous_and_missing_parameters_request.json"
 #define TEST_AUTH_RESOURCE_REQUEST_JSON \
   VALIDATION_REQUEST_SAMPLES "test_auth_resource_request.json"
+#define TEST_AUTH_RESOURCE_USERID_REQUEST_JSON \
+  VALIDATION_REQUEST_SAMPLES "test_auth_resource_userid_request.json"
 #define TEST_AUTH_RESOURCE_ACCESS_STATUS_REQUEST_JSON \
   VALIDATION_REQUEST_SAMPLES "test_auth_resource_access_status_request.json"
 #define TEST_AUTH_DATASET_DENIED_REQUEST_JSON \
@@ -54,6 +56,7 @@ void test_parse_parameters_missing_error();
 void test_parse_extraneous_and_missing_parameters_error();
 void test_parse_parameters_nonstring_error();
 void test_auth_resource_allowed();
+void test_auth_resource_userid_allowed();
 void test_auth_resource_access_status();
 void test_auth_dataset_denied();
 void test_auth_unsupported_identity_error();

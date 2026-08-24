@@ -45,7 +45,7 @@ export interface SearRequest {
         | 'racf-options';
 
     /**
-    * User ID (required for extract admin_type='user'; not supported for auth)
+    * User ID (required for extract admin_type='user'; optional for auth userid checks)
      */
     userid?: string;
 

@@ -51,10 +51,9 @@ static bool handle_nodejs_duplicate_add_result(SecurityRequest &request) {
 
 static void validate_racroute_auth_identity(const nlohmann::json &request) {
   if (request.value("operation", "") == "auth" &&
-      (request.contains("userid") || request.contains("group"))) {
+      request.contains("group")) {
     throw SEARError(
-        "RACROUTE AUTH checks the current security context; userid and "
-        "group are not supported");
+        "RACROUTE AUTH group checks are not supported");
   }
 }
 

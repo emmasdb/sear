@@ -102,6 +102,27 @@ void test_auth_resource_allowed() {
   TEST_ASSERT_EQUAL_STRING("", racroute_auth_authid_actual);
 }
 
+void test_auth_resource_userid_allowed() {
+  std::string request_json = get_json_sample(TEST_AUTH_RESOURCE_USERID_REQUEST_JSON);
+  racroute_auth_rc_mock          = 0;
+  racroute_auth_racf_rc_mock     = 0;
+  racroute_auth_racf_reason_mock = 0;
+
+  sear_result_t *result =
+      sear(request_json.c_str(), request_json.length(), false);
+
+  nlohmann::json result_json = nlohmann::json::parse(result->result_json);
+  TEST_ASSERT_TRUE(result_json["authorized"].get<bool>());
+  TEST_ASSERT_EQUAL_INT32(0, result_json["return_codes"]["saf_return_code"]);
+  TEST_ASSERT_EQUAL_INT32(0, result_json["return_codes"]["racf_return_code"]);
+  TEST_ASSERT_EQUAL_INT32(0, result_json["return_codes"]["racf_reason_code"]);
+  TEST_ASSERT_EQUAL_INT32(0, result_json["return_codes"]["sear_return_code"]);
+  TEST_ASSERT_EQUAL_INT32(0x02, racroute_auth_access_code_actual);
+  TEST_ASSERT_EQUAL_INT32(0, racroute_auth_status_code_actual);
+  TEST_ASSERT_EQUAL_INT32(1, racroute_auth_identity_type_actual);
+  TEST_ASSERT_EQUAL_STRING("CHECKUSR", racroute_auth_authid_actual);
+}
+
 void test_auth_resource_access_status() {
   std::string request_json =
       get_json_sample(TEST_AUTH_RESOURCE_ACCESS_STATUS_REQUEST_JSON);

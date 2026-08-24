@@ -21,8 +21,9 @@ constexpr int RACROUTE_AUTH_STATUS_ACCESS_READ = 0x04;
 constexpr int RACROUTE_AUTH_STATUS_ACCESS_UPDATE = 0x08;
 constexpr int RACROUTE_AUTH_STATUS_ACCESS_CONTROL = 0x0c;
 constexpr int RACROUTE_AUTH_STATUS_ACCESS_ALTER = 0x10;
-constexpr int RACROUTE_AUTH_IDENTITY_USER = 0;
-constexpr int RACROUTE_AUTH_IDENTITY_GROUP = 1;
+constexpr int RACROUTE_AUTH_IDENTITY_NONE = 0;
+constexpr int RACROUTE_AUTH_IDENTITY_USER = 1;
+constexpr int RACROUTE_AUTH_IDENTITY_GROUP = 2;
 
 #pragma pack(push, 1)
 typedef struct {
