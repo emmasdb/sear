@@ -84,10 +84,16 @@ int RACRouteAuth::statusCode(const nlohmann::json &options) {
 void RACRouteAuth::check(SecurityRequest &request) {
   const std::string class_name_ebcdic = fromUTF8(request.getClassName());
   const std::string entity_ebcdic     = fromUTF8(request.getProfileName());
+  const bool is_group_auth            = !request.getGroup().empty();
+  const std::string authid_ebcdic =
+      fromUTF8(is_group_auth ? request.getGroup() : request.getUserID());
   const std::string_view class_name_view(class_name_ebcdic);
   const std::string_view entity_view(entity_ebcdic);
+  const std::string_view authid_view(authid_ebcdic);
   const int access_code               = accessCode(request.getAccess());
   const int status_code               = statusCode(request.getRACRouteOptions());
+  const int identity_type = is_group_auth ? RACROUTE_AUTH_IDENTITY_GROUP
+                                          : RACROUTE_AUTH_IDENTITY_USER;
 
   auto raw_request = std::make_unique<racroute_auth_request_t>();
   std::memset(raw_request.get(), 0, sizeof(racroute_auth_request_t));
@@ -98,6 +104,9 @@ void RACRouteAuth::check(SecurityRequest &request) {
   std::memcpy(raw_request->entity, entity_view.data(), entity_view.length());
   raw_request->access_code = access_code;
   raw_request->status_code = status_code;
+  raw_request->identity_type = identity_type;
+  raw_request->authid_length = authid_view.length();
+  std::memcpy(raw_request->authid, authid_view.data(), authid_view.length());
 
   Logger::getInstance().debug("RACROUTE AUTH request buffer:");
   Logger::getInstance().hexDump(reinterpret_cast<char *>(raw_request.get()),
@@ -107,7 +116,8 @@ void RACRouteAuth::check(SecurityRequest &request) {
   int racf_reason_code = 0;
   const int saf_return_code = sear_racroute_auth_asm(
       class_name_view.data(), class_name_view.length(), entity_view.data(),
-      entity_view.length(), access_code, status_code, &racf_return_code,
+      entity_view.length(), access_code, status_code, authid_view.data(),
+      authid_view.length(), identity_type, &racf_return_code,
       &racf_reason_code);
 
   request.setRawRequestPointer(reinterpret_cast<char *>(raw_request.get()));

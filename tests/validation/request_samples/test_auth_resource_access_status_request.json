@@ -3,6 +3,7 @@
   "admin_type": "resource",
   "resource": "IRR.IRRSMO00.PRECHECK",
   "class": "XFACILIT",
+  "group": "CHECKGRP",
   "access": "READ",
   "racroute_options": {
     "status": "ACCESS"

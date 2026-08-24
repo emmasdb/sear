@@ -2,5 +2,6 @@
   "operation": "auth",
   "admin_type": "dataset",
   "dataset": "HLQ.SMFDUMP.DAILY",
+  "userid": "CHECKUSR",
   "access": "ALTER"
 }

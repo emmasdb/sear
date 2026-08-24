@@ -17,6 +17,7 @@ class SecurityRequest {
   std::string profile_name_;
   std::string class_name_;
   std::string group_;  // Only used by IRRSMO00 for group connection
+  std::string userid_;
   std::string volume_;
   std::string generic_;
   std::string access_;
@@ -50,6 +51,7 @@ class SecurityRequest {
   const std::string& getProfileName() const;
   const std::string& getClassName() const;
   const std::string& getGroup() const;
+  const std::string& getUserID() const;
   const std::string& getVolume() const;
   const std::string& getGeneric() const;
   const std::string& getAccess() const;

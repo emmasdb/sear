@@ -59,6 +59,8 @@ const std::string& SecurityRequest::getClassName() const { return class_name_; }
 
 const std::string& SecurityRequest::getGroup() const { return group_; }
 
+const std::string& SecurityRequest::getUserID() const { return userid_; }
+
 const std::string& SecurityRequest::getVolume() const { return volume_; }
 
 const std::string& SecurityRequest::getGeneric() const { return generic_; }
@@ -339,6 +341,11 @@ void SecurityRequest::load(const nlohmann::json& request) {
 
   if (operation_ == "auth") {
     access_ = request["access"].get<std::string>();
+    if (request.contains("userid")) {
+      userid_ = request["userid"].get<std::string>();
+    } else if (request.contains("group")) {
+      group_ = request["group"].get<std::string>();
+    }
     if (admin_type_ == "dataset") {
       profile_name_ = request["dataset"].get<std::string>();
       class_name_   = "DATASET";

@@ -27,7 +27,7 @@ RACFAUTH TITLE 'RACROUTE AUTHORIZATION'
 
 RACFAUTH CELQPRLG DSASIZE=DSASIZ,                                      X
                BASEREG=R12,                                            X
-               PARMWRDS=8,                                             X
+               PARMWRDS=11,                                            X
                PARMREG=R11,                                            X
                ENTNAME=callRauth
 
@@ -71,6 +71,29 @@ callRauth ALIAS C'sear_racroute_auth_asm'
          BCTR  R3,0
          EX    R3,COPYENTITY
 
+         LG    R1,AUTHIDPTR
+         L     R2,AUTHIDLEN
+         LTGR  R1,R1
+         JZ    BADINPUT
+         LTR   R2,R2
+         BNP   BADINPUT
+         CHI   R2,8
+         JH    BADINPUT
+
+         MVI   AUTHIDB,C' '
+         MVC   AUTHIDB+1(7),AUTHIDB
+         LR    R3,R2
+         BCTR  R3,0
+         EX    R3,COPYAUTH
+
+         L     R2,IDTYPE
+         CHI   R2,0
+         JE    CHECKSTAT
+         CHI   R2,1
+         JE    CHECKSTAT
+         J     BADINPUT
+
+CHECKSTAT DS   0H
          L     R2,STATUSCODE
          CHI   R2,0
          JE    CHECKACCESS
@@ -91,9 +114,25 @@ CHECKACCESS DS 0H
          J     BADINPUT
 
 AUTHREAD DS    0H
+         L     R2,IDTYPE
+         CHI   R2,1
+         JE    AUTHRDG
          MVC   RACFPL(RACFPLRL),RACFPLR
          RACROUTE REQUEST=AUTH,RELEASE=2.4,                            X
                ENTITYX=ENTITYBUF,CLASS=CLASSBUF,WORKA=RACFWA,          X
+               USERID=AUTHIDB,                                         X
+               MF=(E,RACFPL)
+         L     R2,RACFPL
+         ST    R2,RACF_RC
+         L     R2,RACFPL+4
+         ST    R2,RACF_RSN
+         J     SAVERC
+
+AUTHRDG DS     0H
+         MVC   RACFPL(RACFPLRL),RACFPLR
+         RACROUTE REQUEST=AUTH,RELEASE=2.4,                            X
+               ENTITYX=ENTITYBUF,CLASS=CLASSBUF,WORKA=RACFWA,          X
+               GROUPID=AUTHIDB,                                        X
                MF=(E,RACFPL)
          L     R2,RACFPL
          ST    R2,RACF_RC
@@ -102,9 +141,25 @@ AUTHREAD DS    0H
          J     SAVERC
 
 AUTHUPDATE DS  0H
+         L     R2,IDTYPE
+         CHI   R2,1
+         JE    AUTHUPG
          MVC   RACFPL(RACFPLUL),RACFPLU
          RACROUTE REQUEST=AUTH,RELEASE=2.4,                            X
                ENTITYX=ENTITYBUF,CLASS=CLASSBUF,WORKA=RACFWA,          X
+               USERID=AUTHIDB,                                         X
+               MF=(E,RACFPL)
+         L     R2,RACFPL
+         ST    R2,RACF_RC
+         L     R2,RACFPL+4
+         ST    R2,RACF_RSN
+         J     SAVERC
+
+AUTHUPG DS     0H
+         MVC   RACFPL(RACFPLUL),RACFPLU
+         RACROUTE REQUEST=AUTH,RELEASE=2.4,                            X
+               ENTITYX=ENTITYBUF,CLASS=CLASSBUF,WORKA=RACFWA,          X
+               GROUPID=AUTHIDB,                                        X
                MF=(E,RACFPL)
          L     R2,RACFPL
          ST    R2,RACF_RC
@@ -113,9 +168,25 @@ AUTHUPDATE DS  0H
          J     SAVERC
 
 AUTHCONTROL DS 0H
+         L     R2,IDTYPE
+         CHI   R2,1
+         JE    AUTHCTG
          MVC   RACFPL(RACFPLCL),RACFPLC
          RACROUTE REQUEST=AUTH,RELEASE=2.4,                            X
                ENTITYX=ENTITYBUF,CLASS=CLASSBUF,WORKA=RACFWA,          X
+               USERID=AUTHIDB,                                         X
+               MF=(E,RACFPL)
+         L     R2,RACFPL
+         ST    R2,RACF_RC
+         L     R2,RACFPL+4
+         ST    R2,RACF_RSN
+         J     SAVERC
+
+AUTHCTG DS     0H
+         MVC   RACFPL(RACFPLCL),RACFPLC
+         RACROUTE REQUEST=AUTH,RELEASE=2.4,                            X
+               ENTITYX=ENTITYBUF,CLASS=CLASSBUF,WORKA=RACFWA,          X
+               GROUPID=AUTHIDB,                                        X
                MF=(E,RACFPL)
          L     R2,RACFPL
          ST    R2,RACF_RC
@@ -124,9 +195,25 @@ AUTHCONTROL DS 0H
          J     SAVERC
 
 AUTHALTER DS   0H
+         L     R2,IDTYPE
+         CHI   R2,1
+         JE    AUTHALG
          MVC   RACFPL(RACFPLAL),RACFPLA
          RACROUTE REQUEST=AUTH,RELEASE=2.4,                            X
                ENTITYX=ENTITYBUF,CLASS=CLASSBUF,WORKA=RACFWA,          X
+               USERID=AUTHIDB,                                         X
+               MF=(E,RACFPL)
+         L     R2,RACFPL
+         ST    R2,RACF_RC
+         L     R2,RACFPL+4
+         ST    R2,RACF_RSN
+         J     SAVERC
+
+AUTHALG DS     0H
+         MVC   RACFPL(RACFPLAL),RACFPLA
+         RACROUTE REQUEST=AUTH,RELEASE=2.4,                            X
+               ENTITYX=ENTITYBUF,CLASS=CLASSBUF,WORKA=RACFWA,          X
+               GROUPID=AUTHIDB,                                        X
                MF=(E,RACFPL)
          L     R2,RACFPL
          ST    R2,RACF_RC
@@ -135,9 +222,25 @@ AUTHALTER DS   0H
          J     SAVERC
 
 AUTHACCESS DS  0H
+         L     R2,IDTYPE
+         CHI   R2,1
+         JE    AUTHACG
          MVC   RACFPL(RACFPLSL),RACFPLS
          RACROUTE REQUEST=AUTH,RELEASE=2.4,                            X
                ENTITYX=ENTITYBUF,CLASS=CLASSBUF,WORKA=RACFWA,          X
+               USERID=AUTHIDB,                                         X
+               MF=(E,RACFPL)
+         L     R2,RACFPL
+         ST    R2,RACF_RC
+         L     R2,RACFPL+4
+         ST    R2,RACF_RSN
+         J     SAVERC
+
+AUTHACG DS     0H
+         MVC   RACFPL(RACFPLSL),RACFPLS
+         RACROUTE REQUEST=AUTH,RELEASE=2.4,                            X
+               ENTITYX=ENTITYBUF,CLASS=CLASSBUF,WORKA=RACFWA,          X
+               GROUPID=AUTHIDB,                                        X
                MF=(E,RACFPL)
          L     R2,RACFPL
          ST    R2,RACF_RC
@@ -161,6 +264,7 @@ SAVERC   DS    0H
 
 COPYCLASS  MVC CLASSBUF+1(0),0(R1)
 COPYENTITY MVC ENTITYBUF+4(0),0(R1)
+COPYAUTH   MVC AUTHIDB(0),0(R1)
 
          DS    0D
 RACFPLR  RACROUTE REQUEST=AUTH,ATTR=READ,CLASS='DUMMY',                X
@@ -204,6 +308,7 @@ CLASSBUF DS    CL9
 ENTITYBUF DS   H
          DS    H
          DS    CL246
+AUTHIDB  DS    CL8
          DS    0D
 RACFWA   DS    CL512
 
@@ -217,6 +322,9 @@ ENTITYPTR DS   AD
 ENTITYLEN DS   FD
 ACCESSCODE DS  FD
 STATUSCODE DS  FD
+AUTHIDPTR DS   AD
+AUTHIDLEN DS   FD
+IDTYPE   DS    FD
 RETCODEPTR DS  AD
 RSNCODEPTR DS  AD
 

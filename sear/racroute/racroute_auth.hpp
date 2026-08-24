@@ -21,6 +21,8 @@ constexpr int RACROUTE_AUTH_STATUS_ACCESS_READ = 0x04;
 constexpr int RACROUTE_AUTH_STATUS_ACCESS_UPDATE = 0x08;
 constexpr int RACROUTE_AUTH_STATUS_ACCESS_CONTROL = 0x0c;
 constexpr int RACROUTE_AUTH_STATUS_ACCESS_ALTER = 0x10;
+constexpr int RACROUTE_AUTH_IDENTITY_USER = 0;
+constexpr int RACROUTE_AUTH_IDENTITY_GROUP = 1;
 
 #pragma pack(push, 1)
 typedef struct {
@@ -30,6 +32,9 @@ typedef struct {
   char entity[246];
   uint32_t access_code;
   uint32_t status_code;
+  uint32_t identity_type;
+  uint32_t authid_length;
+  char authid[8];
 } racroute_auth_request_t;
 #pragma pack(pop)
 
@@ -51,6 +56,9 @@ extern "C" int sear_racroute_auth_asm(const char *class_name,
                                        const char *entity, int entity_length,
                                        int access_code,
                                        int status_code,
+                                       const char *authid,
+                                       int authid_length,
+                                       int identity_type,
                                        int *racf_return_code,
                                        int *racf_reason_code);
 
