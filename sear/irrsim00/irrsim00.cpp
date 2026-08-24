@@ -9,6 +9,7 @@
 #include <memory>
 #include <new>
 #include <stdexcept>
+#include <string_view>
 
 #include "logger.hpp"
 #include "sear_error.hpp"
@@ -144,16 +145,16 @@ char *IRRSIM00::cloneBuffer(const char *p_buffer, int buffer_length) {
 }
 
 void IRRSIM00::copyRACFUserID(irrsim00_racf_userid_t *p_target,
-                              std::string userid) {
-  std::transform(userid.begin(), userid.end(), userid.begin(),
-                 [](unsigned char c) { return std::toupper(c); });
+                              std::string_view userid) {
   p_target->length = userid.length();
-  std::memcpy(p_target->value, userid.c_str(), userid.length());
+  std::transform(userid.begin(), userid.end(), p_target->value,
+                 [](unsigned char c) {
+                   return static_cast<char>(std::toupper(c));
+                 });
 }
 
 void IRRSIM00::copyText(uint16_t *p_length, char *p_target,
-                        std::size_t target_size,
-                        const std::string &value) {
+                        std::size_t target_size, std::string_view value) {
   if (value.empty()) {
     return;
   }
@@ -161,7 +162,7 @@ void IRRSIM00::copyText(uint16_t *p_length, char *p_target,
     throw SEARError("IRRSIM00 text parameter is too long");
   }
   *p_length = htons((uint16_t)value.length());
-  std::memcpy(p_target, value.c_str(), value.length());
+  std::memcpy(p_target, value.data(), value.length());
 }
 
 void IRRSIM00::readCertificate(const std::string &filename,

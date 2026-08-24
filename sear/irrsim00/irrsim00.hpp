@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <string>
+#include <string_view>
 
 #include <nlohmann/json.hpp>
 
@@ -103,9 +104,9 @@ class IRRSIM00 {
                            const SecurityRequest &request);
   static char *cloneBuffer(const char *p_buffer, int buffer_length);
   static void copyRACFUserID(irrsim00_racf_userid_t *p_target,
-                             std::string userid);
+                             std::string_view userid);
   static void copyText(uint16_t *p_length, char *p_target,
-                       std::size_t target_size, const std::string &value);
+                       std::size_t target_size, std::string_view value);
   static void readCertificate(const std::string &filename,
                               irrsim00_certificate_t *p_certificate);
   static nlohmann::json buildResultJSON(const irrsim00_arg_area_t &arg_area,
