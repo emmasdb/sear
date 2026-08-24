@@ -49,6 +49,15 @@ static bool handle_nodejs_duplicate_add_result(SecurityRequest &request) {
 }
 #endif
 
+static void validate_racroute_auth_identity(const nlohmann::json &request) {
+  if (request.value("operation", "") == "auth" &&
+      (request.contains("userid") || request.contains("group"))) {
+    throw SEARError(
+        "RACROUTE AUTH checks the current security context; userid and "
+        "group are not supported");
+  }
+}
+
 SecurityAdmin::SecurityAdmin(sear_result_t *p_result, bool debug) {
   Logger::getInstance().setDebug(debug);
   request_ = SecurityRequest(p_result);
@@ -70,6 +79,7 @@ void SecurityAdmin::makeRequest(const char *p_request_json_string, int length) {
     }
 
     Logger::getInstance().debug("Validating parameters ...");
+    validate_racroute_auth_identity(request_json);
     try {
       SEAR_SCHEMA_VALIDATOR.validate(request_json);
     } catch (const std::exception &ex) {

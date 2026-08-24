@@ -40,6 +40,8 @@
   VALIDATION_RESULT_SAMPLES "test_syntax_error_not_json_result.json"
 #define TEST_SYNTAX_ERROR_BINARY_DATA_RESULT_JSON \
   VALIDATION_RESULT_SAMPLES "test_syntax_error_binary_data_result.json"
+#define TEST_AUTH_UNSUPPORTED_IDENTITY_RESULT_JSON \
+  VALIDATION_RESULT_SAMPLES "test_auth_unsupported_identity_result.json"
 
 // Prototypes
 void test_handle_syntax_error();

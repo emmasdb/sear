@@ -148,5 +148,5 @@ void test_auth_dataset_denied() {
 
 void test_auth_unsupported_identity_error() {
   test_validation_errors(TEST_AUTH_UNSUPPORTED_IDENTITY_REQUEST_JSON,
-                         TEST_PARAMETER_VALIDATION_ERROR_RESULT_JSON, false);
+                         TEST_AUTH_UNSUPPORTED_IDENTITY_RESULT_JSON, false);
 }

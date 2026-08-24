@@ -70,7 +70,7 @@ int RACRouteAuth::statusCode(const nlohmann::json &options) {
 void RACRouteAuth::check(SecurityRequest &request) {
   if (!request.getUserID().empty() || !request.getGroup().empty()) {
     throw SEARError(
-        "sear: RACROUTE AUTH checks the current security context; "
+      "RACROUTE AUTH checks the current security context; "
         "userid and group are not supported");
   }
 
