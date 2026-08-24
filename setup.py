@@ -74,6 +74,7 @@ class BuildExtensionWithAssemblerAndC(build_ext):
         os.environ["CXXFLAGS"] = "-std=c++17"
         sear_source_path = Path("sear")
         assemble("irrseq00.s", sear_source_path / "irrseq00")
+        assemble("racroute_auth.s", sear_source_path / "racroute")
         super().run()
 
 
@@ -102,7 +103,10 @@ def main():
         openssl_include_path = os.environ["ZOPEN_ROOTFS"] +  "/usr/local/include/"
         zoslib_lib_path = os.environ["ZOPEN_ROOTFS"] + "/usr/local/lib/"
 
-    assembled_object_path = cwd / "artifacts" / "irrseq00.o"
+    assembled_object_paths = [
+        cwd / "artifacts" / "irrseq00.o",
+        cwd / "artifacts" / "racroute_auth.o",
+    ]
     generate_json_schema_header()
     sear_cpp_sources = [
         source for source in glob("sear/**/*.cpp")
@@ -137,7 +141,7 @@ def main():
                     "-Wl," + openssl_lib_path + "libssl.a",
                     "-Wl," + zoslib_lib_path + "libzoslib.a",
                 ],
-                extra_objects=[f"{assembled_object_path}"],
+                extra_objects=[f"{path}" for path in assembled_object_paths],
             ),
         ],
         "cmdclass": {
