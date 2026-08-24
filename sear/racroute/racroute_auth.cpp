@@ -60,8 +60,8 @@ void RACRouteAuth::check(SecurityRequest &request) {
   raw_request.release();
   request.setRawRequestLength(sizeof(racroute_auth_request_t));
   request.setSAFReturnCode(saf_return_code);
-  request.setRACFReturnCode(-1);
-  request.setRACFReasonCode(-1);
+  request.setRACFReturnCode(0);
+  request.setRACFReasonCode(0);
   request.setSEARReturnCode(0);
   request.setIntermediateResultJSON({{"authorized", saf_return_code == 0}});
 }

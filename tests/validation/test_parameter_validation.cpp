@@ -91,7 +91,8 @@ void test_auth_resource_allowed() {
   nlohmann::json result_json = nlohmann::json::parse(result->result_json);
   TEST_ASSERT_TRUE(result_json["authorized"].get<bool>());
   TEST_ASSERT_EQUAL_INT32(0, result_json["return_codes"]["saf_return_code"]);
-  TEST_ASSERT_TRUE(result_json["return_codes"]["racf_return_code"].is_null());
+  TEST_ASSERT_EQUAL_INT32(0, result_json["return_codes"]["racf_return_code"]);
+  TEST_ASSERT_EQUAL_INT32(0, result_json["return_codes"]["racf_reason_code"]);
   TEST_ASSERT_EQUAL_INT32(0, result_json["return_codes"]["sear_return_code"]);
   TEST_ASSERT_EQUAL_INT32(1, racroute_auth_access_code_actual);
 }
@@ -106,6 +107,8 @@ void test_auth_dataset_denied() {
   nlohmann::json result_json = nlohmann::json::parse(result->result_json);
   TEST_ASSERT_FALSE(result_json["authorized"].get<bool>());
   TEST_ASSERT_EQUAL_INT32(4, result_json["return_codes"]["saf_return_code"]);
+  TEST_ASSERT_EQUAL_INT32(0, result_json["return_codes"]["racf_return_code"]);
+  TEST_ASSERT_EQUAL_INT32(0, result_json["return_codes"]["racf_reason_code"]);
   TEST_ASSERT_EQUAL_INT32(0, result_json["return_codes"]["sear_return_code"]);
   TEST_ASSERT_EQUAL_INT32(4, racroute_auth_access_code_actual);
 }
