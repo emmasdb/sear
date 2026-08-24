@@ -29,7 +29,8 @@ RACFAUTH CELQPRLG DSASIZE=DSASIZ,                                      X
                BASEREG=R12,                                            X
                PARMWRDS=3,                                             X
                PARMREG=R11,                                            X
-               ENTNAME=callRauth
+               ENTNAME=callRauth,                                      X
+               PSECT=RACFAUT1
 
 callRauth ALIAS C'sear_racroute_auth_asm'
          USING AUTOSTG,R4
@@ -49,7 +50,7 @@ callRauth ALIAS C'sear_racroute_auth_asm'
          NOPR  0
 
 CEEWSA   LOCTR
-C_WSA64  CATTR DEFLOAD,RMODE(64),PART(RACFAUTH)
+C_WSA64  CATTR DEFLOAD,RMODE(64),PART(RACFAUT1)
 MALLOC31 ALIAS C'__malloc31'
 MALLOC31 AMODE 64
 MALLOC31 XATTR LINKAGE(XPLINK),SCOPE(IMPORT),REF(CODE)
