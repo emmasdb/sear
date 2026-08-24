@@ -145,3 +145,8 @@ void test_auth_dataset_denied() {
   TEST_ASSERT_EQUAL_INT32(0, racroute_auth_identity_type_actual);
   TEST_ASSERT_EQUAL_STRING("CHECKUSR", racroute_auth_authid_actual);
 }
+
+void test_auth_missing_identity_error() {
+  test_validation_errors(TEST_AUTH_MISSING_IDENTITY_REQUEST_JSON,
+                         TEST_PARAMETER_VALIDATION_ERROR_RESULT_JSON, false);
+}
