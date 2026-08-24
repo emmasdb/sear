@@ -52,16 +52,18 @@ void RACRouteAuth::check(SecurityRequest &request) {
   Logger::getInstance().hexDump(reinterpret_cast<char *>(raw_request.get()),
                                 sizeof(racroute_auth_request_t));
 
+  int racf_return_code = 0;
+  int racf_reason_code = 0;
   const int saf_return_code = sear_racroute_auth_asm(
-    class_name_view.data(), class_name_view.length(), entity_view.data(),
-    entity_view.length(), access_code);
+      class_name_view.data(), class_name_view.length(), entity_view.data(),
+      entity_view.length(), access_code, &racf_return_code, &racf_reason_code);
 
   request.setRawRequestPointer(reinterpret_cast<char *>(raw_request.get()));
   raw_request.release();
   request.setRawRequestLength(sizeof(racroute_auth_request_t));
   request.setSAFReturnCode(saf_return_code);
-  request.setRACFReturnCode(0);
-  request.setRACFReasonCode(0);
+  request.setRACFReturnCode(racf_return_code);
+  request.setRACFReasonCode(racf_reason_code);
   request.setSEARReturnCode(0);
   request.setIntermediateResultJSON({{"authorized", saf_return_code == 0}});
 }

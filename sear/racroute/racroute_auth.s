@@ -27,13 +27,16 @@ RACFAUTH TITLE 'RACROUTE AUTHORIZATION'
 
 RACFAUTH CELQPRLG DSASIZE=DSASIZ,                                      X
                BASEREG=R12,                                            X
-               PARMWRDS=5,                                             X
+               PARMWRDS=7,                                             X
                PARMREG=R11,                                            X
                ENTNAME=callRauth
 
 callRauth ALIAS C'sear_racroute_auth_asm'
          USING AUTOSTG,R4
          USING MYPARMS,R11
+
+         XC    RACF_RC,RACF_RC
+         XC    RACF_RSN,RACF_RSN
 
          LG    R1,CLASSPTR
          L     R2,CLASSLEN
@@ -81,6 +84,7 @@ AUTHREAD DS    0H
          MVC   RACFPL(RACFPLRL),RACFPLR
          RACROUTE REQUEST=AUTH,RELEASE=2.4,                            X
                ENTITYX=ENTITYBUF,CLASS=CLASSBUF,WORKA=RACFWA,          X
+               RETCODE=RACF_RC,RSNCODE=RACF_RSN,                       X
                MF=(E,RACFPL)
          J     SAVERC
 
@@ -88,6 +92,7 @@ AUTHUPDATE DS  0H
          MVC   RACFPL(RACFPLUL),RACFPLU
          RACROUTE REQUEST=AUTH,RELEASE=2.4,                            X
                ENTITYX=ENTITYBUF,CLASS=CLASSBUF,WORKA=RACFWA,          X
+               RETCODE=RACF_RC,RSNCODE=RACF_RSN,                       X
                MF=(E,RACFPL)
          J     SAVERC
 
@@ -95,6 +100,7 @@ AUTHCONTROL DS 0H
          MVC   RACFPL(RACFPLCL),RACFPLC
          RACROUTE REQUEST=AUTH,RELEASE=2.4,                            X
                ENTITYX=ENTITYBUF,CLASS=CLASSBUF,WORKA=RACFWA,          X
+               RETCODE=RACF_RC,RSNCODE=RACF_RSN,                       X
                MF=(E,RACFPL)
          J     SAVERC
 
@@ -102,6 +108,7 @@ AUTHALTER DS   0H
          MVC   RACFPL(RACFPLAL),RACFPLA
          RACROUTE REQUEST=AUTH,RELEASE=2.4,                            X
                ENTITYX=ENTITYBUF,CLASS=CLASSBUF,WORKA=RACFWA,          X
+               RETCODE=RACF_RC,RSNCODE=RACF_RSN,                       X
                MF=(E,RACFPL)
          J     SAVERC
 
@@ -110,6 +117,12 @@ BADINPUT DS    0H
 
 SAVERC   DS    0H
          ST    R15,RETURN_CODE
+         LG    R1,RETCODEPTR
+         L     R2,RACF_RC
+         ST    R2,0(,R1)
+         LG    R1,RSNCODEPTR
+         L     R2,RACF_RSN
+         ST    R2,0(,R1)
          L     R3,RETURN_CODE
          CELQEPLG ,
 
@@ -142,6 +155,8 @@ PARM4    DS    AD
 PARM5    DS    AD
 
 RETURN_CODE DS F
+RACF_RC  DS    F
+RACF_RSN DS    F
 
          DS    0D
 RACFPL   DS    CL(RACFPLTL)
@@ -161,5 +176,7 @@ CLASSLEN DS    FD
 ENTITYPTR DS   AD
 ENTITYLEN DS   FD
 ACCESSCODE DS  FD
+RETCODEPTR DS  AD
+RSNCODEPTR DS  AD
 
          END   RACFAUTH

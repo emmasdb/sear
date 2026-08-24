@@ -36,6 +36,8 @@ class RACRouteAuth {
 extern "C" int sear_racroute_auth_asm(const char *class_name,
                                        int class_name_length,
                                        const char *entity, int entity_length,
-                                       int access_code);
+                                       int access_code,
+                                       int *racf_return_code,
+                                       int *racf_reason_code);
 
 #endif
