@@ -15,9 +15,9 @@ export interface SearResultObject {
  */
 export interface SearRequest {
     /**
-    * Operation to perform: 'extract', 'search', 'alter', 'add', 'delete', 'remove'
+    * Operation to perform: 'extract', 'search', 'alter', 'add', 'delete', 'remove', 'auth'
      */
-    operation: 'extract' | 'search' | 'alter' | 'add' | 'delete' | 'remove';
+    operation: 'extract' | 'search' | 'alter' | 'add' | 'delete' | 'remove' | 'auth';
 
     /**
     * Type of resource: 'user', 'group', 'dataset', 'group-connection', 'permission', 'keyring', 'certificate', 'resource', 'racf-rrsf', or 'racf-options'.
@@ -108,6 +108,11 @@ export interface SearRequest {
      * Resource profile type (optional for extract admin_type='resource')
      */
     profile_type?: string;
+
+    /**
+     * RACROUTE access level for operation='auth'
+     */
+    access?: 'READ' | 'read' | 'UPDATE' | 'update' | 'CONTROL' | 'control' | 'ALTER' | 'alter';
 
     /**
      * Additional filter/criteria fields
@@ -227,7 +232,7 @@ export function searAsync(request: SearRequest, debug?: boolean): Promise<Securi
 /**
  * Valid operation types
  */
-export const VALID_OPERATIONS: readonly ['extract', 'search', 'alter', 'add', 'delete', 'remove'];
+export const VALID_OPERATIONS: readonly ['extract', 'search', 'alter', 'add', 'delete', 'remove', 'auth'];
 
 /**
  * Valid admin types

@@ -19,6 +19,7 @@ class SecurityRequest {
   std::string group_;  // Only used by IRRSMO00 for group connection
   std::string volume_;
   std::string generic_;
+  std::string access_;
   std::string owner_;
   std::string keyring_;
   std::string keyring_owner_;
@@ -50,6 +51,7 @@ class SecurityRequest {
   const std::string& getGroup() const;
   const std::string& getVolume() const;
   const std::string& getGeneric() const;
+  const std::string& getAccess() const;
   const std::string& getOwner() const;
   const std::string& getKeyring() const;
   const std::string& getKeyringOwner() const;

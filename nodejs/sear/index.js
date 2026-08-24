@@ -24,7 +24,7 @@ try {
 // Constants
 // ============================================================================
 
-const VALID_OPERATIONS = ['extract', 'search', 'alter', 'add', 'delete', 'remove'];
+const VALID_OPERATIONS = ['extract', 'search', 'alter', 'add', 'delete', 'remove', 'auth'];
 const VALID_ADMIN_TYPES = [
     'user',
     'group',
@@ -119,6 +119,10 @@ function validateRequest(request) {
         errors.push('permission extraction is not supported');
     }
 
+    if (request.operation === 'auth' && !['dataset', 'resource'].includes(request.admin_type)) {
+        errors.push('auth only supports dataset and resource admin types');
+    }
+
     if (Object.prototype.hasOwnProperty.call(request, 'resource_class')) {
         errors.push('class_name must be used instead of resource_class');
     }
@@ -127,7 +131,7 @@ function validateRequest(request) {
         errors.push('class_name must be used instead of class');
     }
 
-    if (request.admin_type === 'resource' && ['add', 'alter', 'delete'].includes(request.operation)) {
+    if (request.admin_type === 'resource' && ['add', 'alter', 'delete', 'auth'].includes(request.operation)) {
         if (!request.resource) {
             errors.push(`resource is required for resource ${request.operation}`);
         }
@@ -136,6 +140,17 @@ function validateRequest(request) {
         }
         if (request.operation === 'alter' && !request.traits) {
             errors.push('traits is required for resource alteration');
+        }
+    }
+
+    if (request.operation === 'auth') {
+        if (request.admin_type === 'dataset' && !request.dataset) {
+            errors.push('dataset is required for dataset auth');
+        }
+        if (!request.access) {
+            errors.push('access is required for auth');
+        } else if (!['READ', 'read', 'UPDATE', 'update', 'CONTROL', 'control', 'ALTER', 'alter'].includes(request.access)) {
+            errors.push('access must be one of: READ, UPDATE, CONTROL, ALTER');
         }
     }
 

@@ -63,6 +63,8 @@ const std::string& SecurityRequest::getVolume() const { return volume_; }
 
 const std::string& SecurityRequest::getGeneric() const { return generic_; }
 
+const std::string& SecurityRequest::getAccess() const { return access_; }
+
 const std::string& SecurityRequest::getOwner() const { return owner_; }
 
 const std::string& SecurityRequest::getKeyring() const { return keyring_; }
@@ -324,6 +326,17 @@ void SecurityRequest::load(const nlohmann::json& request) {
       generic_ = "yes";
     } else {
       generic_ = "no";
+    }
+  }
+
+  if (operation_ == "auth") {
+    access_ = request["access"].get<std::string>();
+    if (admin_type_ == "dataset") {
+      profile_name_ = request["dataset"].get<std::string>();
+      class_name_   = "DATASET";
+    } else if (admin_type_ == "resource") {
+      profile_name_ = request["resource"].get<std::string>();
+      class_name_   = request["class"].get<std::string>();
     }
   }
 

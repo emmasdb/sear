@@ -145,7 +145,7 @@ Base structure for all SEAR requests:
 
 ```typescript
 {
-  operation: 'extract' | 'search' | 'alter' | 'add' | 'delete' | 'remove',
+  operation: 'extract' | 'search' | 'alter' | 'add' | 'delete' | 'remove' | 'auth',
   admin_type: 'user' | 'group' | 'dataset' | 'keyring' | 'certificate' | 'resource' | 'group-connection' | 'permission' | 'racf-rrsf' | 'racf-options',
   // Additional fields based on operation and admin_type
 }
@@ -183,6 +183,8 @@ Base structure for all SEAR requests:
 | alter | racf-options | traits |
 | alter | permission | dataset/resource, userid/group, traits; `class_name` for resource permissions |
 | delete | permission | dataset/resource, userid/group; `class_name` for resource permissions |
+| auth | dataset | dataset, access |
+| auth | resource | resource, class_name, access |
 
 For Node.js resource and permission requests, use `class_name`; the wrapper sends it to native SEAR as the core request-format key `class`. The public `class` and `resource_class` fields are rejected.
 
@@ -263,6 +265,22 @@ if (result.isSuccess()) {
 } else {
     console.error('Failed to grant permission:', result.result.error);
 }
+```
+
+### Check Resource Authorization
+
+```javascript
+const { sear } = require('./nodejs/sear');
+
+const result = sear({
+  operation: 'auth',
+  admin_type: 'resource',
+  resource: 'APP.SERVER.START',
+  class_name: 'FACILITY',
+  access: 'READ'
+});
+
+console.log(result.result.authorized);
 ```
 
 ### Batch Processing with Async

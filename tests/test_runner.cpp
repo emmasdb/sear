@@ -24,6 +24,8 @@ int main() {
   RUN_TEST(test_parse_parameters_missing_error);
   RUN_TEST(test_parse_extraneous_and_missing_parameters_error);
   RUN_TEST(test_parse_parameters_nonstring_error);
+    RUN_TEST(test_auth_resource_allowed);
+    RUN_TEST(test_auth_dataset_denied);
 
   /*************************************************************************/
   /* IRRSMO00                                                              */

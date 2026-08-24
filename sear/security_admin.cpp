@@ -12,6 +12,7 @@
 #include "keyring_post_processor.hpp"
 #include "profile_extractor.hpp"
 #include "profile_post_processor.hpp"
+#include "racroute_auth.hpp"
 #include "sear_error.hpp"
 #include "xml_generator.hpp"
 #include "xml_parser.hpp"
@@ -82,7 +83,11 @@ void SecurityAdmin::makeRequest(const char *p_request_json_string, int length) {
     request_.load(request_json);
 
     // Make Request To Corresponding Callable Service
-    if (request_.getOperation() == "extract" ||
+    if (request_.getOperation() == "auth") {
+      Logger::getInstance().debug("Entering RACROUTE AUTH path");
+      RACRouteAuth racroute_auth;
+      racroute_auth.check(request_);
+    } else if (request_.getOperation() == "extract" ||
         request_.getOperation() == "search") {
       if (request_.getAdminType() != "keyring") {
         Logger::getInstance().debug("Entering IRRSEQ00 path");

@@ -68,11 +68,13 @@ if (SEAR_UNIT_TEST)
     set(ZOSLIB "")
     set(ZOSLIB_INCLUDE "tests/zoslib")
     set(IRRSEQ00 "")
+    set(RACROUTE_AUTH "")
     set(DEBUGFLAG "-g")
 else()
     find_library(ZOSLIB libzoslib.a REQUIRED)
     set(ZOSLIB_INCLUDE "")
     set(IRRSEQ00 "sear/irrseq00/irrseq00.s")
+    set(RACROUTE_AUTH "sear/racroute/racroute_auth.s")
     set(DEBUGFLAG "")
 endif()
 
@@ -90,6 +92,9 @@ add_library(
     "${IRRSEQ00}"
     sear/irrseq00/profile_extractor.cpp
     sear/irrseq00/profile_post_processor.cpp
+
+    "${RACROUTE_AUTH}"
+    sear/racroute/racroute_auth.cpp
 
     sear/irrsmo00/irrsmo00_error.cpp
     sear/irrsmo00/irrsmo00.cpp
@@ -120,6 +125,7 @@ target_include_directories(
     sear
     sear/irrsdl00
     sear/irrseq00
+    sear/racroute
     sear/irrsmo00
     sear/key_map
     sear/validation
@@ -176,6 +182,7 @@ add_executable(
     tests/irrsmo00/test_irrsmo00.cpp
     tests/mock/irrsdl64.cpp
     tests/mock/irrseq00.cpp
+    tests/mock/racroute_auth.cpp
     tests/mock/irrsmo64.cpp
     tests/unity/unity.c
     tests/validation/test_parameter_validation.cpp
@@ -188,6 +195,7 @@ target_include_directories(
     sear
     sear/irrsdl00
     sear/irrseq00
+    sear/racroute
     sear/irrsmo00
     sear/key_map
     sear/validation

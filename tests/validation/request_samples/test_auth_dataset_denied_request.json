@@ -1,0 +1,6 @@
+{
+  "operation": "auth",
+  "admin_type": "dataset",
+  "dataset": "HLQ.SMFDUMP.DAILY",
+  "access": "ALTER"
+}

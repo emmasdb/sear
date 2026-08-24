@@ -7,6 +7,7 @@ DIST			= ${PWD}/dist
 SRC				= ${PWD}/sear
 IRRSMO00_SRC	= ${PWD}/sear/irrsmo00
 IRRSEQ00_SRC	= ${PWD}/sear/irrseq00
+RACROUTE_SRC	= ${PWD}/sear/racroute
 IRRSDL00_SRC	= ${PWD}/sear/irrsdl00
 KEY_MAP			= ${PWD}/sear/key_map
 VALIDATION		= ${PWD}/sear/validation
@@ -24,6 +25,7 @@ COMMON_INC		= \
 				-I $(SRC) \
 				-I $(IRRSMO00_SRC) \
 				-I $(IRRSEQ00_SRC) \
+				-I $(RACROUTE_SRC) \
 				-I $(IRRSDL00_SRC) \
 				-I $(KEY_MAP) \
 				-I $(VALIDATION) \
@@ -125,11 +127,13 @@ schema:
 
 sear: clean mkdirs schema
 	$(AS) $(ASFLAGS) -o $(ARTIFACTS)/irrseq00.o $(IRRSEQ00_SRC)/irrseq00.s
+	$(AS) $(ASFLAGS) -o $(ARTIFACTS)/racroute_auth.o $(RACROUTE_SRC)/racroute_auth.s
 	cd $(ARTIFACTS) \
 		&& $(CXX) -g -c $(CFLAGS) \
 			$(SRC)/*.cpp \
 			$(IRRSMO00_SRC)/*.cpp \
 			$(IRRSEQ00_SRC)/*.cpp \
+			$(RACROUTE_SRC)/*.cpp \
 			$(IRRSDL00_SRC)/*.cpp \
 			$(KEY_MAP)/*.cpp \
 			$(VALIDATION)/*.cpp \
@@ -145,6 +149,7 @@ test: clean mkdirs schema
 			$(SRC)/*.cpp \
 			$(IRRSMO00_SRC)/*.cpp \
 			$(IRRSEQ00_SRC)/*.cpp \
+			$(RACROUTE_SRC)/*.cpp \
 			$(IRRSDL00_SRC)/*.cpp \
 			$(KEY_MAP)/*.cpp \
 			$(VALIDATION)/*.cpp \
@@ -166,6 +171,7 @@ fuzz: clean mkdirs schema
 			$(SRC)/*.cpp \
 			$(IRRSMO00_SRC)/*.cpp \
 			$(IRRSEQ00_SRC)/*.cpp \
+			$(RACROUTE_SRC)/*.cpp \
 			$(IRRSDL00_SRC)/*.cpp \
 			$(KEY_MAP)/*.cpp \
 			$(VALIDATION)/*.cpp \
@@ -199,6 +205,7 @@ check: schema
 		-I $(SRC) \
 		-I $(IRRSMO00_SRC) \
 		-I $(IRRSEQ00_SRC) \
+		-I $(RACROUTE_SRC) \
 		-I $(IRRSDL00_SRC) \
 		-I $(KEY_MAP) \
 		-I $(VALIDATION) \

@@ -959,6 +959,56 @@
     {
       "properties": {
         "operation": {
+          "const": "auth"
+        },
+        "admin_type": {
+          "const": "resource"
+        },
+        "resource": {
+          "$ref": "#/$defs/resourceName"
+        },
+        "class": {
+          "$ref": "#/$defs/eightCharacterString"
+        },
+        "access": {
+          "$ref": "#/$defs/accessLevel"
+        }
+      },
+      "required": [
+        "operation",
+        "admin_type",
+        "resource",
+        "class",
+        "access"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "properties": {
+        "operation": {
+          "const": "auth"
+        },
+        "admin_type": {
+          "const": "dataset"
+        },
+        "dataset": {
+          "$ref": "#/$defs/dataSetName"
+        },
+        "access": {
+          "$ref": "#/$defs/accessLevel"
+        }
+      },
+      "required": [
+        "operation",
+        "admin_type",
+        "dataset",
+        "access"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "properties": {
+        "operation": {
           "const": "remove"
         },
         "admin_type": {
@@ -1028,6 +1078,18 @@
       "type": "string",
       "minLength": 1,
       "maxLength": 6
+    },
+    "accessLevel": {
+      "enum": [
+        "READ",
+        "read",
+        "UPDATE",
+        "update",
+        "CONTROL",
+        "control",
+        "ALTER",
+        "alter"
+      ]
     }
   }
 }

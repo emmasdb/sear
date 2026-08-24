@@ -19,6 +19,7 @@
       "sear/irrsdl00/keyring_post_processor.cpp",
       "sear/irrseq00/profile_extractor.cpp",
       "sear/irrseq00/profile_post_processor.cpp",
+      "sear/racroute/racroute_auth.cpp",
       "sear/irrsmo00/irrsmo00.cpp",
       "sear/irrsmo00/irrsmo00_error.cpp",
       "sear/irrsmo00/xml_generator.cpp",
@@ -37,6 +38,7 @@
       "sear",
       "sear/irrsdl00",
       "sear/irrseq00",
+      "sear/racroute",
       "sear/irrsmo00",
       "sear/key_map",
       "sear/validation",
@@ -69,6 +71,7 @@
       "-m64",
       "-Wl,-b,edit=no",
       "<!(node -p \"require('path').resolve('artifacts/irrseq00.o')\")",
+      "<!(node -p \"require('path').resolve('artifacts/racroute_auth.o')\")",
       "-Wl,<(openssl_root)/lib/libcrypto.a",
       "-Wl,<(openssl_root)/lib/libssl.a",
       "-Wl,<(zoslib_root)/lib/libzoslib.a"

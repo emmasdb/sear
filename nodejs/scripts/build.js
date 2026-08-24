@@ -23,6 +23,7 @@ const makeCommand = process.env.MAKE || findGnuMake();
 const ccWrapperPath = path.join(__dirname, 'cc-wrapper.js');
 const cxxWrapperPath = path.join(__dirname, 'cxx-wrapper.js');
 const irrseqObjectPath = path.join(__dirname, '..', '..', 'artifacts', 'irrseq00.o');
+const racrouteAuthObjectPath = path.join(__dirname, '..', '..', 'artifacts', 'racroute_auth.o');
 const nodeGypNodeDir = path.join(__dirname, '..', '..', 'build', 'node-gyp-node-dir');
 const buildReleaseDir = path.join(__dirname, '..', '..', 'build', 'Release');
 
@@ -236,7 +237,7 @@ fs.chmodSync(cxxWrapperPath, 0o755);
 removePath(buildReleaseDir);
 
 const existingLdflags = process.env.LDFLAGS ? `${process.env.LDFLAGS} ` : '';
-const linkWithIrrseq = `${existingLdflags}${irrseqObjectPath}`;
+const linkWithAssemblerObjects = `${existingLdflags}${irrseqObjectPath} ${racrouteAuthObjectPath}`;
 
 const realCc = process.env.SEAR_NODE_REAL_CC || 'ibm-clang64';
 const realCxx = process.env.SEAR_NODE_REAL_CXX || 'ibm-clang++64';
@@ -247,7 +248,7 @@ const configureResult = spawnSync('node-gyp', ['configure'], {
         MAKE: makeCommand,
         CC: realCc,
         CXX: realCxx,
-        LDFLAGS: linkWithIrrseq,
+        LDFLAGS: linkWithAssemblerObjects,
     }),
     shell: process.platform === 'win32',
 });
@@ -269,7 +270,7 @@ const buildResult = spawnSync('node-gyp', ['build'], {
         MAKE: makeCommand,
         CC: process.env.SEAR_NODE_CC || ccWrapperPath,
         CXX: process.env.SEAR_NODE_CXX || cxxWrapperPath,
-        LDFLAGS: linkWithIrrseq,
+        LDFLAGS: linkWithAssemblerObjects,
     }),
     shell: process.platform === 'win32',
 });

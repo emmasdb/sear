@@ -4,7 +4,10 @@
 
 #include <cstring>
 
+#include <nlohmann/json.hpp>
+
 #include "sear/sear.h"
+#include "tests/mock/racroute_auth.hpp"
 #include "tests/unit_test_utilities.hpp"
 #include "tests/unity/unity.h"
 
@@ -76,4 +79,33 @@ void test_parse_extraneous_and_missing_parameters_error() {
 void test_parse_parameters_nonstring_error() {
   test_validation_errors(TEST_PARAMETERS_NONSTRING_REQUEST_JSON,
                          TEST_PARAMETER_VALIDATION_ERROR_RESULT_JSON, false);
+}
+
+void test_auth_resource_allowed() {
+  std::string request_json = get_json_sample(TEST_AUTH_RESOURCE_REQUEST_JSON);
+  racroute_auth_rc_mock    = 0;
+
+  sear_result_t *result =
+      sear(request_json.c_str(), request_json.length(), false);
+
+  nlohmann::json result_json = nlohmann::json::parse(result->result_json);
+  TEST_ASSERT_TRUE(result_json["authorized"].get<bool>());
+  TEST_ASSERT_EQUAL_INT32(0, result_json["return_codes"]["saf_return_code"]);
+  TEST_ASSERT_TRUE(result_json["return_codes"]["racf_return_code"].is_null());
+  TEST_ASSERT_EQUAL_INT32(0, result_json["return_codes"]["sear_return_code"]);
+  TEST_ASSERT_EQUAL_INT32(1, racroute_auth_access_code_actual);
+}
+
+void test_auth_dataset_denied() {
+  std::string request_json = get_json_sample(TEST_AUTH_DATASET_DENIED_REQUEST_JSON);
+  racroute_auth_rc_mock    = 4;
+
+  sear_result_t *result =
+      sear(request_json.c_str(), request_json.length(), false);
+
+  nlohmann::json result_json = nlohmann::json::parse(result->result_json);
+  TEST_ASSERT_FALSE(result_json["authorized"].get<bool>());
+  TEST_ASSERT_EQUAL_INT32(4, result_json["return_codes"]["saf_return_code"]);
+  TEST_ASSERT_EQUAL_INT32(0, result_json["return_codes"]["sear_return_code"]);
+  TEST_ASSERT_EQUAL_INT32(4, racroute_auth_access_code_actual);
 }
