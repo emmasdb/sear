@@ -85,8 +85,7 @@ void SecurityAdmin::makeRequest(const char *p_request_json_string, int length) {
     // Make Request To Corresponding Callable Service
     if (request_.getAdminType() == "application-user") {
       Logger::getInstance().debug("Entering IRRSIM00 path");
-      IRRSIM00 irrsim00;
-      irrsim00.map(request_);
+      IRRSIM00::map(request_);
     } else if (request_.getOperation() == "extract" ||
         request_.getOperation() == "search") {
       if (request_.getAdminType() != "keyring") {

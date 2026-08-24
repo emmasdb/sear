@@ -113,7 +113,7 @@ class IRRSIM00 {
                                         uint16_t function_code);
 
  public:
-  void map(SecurityRequest &request);
+  static void map(SecurityRequest &request);
 };
 }  // namespace SEAR
 
