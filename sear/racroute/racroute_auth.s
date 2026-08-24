@@ -51,8 +51,9 @@ callRauth ALIAS C'sear_racroute_auth_asm'
          CHI   R2,8
          JH    BADINPUT
 
-         MVI   CLASSBUF,C' '
-         MVC   CLASSBUF+1(7),CLASSBUF
+         STC   R2,CLASSBUF
+         MVI   CLASSBUF+1,C' '
+         MVC   CLASSBUF+2(7),CLASSBUF+1
          LR    R3,R2
          BCTR  R3,0
          EX    R3,COPYCLASS
@@ -135,7 +136,7 @@ AUTHRDG DS     0H
          MVC   RACFPL(RACFPLRL),RACFPLR
          RACROUTE REQUEST=AUTH,RELEASE=2.4,                            X
                ENTITYX=ENTITYBUF,CLASS=CLASSBUF,WORKA=RACFWA,          X
-               GROUPID=AUTHIDB,                                        X
+               USERID=NONEID,GROUPID=AUTHIDB,                          X
                MF=(E,RACFPL)
          L     R2,RACFPL
          ST    R2,RACF_RC
@@ -162,7 +163,7 @@ AUTHUPG DS     0H
          MVC   RACFPL(RACFPLUL),RACFPLU
          RACROUTE REQUEST=AUTH,RELEASE=2.4,                            X
                ENTITYX=ENTITYBUF,CLASS=CLASSBUF,WORKA=RACFWA,          X
-               GROUPID=AUTHIDB,                                        X
+               USERID=NONEID,GROUPID=AUTHIDB,                          X
                MF=(E,RACFPL)
          L     R2,RACFPL
          ST    R2,RACF_RC
@@ -189,7 +190,7 @@ AUTHCTG DS     0H
          MVC   RACFPL(RACFPLCL),RACFPLC
          RACROUTE REQUEST=AUTH,RELEASE=2.4,                            X
                ENTITYX=ENTITYBUF,CLASS=CLASSBUF,WORKA=RACFWA,          X
-               GROUPID=AUTHIDB,                                        X
+               USERID=NONEID,GROUPID=AUTHIDB,                          X
                MF=(E,RACFPL)
          L     R2,RACFPL
          ST    R2,RACF_RC
@@ -216,7 +217,7 @@ AUTHALG DS     0H
          MVC   RACFPL(RACFPLAL),RACFPLA
          RACROUTE REQUEST=AUTH,RELEASE=2.4,                            X
                ENTITYX=ENTITYBUF,CLASS=CLASSBUF,WORKA=RACFWA,          X
-               GROUPID=AUTHIDB,                                        X
+               USERID=NONEID,GROUPID=AUTHIDB,                          X
                MF=(E,RACFPL)
          L     R2,RACFPL
          ST    R2,RACF_RC
@@ -243,7 +244,7 @@ AUTHACG DS     0H
          MVC   RACFPL(RACFPLSL),RACFPLS
          RACROUTE REQUEST=AUTH,RELEASE=2.4,                            X
                ENTITYX=ENTITYBUF,CLASS=CLASSBUF,WORKA=RACFWA,          X
-               GROUPID=AUTHIDB,                                        X
+               USERID=NONEID,GROUPID=AUTHIDB,                          X
                MF=(E,RACFPL)
          L     R2,RACFPL
          ST    R2,RACF_RC
@@ -265,7 +266,7 @@ SAVERC   DS    0H
          L     R3,RETURN_CODE
          CELQEPLG ,
 
-COPYCLASS  MVC CLASSBUF(0),0(R1)
+COPYCLASS  MVC CLASSBUF+1(0),0(R1)
 COPYENTITY MVC ENTITYBUF+4(0),0(R1)
 COPYAUTH   MVC AUTHIDB(0),0(R1)
 
@@ -309,12 +310,13 @@ RACF_RSN DS    F
 
          DS    0D
 RACFPL   DS    CL(RACFPLTL)
-CLASSBUF DS    CL8
+CLASSBUF DS    CL9
          DS    0H
 ENTITYBUF DS   H
          DS    H
          DS    CL246
 AUTHIDB  DS    CL8
+NONEID   DC    CL8'*NONE*'
          DS    0D
 RACFWA   DS    CL512
 
