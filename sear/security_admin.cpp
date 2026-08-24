@@ -49,9 +49,13 @@ static bool handle_nodejs_duplicate_add_result(SecurityRequest &request) {
 }
 #endif
 
-static void validate_racroute_auth_identity(const nlohmann::json &request) {
-  if (request.value("operation", "") == "auth" &&
+static void validate_racroute_auth_identity(SecurityRequest &security_request,
+                                            const nlohmann::json &request) {
+  const auto operation = request.find("operation");
+  if (operation != request.end() && operation->is_string() &&
+      operation->get<std::string>() == "auth" &&
       (request.contains("userid") || request.contains("group"))) {
+    security_request.setSEARReturnCode(8);
     throw SEARError(
         "RACROUTE AUTH checks the current security context; userid and "
         "group are not supported");
@@ -79,7 +83,7 @@ void SecurityAdmin::makeRequest(const char *p_request_json_string, int length) {
     }
 
     Logger::getInstance().debug("Validating parameters ...");
-    validate_racroute_auth_identity(request_json);
+    validate_racroute_auth_identity(request_, request_json);
     try {
       SEAR_SCHEMA_VALIDATOR.validate(request_json);
     } catch (const std::exception &ex) {
