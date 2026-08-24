@@ -37,6 +37,7 @@ callRauth ALIAS C'sear_racroute_auth_asm'
          USING MYPARMS,R11
 
          LGR   R10,R5
+         USING RACFAUT1,R10
          XC    RACF_RC,RACF_RC
          XC    RACF_RSN,RACF_RSN
          XC    STOR31PTR,STOR31PTR
