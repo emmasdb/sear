@@ -68,7 +68,7 @@ void test_parse_map_application_user_to_userid_failure() {
   const char *request_json =
       R"({"operation":"map","admin_type":"application-user","function_code":10,"application_userid":"user@example.test"})";
   const char *result_json_expected =
-      R"({"errors":["unable to map application user"],"return_codes":{"racf_reason_code":16,"racf_return_code":8,"saf_return_code":8,"sear_return_code":4}})";
+      R"({"errors":["sear: unable to map application user"],"return_codes":{"racf_reason_code":16,"racf_return_code":8,"saf_return_code":8,"sear_return_code":4}})";
 
   sear_result_t *result = sear(request_json, std::strlen(request_json), false);
 
