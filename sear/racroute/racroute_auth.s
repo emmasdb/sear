@@ -84,32 +84,36 @@ AUTHREAD DS    0H
          MVC   RACFPL(RACFPLRL),RACFPLR
          RACROUTE REQUEST=AUTH,RELEASE=2.4,                            X
                ENTITYX=ENTITYBUF,CLASS=CLASSBUF,WORKA=RACFWA,          X
-               RETCODE=RACF_RC,RSNCODE=RACF_RSN,                       X
                MF=(E,RACFPL)
+         ST    R0,RACF_RC
+         ST    R1,RACF_RSN
          J     SAVERC
 
 AUTHUPDATE DS  0H
          MVC   RACFPL(RACFPLUL),RACFPLU
          RACROUTE REQUEST=AUTH,RELEASE=2.4,                            X
                ENTITYX=ENTITYBUF,CLASS=CLASSBUF,WORKA=RACFWA,          X
-               RETCODE=RACF_RC,RSNCODE=RACF_RSN,                       X
                MF=(E,RACFPL)
+         ST    R0,RACF_RC
+         ST    R1,RACF_RSN
          J     SAVERC
 
 AUTHCONTROL DS 0H
          MVC   RACFPL(RACFPLCL),RACFPLC
          RACROUTE REQUEST=AUTH,RELEASE=2.4,                            X
                ENTITYX=ENTITYBUF,CLASS=CLASSBUF,WORKA=RACFWA,          X
-               RETCODE=RACF_RC,RSNCODE=RACF_RSN,                       X
                MF=(E,RACFPL)
+         ST    R0,RACF_RC
+         ST    R1,RACF_RSN
          J     SAVERC
 
 AUTHALTER DS   0H
          MVC   RACFPL(RACFPLAL),RACFPLA
          RACROUTE REQUEST=AUTH,RELEASE=2.4,                            X
                ENTITYX=ENTITYBUF,CLASS=CLASSBUF,WORKA=RACFWA,          X
-               RETCODE=RACF_RC,RSNCODE=RACF_RSN,                       X
                MF=(E,RACFPL)
+         ST    R0,RACF_RC
+         ST    R1,RACF_RSN
          J     SAVERC
 
 BADINPUT DS    0H
