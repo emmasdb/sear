@@ -7,6 +7,7 @@
 
 #include "irrsmo00.hpp"
 #include "irrsmo00_error.hpp"
+#include "irrsim00.hpp"
 #include "keyring_extractor.hpp"
 #include "keyring_modifier.hpp"
 #include "keyring_post_processor.hpp"
@@ -82,7 +83,11 @@ void SecurityAdmin::makeRequest(const char *p_request_json_string, int length) {
     request_.load(request_json);
 
     // Make Request To Corresponding Callable Service
-    if (request_.getOperation() == "extract" ||
+    if (request_.getAdminType() == "application-user") {
+      Logger::getInstance().debug("Entering IRRSIM00 path");
+      IRRSIM00 irrsim00;
+      irrsim00.map(request_);
+    } else if (request_.getOperation() == "extract" ||
         request_.getOperation() == "search") {
       if (request_.getAdminType() != "keyring") {
         Logger::getInstance().debug("Entering IRRSEQ00 path");

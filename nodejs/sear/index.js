@@ -24,7 +24,7 @@ try {
 // Constants
 // ============================================================================
 
-const VALID_OPERATIONS = ['extract', 'search', 'alter', 'add', 'delete', 'remove'];
+const VALID_OPERATIONS = ['extract', 'search', 'alter', 'add', 'delete', 'remove', 'map'];
 const VALID_ADMIN_TYPES = [
     'user',
     'group',
@@ -36,6 +36,7 @@ const VALID_ADMIN_TYPES = [
     'resource',
     'racf-rrsf',
     'racf-options',
+    'application-user',
 ];
 const CHILD_OUTPUT_MAX_BYTES = 1024 * 1024 * 16;
 const DUPLICATE_ADD_RESULT_TYPES = ['user', 'group', 'dataset', 'resource'];
@@ -119,6 +120,14 @@ function validateRequest(request) {
         errors.push('permission extraction is not supported');
     }
 
+    if (request.admin_type === 'application-user' && request.operation !== 'map') {
+        errors.push('application-user only supports map operations');
+    }
+
+    if (request.operation === 'map' && request.admin_type !== 'application-user') {
+        errors.push('map is only supported for application-user');
+    }
+
     if (Object.prototype.hasOwnProperty.call(request, 'resource_class')) {
         errors.push('class_name must be used instead of resource_class');
     }
@@ -196,6 +205,23 @@ function validateRequest(request) {
         }
         if (request.operation === 'add' && !request.status) {
             errors.push('status is required for certificate add');
+        }
+    } else if (request.operation === 'map' && request.admin_type === 'application-user') {
+        if (![1, 2, 3, 4, 5, 6, 8, 9, 10].includes(request.function_code)) {
+            errors.push('function_code must be one of: 1, 2, 3, 4, 5, 6, 8, 9, 10');
+        }
+        if ([1, 3, 5, 9].includes(request.function_code) && !request.userid) {
+            errors.push('userid is required for RACF user ID to application user mapping');
+        }
+        if ([2, 4, 6].includes(request.function_code) &&
+            !request.application_userid && !request.certificate_file) {
+            errors.push('application_userid or certificate_file is required for application user to RACF user ID mapping');
+        }
+        if (request.function_code === 10 && !request.application_userid) {
+            errors.push('application_userid is required for e-mail address to RACF user ID mapping');
+        }
+        if (request.function_code === 8 && (!request.distinguished_name || !request.registry_name)) {
+            errors.push('distinguished_name and registry_name are required for distributed identity mapping');
         }
     }
 
@@ -406,7 +432,7 @@ function callSearInChildAsync(preparedRequest, debug) {
  * Execute a SEAR operation synchronously
  * @param {Object} request - The SEAR request object
  * @param {string} request.operation - Operation type: 'extract', 'search', 'alter', 'add', 'delete', or 'remove'
- * @param {string} request.admin_type - Admin type: 'user', 'group', 'dataset', 'group-connection', 'permission', 'keyring', 'certificate', 'resource', 'racf-rrsf', or 'racf-options'
+ * @param {string} request.admin_type - Admin type: 'user', 'group', 'dataset', 'group-connection', 'permission', 'keyring', 'certificate', 'resource', 'racf-rrsf', 'racf-options', or 'application-user'
  * @param {boolean} [debug=false] - Enable debug output in native layer
  * @returns {SecurityResult} The operation result
  * @throws {ValidationError} if request is invalid

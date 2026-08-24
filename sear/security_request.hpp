@@ -25,6 +25,9 @@ class SecurityRequest {
   std::string label_;
   std::string certificate_file_;
   std::string private_key_file_;
+  std::string application_userid_;
+  std::string distinguished_name_;
+  std::string registry_name_;
   std::string default_;
   std::string usage_;
   std::string status_;
@@ -56,6 +59,9 @@ class SecurityRequest {
   const std::string& getLabel() const;
   const std::string& getCertificateFile() const;
   const std::string& getPrivateKeyFile() const;
+  const std::string& getApplicationUserID() const;
+  const std::string& getDistinguishedName() const;
+  const std::string& getRegistryName() const;
   const std::string& getDefault() const;
   const std::string& getUsage() const;
   const std::string& getStatus() const;

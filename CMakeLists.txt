@@ -96,6 +96,8 @@ add_library(
     sear/irrsmo00/xml_generator.cpp
     sear/irrsmo00/xml_parser.cpp
 
+    sear/irrsim00/irrsim00.cpp
+
     sear/key_map/key_map.cpp
     sear/validation/trait_validation.cpp
     sear/logger.cpp
@@ -121,6 +123,7 @@ target_include_directories(
     sear/irrsdl00
     sear/irrseq00
     sear/irrsmo00
+    sear/irrsim00
     sear/key_map
     sear/validation
     externals/json
@@ -174,9 +177,11 @@ add_executable(
     tests/irrsdl00/test_irrsdl00.cpp
     tests/irrseq00/test_irrseq00.cpp
     tests/irrsmo00/test_irrsmo00.cpp
+    tests/irrsim00/test_irrsim00.cpp
     tests/mock/irrsdl64.cpp
     tests/mock/irrseq00.cpp
     tests/mock/irrsmo64.cpp
+    tests/mock/irrsim00.cpp
     tests/unity/unity.c
     tests/validation/test_parameter_validation.cpp
     tests/zoslib/zoslib.cpp
@@ -189,6 +194,7 @@ target_include_directories(
     sear/irrsdl00
     sear/irrseq00
     sear/irrsmo00
+    sear/irrsim00
     sear/key_map
     sear/validation
     externals/json
@@ -215,6 +221,7 @@ if (SEAR_BUILD_BENCHMARKS)
         tests/mock/irrsdl64.cpp
         tests/mock/irrseq00.cpp
         tests/mock/irrsmo64.cpp
+        tests/mock/irrsim00.cpp
         tests/zoslib/zoslib.cpp
     )
     # bench_runner's include directories
@@ -225,6 +232,7 @@ if (SEAR_BUILD_BENCHMARKS)
         sear/irrsdl00
         sear/irrseq00
         sear/irrsmo00
+        sear/irrsim00
         externals/json
         externals/pugixml
         tests/zoslib
@@ -271,6 +279,7 @@ add_custom_target(check ALL
                 "-I${CMAKE_CURRENT_SOURCE_DIR}/sear/irrsdl00"
                 "-I${CMAKE_CURRENT_SOURCE_DIR}/sear/irrseq00"
                 "-I${CMAKE_CURRENT_SOURCE_DIR}/sear/irrsmo00"
+                "-I${CMAKE_CURRENT_SOURCE_DIR}/sear/irrsim00"
                 "-I${CMAKE_CURRENT_SOURCE_DIR}/sear/key_map"
                 "-I${CMAKE_CURRENT_SOURCE_DIR}/sear/validation"
                 "-I${CMAKE_CURRENT_SOURCE_DIR}/tests/zoslib"
@@ -286,6 +295,7 @@ add_executable(
     tests/mock/irrsdl64.cpp
     tests/mock/irrseq00.cpp
     tests/mock/irrsmo64.cpp
+    tests/mock/irrsim00.cpp
     tests/zoslib/zoslib.cpp
 
     sear/irrsdl00/irrsdl00.cpp
@@ -300,6 +310,8 @@ add_executable(
     sear/irrsmo00/irrsmo00.cpp
     sear/irrsmo00/xml_generator.cpp
     sear/irrsmo00/xml_parser.cpp
+
+    sear/irrsim00/irrsim00.cpp
 
     sear/key_map/key_map.cpp
     sear/validation/trait_validation.cpp
@@ -327,6 +339,7 @@ target_include_directories(
     sear/irrsdl00
     sear/irrseq00
     sear/irrsmo00
+    sear/irrsim00
     sear/key_map
     sear/validation
     externals/json

@@ -15,12 +15,12 @@ export interface SearResultObject {
  */
 export interface SearRequest {
     /**
-    * Operation to perform: 'extract', 'search', 'alter', 'add', 'delete', 'remove'
+    * Operation to perform: 'extract', 'search', 'alter', 'add', 'delete', 'remove', 'map'
      */
-    operation: 'extract' | 'search' | 'alter' | 'add' | 'delete' | 'remove';
+    operation: 'extract' | 'search' | 'alter' | 'add' | 'delete' | 'remove' | 'map';
 
     /**
-    * Type of resource: 'user', 'group', 'dataset', 'group-connection', 'permission', 'keyring', 'certificate', 'resource', 'racf-rrsf', or 'racf-options'.
+    * Type of resource: 'user', 'group', 'dataset', 'group-connection', 'permission', 'keyring', 'certificate', 'resource', 'racf-rrsf', 'racf-options', or 'application-user'.
      */
     admin_type:
         | 'user'
@@ -32,7 +32,8 @@ export interface SearRequest {
         | 'certificate'
         | 'resource'
         | 'racf-rrsf'
-        | 'racf-options';
+        | 'racf-options'
+        | 'application-user';
 
     /**
      * User ID (required for extract admin_type='user')
@@ -88,6 +89,26 @@ export interface SearRequest {
     * Certificate file path (optional for certificate add)
     */
     certificate_file?: string;
+
+    /**
+    * IRRSIM00 function code for admin_type='application-user'
+    */
+    function_code?: 1 | 2 | 3 | 4 | 5 | 6 | 8 | 9 | 10;
+
+    /**
+    * Application user identity for IRRSIM00 mapping
+    */
+    application_userid?: string;
+
+    /**
+    * Distributed identity distinguished name for IRRSIM00 function 8
+    */
+    distinguished_name?: string;
+
+    /**
+    * Distributed identity registry/realm name for IRRSIM00 function 8
+    */
+    registry_name?: string;
 
     /**
     * Private key file path (optional for certificate add)
@@ -227,9 +248,9 @@ export function searAsync(request: SearRequest, debug?: boolean): Promise<Securi
 /**
  * Valid operation types
  */
-export const VALID_OPERATIONS: readonly ['extract', 'search', 'alter', 'add', 'delete', 'remove'];
+export const VALID_OPERATIONS: readonly ['extract', 'search', 'alter', 'add', 'delete', 'remove', 'map'];
 
 /**
  * Valid admin types
  */
-export const VALID_ADMIN_TYPES: readonly ['user', 'group', 'dataset', 'group-connection', 'permission', 'keyring', 'certificate', 'resource', 'racf-rrsf', 'racf-options'];
+export const VALID_ADMIN_TYPES: readonly ['user', 'group', 'dataset', 'group-connection', 'permission', 'keyring', 'certificate', 'resource', 'racf-rrsf', 'racf-options', 'application-user'];

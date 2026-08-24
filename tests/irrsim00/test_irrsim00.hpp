@@ -1,0 +1,8 @@
+#ifndef __SEAR_TEST_IRRSIM00_H_
+#define __SEAR_TEST_IRRSIM00_H_
+
+void test_generate_map_userid_to_application_user_request();
+void test_parse_map_userid_to_application_user_result();
+void test_parse_map_application_user_to_userid_failure();
+
+#endif

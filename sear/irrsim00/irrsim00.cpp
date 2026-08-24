@@ -1,0 +1,175 @@
+#include "irrsim00.hpp"
+
+#include <arpa/inet.h>
+#include <algorithm>
+#include <cctype>
+#include <cstdio>
+#include <cstring>
+#include <memory>
+#include <stdexcept>
+
+#include "logger.hpp"
+#include "sear_error.hpp"
+
+#ifdef __TOS_390__
+#include <unistd.h>
+#else
+#include "zoslib.h"
+#endif
+
+namespace SEAR {
+void IRRSIM00::map(SecurityRequest &request) {
+  auto arg_area_unique_ptr = std::make_unique<irrsim00_arg_area_t>();
+  irrsim00_arg_area_t *p_arg_area = arg_area_unique_ptr.get();
+  std::memset(p_arg_area, 0, sizeof(irrsim00_arg_area_t));
+
+  IRRSIM00::buildRequest(p_arg_area, request);
+  request.setRawRequestLength((int)sizeof(irrsim00_arg_area_t));
+  request.setRawRequestPointer(IRRSIM00::cloneBuffer(
+      reinterpret_cast<char *>(p_arg_area), request.getRawRequestLength()));
+
+  Logger::getInstance().debug("IRRSIM00 request buffer:");
+  Logger::getInstance().hexDump(reinterpret_cast<char *>(p_arg_area),
+                                request.getRawRequestLength());
+
+  Logger::getInstance().debug("Calling IRRSIM00 ...");
+  ::IRRSIM00(p_arg_area->work_area, p_arg_area->alet_saf_return_code,
+           &p_arg_area->saf_return_code, p_arg_area->alet_racf_return_code,
+           &p_arg_area->racf_return_code, p_arg_area->alet_racf_reason_code,
+           &p_arg_area->racf_reason_code, p_arg_area->alet_remainder,
+           &p_arg_area->function_code, &p_arg_area->option_word,
+           reinterpret_cast<char *>(&p_arg_area->racf_userid),
+           reinterpret_cast<char *>(&p_arg_area->certificate),
+           reinterpret_cast<char *>(&p_arg_area->application_userid),
+           reinterpret_cast<char *>(&p_arg_area->distinguished_name),
+           reinterpret_cast<char *>(&p_arg_area->registry_name));
+  Logger::getInstance().debug("Done");
+
+  request.setSAFReturnCode(p_arg_area->saf_return_code);
+  request.setRACFReturnCode(p_arg_area->racf_return_code);
+  request.setRACFReasonCode(p_arg_area->racf_reason_code);
+  request.setRawResultLength((int)sizeof(irrsim00_arg_area_t));
+  request.setRawResultPointer(IRRSIM00::cloneBuffer(
+      reinterpret_cast<char *>(p_arg_area), request.getRawResultLength()));
+
+  if (request.getSAFReturnCode() != 0 || request.getRACFReturnCode() != 0 ||
+      request.getRACFReasonCode() != 0) {
+    request.setSEARReturnCode(4);
+    throw SEARError("unable to map application user");
+  }
+
+  request.setIntermediateResultJSON(
+      IRRSIM00::buildResultJSON(*p_arg_area, request.getFunctionCode()));
+  request.setSEARReturnCode(0);
+}
+
+void IRRSIM00::buildRequest(irrsim00_arg_area_t *p_arg_area,
+                            const SecurityRequest &request) {
+  p_arg_area->alet_saf_return_code  = 0;
+  p_arg_area->alet_racf_return_code = 0;
+  p_arg_area->alet_racf_reason_code = 0;
+  p_arg_area->alet_remainder        = 0;
+  p_arg_area->function_code         = request.getFunctionCode();
+  p_arg_area->option_word           = 0;
+
+  if (!request.getProfileName().empty()) {
+    IRRSIM00::copyRACFUserID(&p_arg_area->racf_userid,
+                             request.getProfileName());
+  }
+
+  if (!request.getCertificateFile().empty()) {
+    IRRSIM00::readCertificate(request.getCertificateFile(),
+                              &p_arg_area->certificate);
+  }
+
+  IRRSIM00::copyText(&p_arg_area->application_userid.length,
+                     p_arg_area->application_userid.value,
+                     sizeof(p_arg_area->application_userid.value),
+                     request.getApplicationUserID(), true);
+  IRRSIM00::copyText(&p_arg_area->distinguished_name.length,
+                     p_arg_area->distinguished_name.value,
+                     sizeof(p_arg_area->distinguished_name.value),
+                     request.getDistinguishedName(), false);
+  IRRSIM00::copyText(&p_arg_area->registry_name.length,
+                     p_arg_area->registry_name.value,
+                     sizeof(p_arg_area->registry_name.value),
+                     request.getRegistryName(), false);
+}
+
+char *IRRSIM00::cloneBuffer(const char *p_buffer, int buffer_length) {
+  auto buffer_unique_ptr = std::make_unique<char[]>(buffer_length);
+  Logger::getInstance().debugAllocate(buffer_unique_ptr.get(), 64,
+                                      buffer_length);
+  std::memcpy(buffer_unique_ptr.get(), p_buffer, buffer_length);
+  char *p_clone = buffer_unique_ptr.get();
+  buffer_unique_ptr.release();
+  return p_clone;
+}
+
+void IRRSIM00::copyRACFUserID(irrsim00_racf_userid_t *p_target,
+                              std::string userid) {
+  std::transform(userid.begin(), userid.end(), userid.begin(),
+                 [](unsigned char c) { return std::toupper(c); });
+  p_target->length = userid.length();
+  std::memcpy(p_target->value, userid.c_str(), userid.length());
+  __a2e_l(p_target->value, userid.length());
+}
+
+void IRRSIM00::copyText(uint16_t *p_length, char *p_target,
+                        std::size_t target_size, const std::string &value,
+                        bool ebcdic) {
+  if (value.empty()) {
+    return;
+  }
+  if (value.length() > target_size) {
+    throw SEARError("IRRSIM00 text parameter is too long");
+  }
+  *p_length = htons((uint16_t)value.length());
+  std::memcpy(p_target, value.c_str(), value.length());
+  if (ebcdic) {
+    __a2e_l(p_target, value.length());
+  }
+}
+
+void IRRSIM00::readCertificate(const std::string &filename,
+                               irrsim00_certificate_t *p_certificate) {
+  FILE *fp = std::fopen(filename.c_str(), "rb");
+  if (fp == nullptr) {
+    throw SEARError("unable to open certificate file '" + filename + "'");
+  }
+  std::fseek(fp, 0L, SEEK_END);
+  long file_size = std::ftell(fp);
+  std::rewind(fp);
+  if (file_size < 0 || file_size > IRRSIM00_CERTIFICATE_SIZE) {
+    std::fclose(fp);
+    throw SEARError("certificate file is too large for IRRSIM00");
+  }
+  size_t bytes_read = std::fread(p_certificate->value, 1, file_size, fp);
+  std::fclose(fp);
+  if (bytes_read != (size_t)file_size) {
+    throw SEARError("unable to read certificate file '" + filename + "'");
+  }
+  p_certificate->length = htonl((uint32_t)file_size);
+}
+
+nlohmann::json IRRSIM00::buildResultJSON(const irrsim00_arg_area_t &arg_area,
+                                         uint16_t function_code) {
+  nlohmann::json result_json;
+
+    if (function_code == UMAP_R_TO_L || function_code == UMAP_R_TO_N ||
+      function_code == UMAP_R_TO_K || function_code == UMAP_R_TO_E) {
+    uint16_t application_userid_length =
+        ntohs(arg_area.application_userid.length);
+    std::string application_userid(arg_area.application_userid.value,
+                                   application_userid_length);
+    __e2a_l(application_userid.data(), application_userid.length());
+    result_json["application_userid"] = application_userid;
+  } else {
+    std::string userid(arg_area.racf_userid.value, arg_area.racf_userid.length);
+    __e2a_l(userid.data(), userid.length());
+    result_json["userid"] = userid;
+  }
+
+  return result_json;
+}
+}  // namespace SEAR

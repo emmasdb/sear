@@ -81,6 +81,18 @@ const std::string& SecurityRequest::getPrivateKeyFile() const {
   return private_key_file_;
 }
 
+const std::string& SecurityRequest::getApplicationUserID() const {
+  return application_userid_;
+}
+
+const std::string& SecurityRequest::getDistinguishedName() const {
+  return distinguished_name_;
+}
+
+const std::string& SecurityRequest::getRegistryName() const {
+  return registry_name_;
+}
+
 const std::string& SecurityRequest::getDefault() const { return default_; }
 
 const std::string& SecurityRequest::getUsage() const { return usage_; }
@@ -302,6 +314,23 @@ void SecurityRequest::load(const nlohmann::json& request) {
       if (request.contains("default")) {
         default_ = request["default"].get<std::string>();
       }
+    }
+  } else if (admin_type_ == "application-user") {
+    function_code_ = request["function_code"].get<uint8_t>();
+    if (request.contains("userid")) {
+      profile_name_ = request["userid"].get<std::string>();
+    }
+    if (request.contains("application_userid")) {
+      application_userid_ = request["application_userid"].get<std::string>();
+    }
+    if (request.contains("certificate_file")) {
+      certificate_file_ = request["certificate_file"].get<std::string>();
+    }
+    if (request.contains("distinguished_name")) {
+      distinguished_name_ = request["distinguished_name"].get<std::string>();
+    }
+    if (request.contains("registry_name")) {
+      registry_name_ = request["registry_name"].get<std::string>();
     }
   }
 

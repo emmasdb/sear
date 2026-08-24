@@ -985,6 +985,116 @@
         "keyring_owner",
         "label"
       ]
+    },
+    {
+      "properties": {
+        "operation": {
+          "const": "map"
+        },
+        "admin_type": {
+          "const": "application-user"
+        },
+        "function_code": {
+          "enum": [
+            1,
+            3,
+            5,
+            9
+          ]
+        },
+        "userid": {
+          "$ref": "#/$defs/eightCharacterString"
+        }
+      },
+      "required": [
+        "operation",
+        "admin_type",
+        "function_code",
+        "userid"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "properties": {
+        "operation": {
+          "const": "map"
+        },
+        "admin_type": {
+          "const": "application-user"
+        },
+        "function_code": {
+          "enum": [
+            2,
+            4,
+            6,
+            10
+          ]
+        },
+        "application_userid": {
+          "$ref": "#/$defs/applicationUserID"
+        }
+      },
+      "required": [
+        "operation",
+        "admin_type",
+        "function_code",
+        "application_userid"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "properties": {
+        "operation": {
+          "const": "map"
+        },
+        "admin_type": {
+          "const": "application-user"
+        },
+        "function_code": {
+          "enum": [
+            2,
+            4,
+            6
+          ]
+        },
+        "certificate_file": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "operation",
+        "admin_type",
+        "function_code",
+        "certificate_file"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "properties": {
+        "operation": {
+          "const": "map"
+        },
+        "admin_type": {
+          "const": "application-user"
+        },
+        "function_code": {
+          "const": 8
+        },
+        "distinguished_name": {
+          "$ref": "#/$defs/distinguishedName"
+        },
+        "registry_name": {
+          "$ref": "#/$defs/registryName"
+        }
+      },
+      "required": [
+        "operation",
+        "admin_type",
+        "function_code",
+        "distinguished_name",
+        "registry_name"
+      ],
+      "additionalProperties": false
     }
   ],
   "$defs": {
@@ -1002,6 +1112,21 @@
       "type": "string",
       "minLength": 1,
       "maxLength": 237
+    },
+    "applicationUserID": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 246
+    },
+    "distinguishedName": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 246
+    },
+    "registryName": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 255
     },
     "resourceName": {
       "type": "string",

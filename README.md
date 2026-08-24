@@ -29,6 +29,8 @@ All versions of **z/OS** and the **IBM Open Enterprise SDK for Python** that are
   * More details about the authorizations required for **IRRSEQ00** can be found [in the IBM documentation](https://www.ibm.com/docs/en/zos/latest?topic=api-racf-authorization).
 * **R_Datalib (IRRSDL64)**: RACF Certificate data library.
   * More details about the authorizations required for **IRRSDL64** can be found [in the IBM documentation](https://www.ibm.com/docs/en/zos/latest?topic=library-racf-authorization).
+* **R_UserMap (IRRSIM00)**: Map RACF user IDs and application user identities.
+  * More details about **IRRSIM00** can be found [in the IBM documentation](https://www.ibm.com/docs/en/zos/latest?topic=descriptions-r-usermap-irrsim00-map-application-user).
 * **RACF Subsystem Address Space**: This is a dependency for both **IRRSMO00** and **IRRSEQ00**.
   * More information can be found [in the IBM documentation](https://www.ibm.com/docs/en/zos/latest?topic=considerations-racf-subsystem).
 * **z/OS Language Environment Runtime Support**: _SEAR_ is compiled using the **IBM Open XL C/C++ 2.1** compiler, which is still fairly new and requires **z/OS Language Environment** service updates for runtime support.

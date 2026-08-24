@@ -1,5 +1,6 @@
 #include "irrseq00.hpp"
 #include "tests/irrsdl00/test_irrsdl00.hpp"
+#include "tests/irrsim00/test_irrsim00.hpp"
 #include "tests/irrseq00/test_irrseq00.hpp"
 #include "tests/irrsmo00/test_irrsmo00.hpp"
 #include "tests/unity/unity.h"
@@ -185,6 +186,13 @@ int main() {
   RUN_TEST(test_generate_add_keyring_request);
 
   RUN_TEST(test_generate_delete_keyring_request);
+
+    /*************************************************************************/
+    /* IRRSIM00                                                              */
+    /*************************************************************************/
+    RUN_TEST(test_generate_map_userid_to_application_user_request);
+    RUN_TEST(test_parse_map_userid_to_application_user_result);
+    RUN_TEST(test_parse_map_application_user_to_userid_failure);
 
   return UNITY_END();
 }
