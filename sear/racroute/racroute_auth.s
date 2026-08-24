@@ -92,7 +92,12 @@ callRauth ALIAS C'sear_racroute_auth_asm'
 
          MVI   NONEID,C' '
          MVC   NONEID+1(7),NONEID
-         MVC   NONEID(6),=C'*NONE*'
+         MVI   NONEID,C'*'
+         MVI   NONEID+1,C'N'
+         MVI   NONEID+2,C'O'
+         MVI   NONEID+3,C'N'
+         MVI   NONEID+4,C'E'
+         MVI   NONEID+5,C'*'
 
          L     R2,RACREQ_IDTYPE(,R9)
          CHI   R2,0
