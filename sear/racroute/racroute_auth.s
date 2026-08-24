@@ -122,9 +122,11 @@ AUTHREAD DS    0H
          CHI   R2,1
          JE    AUTHRDG
          MVC   RACFPL(RACFPLRL),RACFPLR
+         STMH  R2,R14,SAVEHIGH
          RACROUTE REQUEST=AUTH,RELEASE=2.4,                            X
                ENTITYX=ENTITYBUF,CLASS=CLASSBUF,WORKA=RACFWA,          X
                MF=(E,RACFPL)
+         LMH   R2,R14,SAVEHIGH
          L     R2,RACFPL
          ST    R2,RACF_RC
          L     R2,RACFPL+4
@@ -133,9 +135,11 @@ AUTHREAD DS    0H
 
 AUTHRDG DS     0H
          MVC   RACFPL(RACFPLRL),RACFPLR
+         STMH  R2,R14,SAVEHIGH
          RACROUTE REQUEST=AUTH,RELEASE=2.4,                            X
                ENTITYX=ENTITYBUF,CLASS=CLASSBUF,WORKA=RACFWA,          X
                MF=(E,RACFPL)
+         LMH   R2,R14,SAVEHIGH
          L     R2,RACFPL
          ST    R2,RACF_RC
          L     R2,RACFPL+4
@@ -147,9 +151,11 @@ AUTHUPDATE DS  0H
          CHI   R2,1
          JE    AUTHUPG
          MVC   RACFPL(RACFPLUL),RACFPLU
+         STMH  R2,R14,SAVEHIGH
          RACROUTE REQUEST=AUTH,RELEASE=2.4,                            X
                ENTITYX=ENTITYBUF,CLASS=CLASSBUF,WORKA=RACFWA,          X
                MF=(E,RACFPL)
+         LMH   R2,R14,SAVEHIGH
          L     R2,RACFPL
          ST    R2,RACF_RC
          L     R2,RACFPL+4
@@ -158,9 +164,11 @@ AUTHUPDATE DS  0H
 
 AUTHUPG DS     0H
          MVC   RACFPL(RACFPLUL),RACFPLU
+         STMH  R2,R14,SAVEHIGH
          RACROUTE REQUEST=AUTH,RELEASE=2.4,                            X
                ENTITYX=ENTITYBUF,CLASS=CLASSBUF,WORKA=RACFWA,          X
                MF=(E,RACFPL)
+         LMH   R2,R14,SAVEHIGH
          L     R2,RACFPL
          ST    R2,RACF_RC
          L     R2,RACFPL+4
@@ -172,9 +180,11 @@ AUTHCONTROL DS 0H
          CHI   R2,1
          JE    AUTHCTG
          MVC   RACFPL(RACFPLCL),RACFPLC
+         STMH  R2,R14,SAVEHIGH
          RACROUTE REQUEST=AUTH,RELEASE=2.4,                            X
                ENTITYX=ENTITYBUF,CLASS=CLASSBUF,WORKA=RACFWA,          X
                MF=(E,RACFPL)
+         LMH   R2,R14,SAVEHIGH
          L     R2,RACFPL
          ST    R2,RACF_RC
          L     R2,RACFPL+4
@@ -183,9 +193,11 @@ AUTHCONTROL DS 0H
 
 AUTHCTG DS     0H
          MVC   RACFPL(RACFPLCL),RACFPLC
+         STMH  R2,R14,SAVEHIGH
          RACROUTE REQUEST=AUTH,RELEASE=2.4,                            X
                ENTITYX=ENTITYBUF,CLASS=CLASSBUF,WORKA=RACFWA,          X
                MF=(E,RACFPL)
+         LMH   R2,R14,SAVEHIGH
          L     R2,RACFPL
          ST    R2,RACF_RC
          L     R2,RACFPL+4
@@ -197,9 +209,11 @@ AUTHALTER DS   0H
          CHI   R2,1
          JE    AUTHALG
          MVC   RACFPL(RACFPLAL),RACFPLA
+         STMH  R2,R14,SAVEHIGH
          RACROUTE REQUEST=AUTH,RELEASE=2.4,                            X
                ENTITYX=ENTITYBUF,CLASS=CLASSBUF,WORKA=RACFWA,          X
                MF=(E,RACFPL)
+         LMH   R2,R14,SAVEHIGH
          L     R2,RACFPL
          ST    R2,RACF_RC
          L     R2,RACFPL+4
@@ -208,9 +222,11 @@ AUTHALTER DS   0H
 
 AUTHALG DS     0H
          MVC   RACFPL(RACFPLAL),RACFPLA
+         STMH  R2,R14,SAVEHIGH
          RACROUTE REQUEST=AUTH,RELEASE=2.4,                            X
                ENTITYX=ENTITYBUF,CLASS=CLASSBUF,WORKA=RACFWA,          X
                MF=(E,RACFPL)
+         LMH   R2,R14,SAVEHIGH
          L     R2,RACFPL
          ST    R2,RACF_RC
          L     R2,RACFPL+4
@@ -222,9 +238,11 @@ AUTHACCESS DS  0H
          CHI   R2,1
          JE    AUTHACG
          MVC   RACFPL(RACFPLSL),RACFPLS
+         STMH  R2,R14,SAVEHIGH
          RACROUTE REQUEST=AUTH,RELEASE=2.4,                            X
                ENTITYX=ENTITYBUF,CLASS=CLASSBUF,WORKA=RACFWA,          X
                MF=(E,RACFPL)
+         LMH   R2,R14,SAVEHIGH
          L     R2,RACFPL
          ST    R2,RACF_RC
          L     R2,RACFPL+4
@@ -233,9 +251,11 @@ AUTHACCESS DS  0H
 
 AUTHACG DS     0H
          MVC   RACFPL(RACFPLSL),RACFPLS
+         STMH  R2,R14,SAVEHIGH
          RACROUTE REQUEST=AUTH,RELEASE=2.4,                            X
                ENTITYX=ENTITYBUF,CLASS=CLASSBUF,WORKA=RACFWA,          X
                MF=(E,RACFPL)
+         LMH   R2,R14,SAVEHIGH
          L     R2,RACFPL
          ST    R2,RACF_RC
          L     R2,RACFPL+4
@@ -297,6 +317,7 @@ PARM11   DS    AD
 RETURN_CODE DS F
 RACF_RC  DS    F
 RACF_RSN DS    F
+SAVEHIGH DS    13F
 
          DS    0D
 RACFPL   DS    CL(RACFPLTL)
