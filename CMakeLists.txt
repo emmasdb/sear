@@ -278,6 +278,7 @@ add_custom_target(check ALL
                 "-I${CMAKE_CURRENT_SOURCE_DIR}/sear"
                 "-I${CMAKE_CURRENT_SOURCE_DIR}/sear/irrsdl00"
                 "-I${CMAKE_CURRENT_SOURCE_DIR}/sear/irrseq00"
+                "-I${CMAKE_CURRENT_SOURCE_DIR}/sear/racroute"
                 "-I${CMAKE_CURRENT_SOURCE_DIR}/sear/irrsmo00"
                 "-I${CMAKE_CURRENT_SOURCE_DIR}/sear/key_map"
                 "-I${CMAKE_CURRENT_SOURCE_DIR}/sear/validation"
@@ -293,6 +294,7 @@ add_executable(
     tests/fuzz.cpp
     tests/mock/irrsdl64.cpp
     tests/mock/irrseq00.cpp
+    tests/mock/racroute_auth.cpp
     tests/mock/irrsmo64.cpp
     tests/zoslib/zoslib.cpp
 
@@ -303,6 +305,8 @@ add_executable(
 
     sear/irrseq00/profile_extractor.cpp
     sear/irrseq00/profile_post_processor.cpp
+
+    sear/racroute/racroute_auth.cpp
 
     sear/irrsmo00/irrsmo00_error.cpp
     sear/irrsmo00/irrsmo00.cpp
@@ -334,6 +338,7 @@ target_include_directories(
     sear
     sear/irrsdl00
     sear/irrseq00
+    sear/racroute
     sear/irrsmo00
     sear/key_map
     sear/validation
