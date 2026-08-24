@@ -20,14 +20,11 @@ int RACRouteAuth::accessCode(std::string_view access) {
 
   if (upper_access == "READ") {
     return RACROUTE_AUTH_ACCESS_READ;
-  }
-  if (upper_access == "UPDATE") {
+  } else if (upper_access == "UPDATE") {
     return RACROUTE_AUTH_ACCESS_UPDATE;
-  }
-  if (upper_access == "CONTROL") {
+  } else if (upper_access == "CONTROL") {
     return RACROUTE_AUTH_ACCESS_CONTROL;
-  }
-  if (upper_access == "ALTER") {
+  } else if (upper_access == "ALTER") {
     return RACROUTE_AUTH_ACCESS_ALTER;
   }
 
