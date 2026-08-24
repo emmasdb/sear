@@ -11,6 +11,7 @@
 #include <stdexcept>
 #include <string_view>
 
+#include "../conversion.hpp"
 #include "logger.hpp"
 #include "sear_error.hpp"
 
@@ -146,11 +147,15 @@ char *IRRSIM00::cloneBuffer(const char *p_buffer, int buffer_length) {
 
 void IRRSIM00::copyRACFUserID(irrsim00_racf_userid_t *p_target,
                               std::string_view userid) {
-  p_target->length = userid.length();
-  std::transform(userid.begin(), userid.end(), p_target->value,
+  std::string uppercase_userid(userid);
+  std::transform(uppercase_userid.begin(), uppercase_userid.end(),
+                 uppercase_userid.begin(),
                  [](unsigned char c) {
                    return static_cast<char>(std::toupper(c));
                  });
+  std::string encoded_userid = fromUTF8(uppercase_userid);
+  p_target->length           = encoded_userid.length();
+  std::memcpy(p_target->value, encoded_userid.data(), encoded_userid.length());
 }
 
 void IRRSIM00::copyText(uint16_t *p_length, char *p_target,
@@ -199,7 +204,7 @@ nlohmann::json IRRSIM00::buildResultJSON(const irrsim00_arg_area_t &arg_area,
     result_json["application_userid"] = application_userid;
   } else {
     std::string userid(arg_area.racf_userid.value, arg_area.racf_userid.length);
-    result_json["userid"] = userid;
+    result_json["userid"] = toUTF8(userid);
   }
 
   return result_json;

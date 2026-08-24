@@ -3,6 +3,9 @@
 #include <arpa/inet.h>
 
 #include <cstring>
+#include <string>
+
+#include "sear/conversion.hpp"
 
 #ifndef __TOS_390__
 char *irrsim00_userid_mock             = NULL;
@@ -22,9 +25,10 @@ extern "C" uint32_t callIrrsim00(char *__ptr32 arg_pointers) {
 
   if (irrsim00_userid_mock != NULL) {
     auto *p_racf_userid = p_arg_pointers->p_racf_userid;
-    p_racf_userid->length = std::strlen(irrsim00_userid_mock);
-    std::memcpy(p_racf_userid->value, irrsim00_userid_mock,
-                p_racf_userid->length);
+    std::string encoded_userid = SEAR::fromUTF8(irrsim00_userid_mock);
+    p_racf_userid->length      = encoded_userid.length();
+    std::memcpy(p_racf_userid->value, encoded_userid.data(),
+                encoded_userid.length());
   }
 
   if (irrsim00_application_userid_mock != NULL) {

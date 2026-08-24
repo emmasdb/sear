@@ -2,6 +2,7 @@
 
 #include <cstring>
 
+#include "sear/conversion.hpp"
 #include "sear/irrsim00/irrsim00.hpp"
 #include "sear/sear.h"
 #include "tests/mock/irrsim00.hpp"
@@ -27,16 +28,16 @@ void test_generate_map_userid_to_application_user_request() {
   sear_result_t *result = sear(request_json, std::strlen(request_json), false);
 
   auto *p_arg_area = reinterpret_cast<irrsim00_arg_area_t *>(result->raw_request);
-  char userid[9] = {0};
-  std::memcpy(userid, p_arg_area->racf_userid.value,
-              p_arg_area->racf_userid.length);
+  std::string userid = SEAR::toUTF8(
+      std::string(p_arg_area->racf_userid.value,
+                  p_arg_area->racf_userid.length));
 
   TEST_ASSERT_EQUAL_INT32(sizeof(irrsim00_arg_area_t),
                           result->raw_request_length);
   TEST_ASSERT_EQUAL_UINT16(9, p_arg_area->function_code);
   TEST_ASSERT_EQUAL_UINT32(0, p_arg_area->option_word);
   TEST_ASSERT_EQUAL_UINT8(6, p_arg_area->racf_userid.length);
-  TEST_ASSERT_EQUAL_STRING("MAPUSR", userid);
+  TEST_ASSERT_EQUAL_STRING("MAPUSR", userid.c_str());
   TEST_ASSERT_EQUAL_UINT16(9, irrsim00_function_code_actual);
   TEST_ASSERT_EQUAL_UINT32(0, irrsim00_option_word_actual);
 }
