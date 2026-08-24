@@ -158,11 +158,17 @@ AUTHREAD DS    0H
          CHI   R2,1
          JE    AUTHRDG
          MVC   RACFPL31(RACFPLRL),RACFPLR
+         STG   R13,ORIGR13
+         LA    R13,SAVEAREA31
+         XC    SAVEAREA31,SAVEAREA31
+         SAM31
          STMH  R2,R14,SAVEHIGH
          RACROUTE REQUEST=AUTH,RELEASE=2.4,                            X
                ENTITYX=ENTITYBUF31,CLASS=CLASSBUF31,WORKA=RACFWA31,    X
                MF=(E,RACFPL31)
          LMH   R2,R14,SAVEHIGH
+         SAM64
+         LG    R13,ORIGR13
          L     R2,RACFPL31
          ST    R2,RACF_RC
          L     R2,RACFPL31+4
@@ -171,11 +177,17 @@ AUTHREAD DS    0H
 
 AUTHRDG DS     0H
          MVC   RACFPL31(RACFPLRL),RACFPLR
+         STG   R13,ORIGR13
+         LA    R13,SAVEAREA31
+         XC    SAVEAREA31,SAVEAREA31
+         SAM31
          STMH  R2,R14,SAVEHIGH
          RACROUTE REQUEST=AUTH,RELEASE=2.4,                            X
                ENTITYX=ENTITYBUF31,CLASS=CLASSBUF31,WORKA=RACFWA31,    X
                MF=(E,RACFPL31)
          LMH   R2,R14,SAVEHIGH
+         SAM64
+         LG    R13,ORIGR13
          L     R2,RACFPL31
          ST    R2,RACF_RC
          L     R2,RACFPL31+4
@@ -187,11 +199,17 @@ AUTHUPDATE DS  0H
          CHI   R2,1
          JE    AUTHUPG
          MVC   RACFPL31(RACFPLUL),RACFPLU
+         STG   R13,ORIGR13
+         LA    R13,SAVEAREA31
+         XC    SAVEAREA31,SAVEAREA31
+         SAM31
          STMH  R2,R14,SAVEHIGH
          RACROUTE REQUEST=AUTH,RELEASE=2.4,                            X
                ENTITYX=ENTITYBUF31,CLASS=CLASSBUF31,WORKA=RACFWA31,    X
                MF=(E,RACFPL31)
          LMH   R2,R14,SAVEHIGH
+         SAM64
+         LG    R13,ORIGR13
          L     R2,RACFPL31
          ST    R2,RACF_RC
          L     R2,RACFPL31+4
@@ -200,11 +218,17 @@ AUTHUPDATE DS  0H
 
 AUTHUPG DS     0H
          MVC   RACFPL31(RACFPLUL),RACFPLU
+         STG   R13,ORIGR13
+         LA    R13,SAVEAREA31
+         XC    SAVEAREA31,SAVEAREA31
+         SAM31
          STMH  R2,R14,SAVEHIGH
          RACROUTE REQUEST=AUTH,RELEASE=2.4,                            X
                ENTITYX=ENTITYBUF31,CLASS=CLASSBUF31,WORKA=RACFWA31,    X
                MF=(E,RACFPL31)
          LMH   R2,R14,SAVEHIGH
+         SAM64
+         LG    R13,ORIGR13
          L     R2,RACFPL31
          ST    R2,RACF_RC
          L     R2,RACFPL31+4
@@ -216,11 +240,17 @@ AUTHCONTROL DS 0H
          CHI   R2,1
          JE    AUTHCTG
          MVC   RACFPL31(RACFPLCL),RACFPLC
+         STG   R13,ORIGR13
+         LA    R13,SAVEAREA31
+         XC    SAVEAREA31,SAVEAREA31
+         SAM31
          STMH  R2,R14,SAVEHIGH
          RACROUTE REQUEST=AUTH,RELEASE=2.4,                            X
                ENTITYX=ENTITYBUF31,CLASS=CLASSBUF31,WORKA=RACFWA31,    X
                MF=(E,RACFPL31)
          LMH   R2,R14,SAVEHIGH
+         SAM64
+         LG    R13,ORIGR13
          L     R2,RACFPL31
          ST    R2,RACF_RC
          L     R2,RACFPL31+4
@@ -229,11 +259,17 @@ AUTHCONTROL DS 0H
 
 AUTHCTG DS     0H
          MVC   RACFPL31(RACFPLCL),RACFPLC
+         STG   R13,ORIGR13
+         LA    R13,SAVEAREA31
+         XC    SAVEAREA31,SAVEAREA31
+         SAM31
          STMH  R2,R14,SAVEHIGH
          RACROUTE REQUEST=AUTH,RELEASE=2.4,                            X
                ENTITYX=ENTITYBUF31,CLASS=CLASSBUF31,WORKA=RACFWA31,    X
                MF=(E,RACFPL31)
          LMH   R2,R14,SAVEHIGH
+         SAM64
+         LG    R13,ORIGR13
          L     R2,RACFPL31
          ST    R2,RACF_RC
          L     R2,RACFPL31+4
@@ -245,11 +281,17 @@ AUTHALTER DS   0H
          CHI   R2,1
          JE    AUTHALG
          MVC   RACFPL31(RACFPLAL),RACFPLA
+         STG   R13,ORIGR13
+         LA    R13,SAVEAREA31
+         XC    SAVEAREA31,SAVEAREA31
+         SAM31
          STMH  R2,R14,SAVEHIGH
          RACROUTE REQUEST=AUTH,RELEASE=2.4,                            X
                ENTITYX=ENTITYBUF31,CLASS=CLASSBUF31,WORKA=RACFWA31,    X
                MF=(E,RACFPL31)
          LMH   R2,R14,SAVEHIGH
+         SAM64
+         LG    R13,ORIGR13
          L     R2,RACFPL31
          ST    R2,RACF_RC
          L     R2,RACFPL31+4
@@ -258,11 +300,17 @@ AUTHALTER DS   0H
 
 AUTHALG DS     0H
          MVC   RACFPL31(RACFPLAL),RACFPLA
+         STG   R13,ORIGR13
+         LA    R13,SAVEAREA31
+         XC    SAVEAREA31,SAVEAREA31
+         SAM31
          STMH  R2,R14,SAVEHIGH
          RACROUTE REQUEST=AUTH,RELEASE=2.4,                            X
                ENTITYX=ENTITYBUF31,CLASS=CLASSBUF31,WORKA=RACFWA31,    X
                MF=(E,RACFPL31)
          LMH   R2,R14,SAVEHIGH
+         SAM64
+         LG    R13,ORIGR13
          L     R2,RACFPL31
          ST    R2,RACF_RC
          L     R2,RACFPL31+4
@@ -274,11 +322,17 @@ AUTHACCESS DS  0H
          CHI   R2,1
          JE    AUTHACG
          MVC   RACFPL31(RACFPLSL),RACFPLS
+         STG   R13,ORIGR13
+         LA    R13,SAVEAREA31
+         XC    SAVEAREA31,SAVEAREA31
+         SAM31
          STMH  R2,R14,SAVEHIGH
          RACROUTE REQUEST=AUTH,RELEASE=2.4,                            X
                ENTITYX=ENTITYBUF31,CLASS=CLASSBUF31,WORKA=RACFWA31,    X
                MF=(E,RACFPL31)
          LMH   R2,R14,SAVEHIGH
+         SAM64
+         LG    R13,ORIGR13
          L     R2,RACFPL31
          ST    R2,RACF_RC
          L     R2,RACFPL31+4
@@ -287,11 +341,17 @@ AUTHACCESS DS  0H
 
 AUTHACG DS     0H
          MVC   RACFPL31(RACFPLSL),RACFPLS
+         STG   R13,ORIGR13
+         LA    R13,SAVEAREA31
+         XC    SAVEAREA31,SAVEAREA31
+         SAM31
          STMH  R2,R14,SAVEHIGH
          RACROUTE REQUEST=AUTH,RELEASE=2.4,                            X
                ENTITYX=ENTITYBUF31,CLASS=CLASSBUF31,WORKA=RACFWA31,    X
                MF=(E,RACFPL31)
          LMH   R2,R14,SAVEHIGH
+         SAM64
+         LG    R13,ORIGR13
          L     R2,RACFPL31
          ST    R2,RACF_RC
          L     R2,RACFPL31+4
@@ -367,6 +427,7 @@ RETURN_CODE DS F
 RACF_RC  DS    F
 RACF_RSN DS    F
 STOR31PTR DS   AD
+ORIGR13  DS    AD
 
 DSASIZ   EQU   *-PARMLIST+CEEDSAHPSZ
 
@@ -388,6 +449,7 @@ RACREQ_AUTHID EQU 278
 
 STOR31   DSECT ,
          DS    0F
+SAVEAREA31 DS  18F
 SAVEHIGH DS    13F
          DS    0D
 RACFPL31 DS    CL(RACFPLTL)
