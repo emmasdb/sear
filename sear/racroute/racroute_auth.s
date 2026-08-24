@@ -29,8 +29,7 @@ RACFAUTH CELQPRLG DSASIZE=DSASIZ,                                      X
                BASEREG=R12,                                            X
                PARMWRDS=5,                                             X
                PARMREG=R11,                                            X
-               ENTNAME=callRauth,                                      X
-               PSECT=RACFAUT1
+               ENTNAME=callRauth
 
 callRauth ALIAS C'sear_racroute_auth_asm'
          USING AUTOSTG,R4
