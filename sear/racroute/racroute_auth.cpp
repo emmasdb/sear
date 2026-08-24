@@ -101,10 +101,7 @@ void RACRouteAuth::check(SecurityRequest &request) {
   int racf_return_code = 0;
   int racf_reason_code = 0;
   const int saf_return_code = sear_racroute_auth_asm(
-      class_name_view.data(), class_name_view.length(), entity_view.data(),
-      entity_view.length(), access_code, status_code, authid_view.data(),
-      authid_view.length(), identity_type, &racf_return_code,
-      &racf_reason_code);
+      raw_request.get(), &racf_return_code, &racf_reason_code);
 
   request.setRawRequestPointer(reinterpret_cast<char *>(raw_request.get()));
   raw_request.release();

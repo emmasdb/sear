@@ -27,7 +27,7 @@ RACFAUTH TITLE 'RACROUTE AUTHORIZATION'
 
 RACFAUTH CELQPRLG DSASIZE=DSASIZ,                                      X
                BASEREG=R12,                                            X
-               PARMWRDS=11,                                            X
+               PARMWRDS=3,                                             X
                PARMREG=R11,                                            X
                ENTNAME=callRauth
 
@@ -38,8 +38,12 @@ callRauth ALIAS C'sear_racroute_auth_asm'
          XC    RACF_RC,RACF_RC
          XC    RACF_RSN,RACF_RSN
 
-         LG    R1,CLASSPTR
-         L     R2,CLASSLEN
+         LG    R9,REQPTR
+         LTGR  R9,R9
+         JZ    BADINPUT
+
+         LA    R1,RACREQ_CLASS(,R9)
+         L     R2,RACREQ_CLASSLEN(,R9)
          LTGR  R1,R1
          JZ    BADINPUT
          LTR   R2,R2
@@ -53,8 +57,8 @@ callRauth ALIAS C'sear_racroute_auth_asm'
          BCTR  R3,0
          EX    R3,COPYCLASS
 
-         LG    R1,ENTITYPTR
-         L     R2,ENTITYLEN
+         LA    R1,RACREQ_ENTITY(,R9)
+         L     R2,RACREQ_ENTITYLEN(,R9)
          LTGR  R1,R1
          JZ    BADINPUT
          LTR   R2,R2
@@ -70,8 +74,8 @@ callRauth ALIAS C'sear_racroute_auth_asm'
          BCTR  R3,0
          EX    R3,COPYENTITY
 
-         LG    R1,AUTHIDPTR
-         L     R2,AUTHIDLEN
+         LA    R1,RACREQ_AUTHID(,R9)
+         L     R2,RACREQ_AUTHIDLEN(,R9)
          LTGR  R1,R1
          JZ    BADINPUT
          LTR   R2,R2
@@ -85,7 +89,7 @@ callRauth ALIAS C'sear_racroute_auth_asm'
          BCTR  R3,0
          EX    R3,COPYAUTH
 
-         L     R2,IDTYPE
+         L     R2,RACREQ_IDTYPE(,R9)
          CHI   R2,0
          JE    CHECKSTAT
          CHI   R2,1
@@ -93,7 +97,7 @@ callRauth ALIAS C'sear_racroute_auth_asm'
          J     BADINPUT
 
 CHECKSTAT DS   0H
-         L     R2,STATUSCODE
+         L     R2,RACREQ_STATUS(,R9)
          CHI   R2,0
          JE    CHECKACCESS
          CHI   R2,1
@@ -101,7 +105,7 @@ CHECKSTAT DS   0H
          J     BADINPUT
 
 CHECKACCESS DS 0H
-         L     R2,ACCESSCODE
+         L     R2,RACREQ_ACCESS(,R9)
          CHI   R2,X'02'
          JE    AUTHREAD
          CHI   R2,X'04'
@@ -113,7 +117,7 @@ CHECKACCESS DS 0H
          J     BADINPUT
 
 AUTHREAD DS    0H
-         L     R2,IDTYPE
+         L     R2,RACREQ_IDTYPE(,R9)
          CHI   R2,1
          JE    AUTHRDG
          MVC   RACFPL(RACFPLRL),RACFPLR
@@ -140,7 +144,7 @@ AUTHRDG DS     0H
          J     SAVERC
 
 AUTHUPDATE DS  0H
-         L     R2,IDTYPE
+         L     R2,RACREQ_IDTYPE(,R9)
          CHI   R2,1
          JE    AUTHUPG
          MVC   RACFPL(RACFPLUL),RACFPLU
@@ -167,7 +171,7 @@ AUTHUPG DS     0H
          J     SAVERC
 
 AUTHCONTROL DS 0H
-         L     R2,IDTYPE
+         L     R2,RACREQ_IDTYPE(,R9)
          CHI   R2,1
          JE    AUTHCTG
          MVC   RACFPL(RACFPLCL),RACFPLC
@@ -194,7 +198,7 @@ AUTHCTG DS     0H
          J     SAVERC
 
 AUTHALTER DS   0H
-         L     R2,IDTYPE
+         L     R2,RACREQ_IDTYPE(,R9)
          CHI   R2,1
          JE    AUTHALG
          MVC   RACFPL(RACFPLAL),RACFPLA
@@ -221,7 +225,7 @@ AUTHALG DS     0H
          J     SAVERC
 
 AUTHACCESS DS  0H
-         L     R2,IDTYPE
+         L     R2,RACREQ_IDTYPE(,R9)
          CHI   R2,1
          JE    AUTHACG
          MVC   RACFPL(RACFPLSL),RACFPLS
@@ -318,16 +322,18 @@ DSASIZ   EQU   *-PARMLIST+CEEDSAHPSZ
 
 MYPARMS  DSECT ,
          DS    0FD
-CLASSPTR DS    AD
-CLASSLEN DS    FD
-ENTITYPTR DS   AD
-ENTITYLEN DS   FD
-ACCESSCODE DS  FD
-STATUSCODE DS  FD
-AUTHIDPTR DS   AD
-AUTHIDLEN DS   FD
-IDTYPE   DS    FD
+REQPTR   DS    AD
 RETCODEPTR DS  AD
 RSNCODEPTR DS  AD
+
+RACREQ_CLASSLEN EQU 0
+RACREQ_CLASS EQU 4
+RACREQ_ENTITYLEN EQU 12
+RACREQ_ENTITY EQU 16
+RACREQ_ACCESS EQU 262
+RACREQ_STATUS EQU 266
+RACREQ_IDTYPE EQU 270
+RACREQ_AUTHIDLEN EQU 274
+RACREQ_AUTHID EQU 278
 
          END   RACFAUTH

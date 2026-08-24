@@ -50,14 +50,7 @@ class RACRouteAuth {
 
 }  // namespace SEAR
 
-extern "C" int sear_racroute_auth_asm(const char *class_name,
-                                       int class_name_length,
-                                       const char *entity, int entity_length,
-                                       int access_code,
-                                       int status_code,
-                                       const char *authid,
-                                       int authid_length,
-                                       int identity_type,
+extern "C" int sear_racroute_auth_asm(const SEAR::racroute_auth_request_t *request,
                                        int *racf_return_code,
                                        int *racf_reason_code);
 

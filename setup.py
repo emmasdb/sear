@@ -26,7 +26,10 @@ def assemble(asm_file: str, asm_directory: Path) -> None:
     source_file = cwd / asm_directory / asm_file
     obj_file = cwd / "artifacts" / obj_file
 
-    if obj_file.exists():
+    if (
+        obj_file.exists()
+        and obj_file.stat().st_mtime >= source_file.stat().st_mtime
+    ):
         return
 
     print(f"assembling {source_file}")
