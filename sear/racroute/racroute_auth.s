@@ -47,9 +47,8 @@ callRauth ALIAS C'sear_racroute_auth_asm'
          CHI   R2,8
          JH    BADINPUT
 
-         STC   R2,CLASSBUF
-         MVI   CLASSBUF+1,C' '
-         MVC   CLASSBUF+2(7),CLASSBUF+1
+         MVI   CLASSBUF,C' '
+         MVC   CLASSBUF+1(7),CLASSBUF
          LR    R3,R2
          BCTR  R3,0
          EX    R3,COPYCLASS
@@ -262,7 +261,7 @@ SAVERC   DS    0H
          L     R3,RETURN_CODE
          CELQEPLG ,
 
-COPYCLASS  MVC CLASSBUF+1(0),0(R1)
+COPYCLASS  MVC CLASSBUF(0),0(R1)
 COPYENTITY MVC ENTITYBUF+4(0),0(R1)
 COPYAUTH   MVC AUTHIDB(0),0(R1)
 
@@ -296,14 +295,17 @@ PARM5    DS    AD
 PARM6    DS    AD
 PARM7    DS    AD
 PARM8    DS    AD
+PARM9    DS    AD
+PARM10   DS    AD
+PARM11   DS    AD
 
 RETURN_CODE DS F
 RACF_RC  DS    F
 RACF_RSN DS    F
 
          DS    0D
-RACFPL   RACROUTE REQUEST=AUTH,RELEASE=2.4,MF=L
-CLASSBUF DS    CL9
+RACFPL   DS    CL(RACFPLTL)
+CLASSBUF DS    CL8
          DS    0H
 ENTITYBUF DS   H
          DS    H
