@@ -46,6 +46,22 @@ std::string RACRouteAuth::accessName(int access_code) {
   return "UNKNOWN";
 }
 
+std::string RACRouteAuth::statusAccessName(int access_code) {
+  if (access_code == RACROUTE_AUTH_STATUS_ACCESS_NONE) {
+    return "NONE";
+  } else if (access_code == RACROUTE_AUTH_STATUS_ACCESS_READ) {
+    return "READ";
+  } else if (access_code == RACROUTE_AUTH_STATUS_ACCESS_UPDATE) {
+    return "UPDATE";
+  } else if (access_code == RACROUTE_AUTH_STATUS_ACCESS_CONTROL) {
+    return "CONTROL";
+  } else if (access_code == RACROUTE_AUTH_STATUS_ACCESS_ALTER) {
+    return "ALTER";
+  }
+
+  return "UNKNOWN";
+}
+
 int RACRouteAuth::statusCode(const nlohmann::json &options) {
   if (options == nullptr || !options.contains("status")) {
     return RACROUTE_AUTH_STATUS_NONE;
@@ -102,8 +118,9 @@ void RACRouteAuth::check(SecurityRequest &request) {
   request.setRACFReasonCode(racf_reason_code);
   request.setSEARReturnCode(0);
   nlohmann::json result_json = {{"authorized", saf_return_code == 0}};
-  if (status_code == RACROUTE_AUTH_STATUS_ACCESS && saf_return_code == 0) {
-    result_json["access"] = accessName(racf_reason_code);
+  if (status_code == RACROUTE_AUTH_STATUS_ACCESS && saf_return_code == 0 &&
+      racf_return_code == RACROUTE_AUTH_STATUS_ACCESS_RC) {
+    result_json["access"] = statusAccessName(racf_reason_code);
   }
   request.setIntermediateResultJSON(result_json);
 }

@@ -95,8 +95,10 @@ AUTHREAD DS    0H
          RACROUTE REQUEST=AUTH,RELEASE=2.4,                            X
                ENTITYX=ENTITYBUF,CLASS=CLASSBUF,WORKA=RACFWA,          X
                MF=(E,RACFPL)
-         ST    R0,RACF_RC
-         ST    R1,RACF_RSN
+         L     R2,RACFPL
+         ST    R2,RACF_RC
+         L     R2,RACFPL+4
+         ST    R2,RACF_RSN
          J     SAVERC
 
 AUTHUPDATE DS  0H
@@ -104,8 +106,10 @@ AUTHUPDATE DS  0H
          RACROUTE REQUEST=AUTH,RELEASE=2.4,                            X
                ENTITYX=ENTITYBUF,CLASS=CLASSBUF,WORKA=RACFWA,          X
                MF=(E,RACFPL)
-         ST    R0,RACF_RC
-         ST    R1,RACF_RSN
+         L     R2,RACFPL
+         ST    R2,RACF_RC
+         L     R2,RACFPL+4
+         ST    R2,RACF_RSN
          J     SAVERC
 
 AUTHCONTROL DS 0H
@@ -113,8 +117,10 @@ AUTHCONTROL DS 0H
          RACROUTE REQUEST=AUTH,RELEASE=2.4,                            X
                ENTITYX=ENTITYBUF,CLASS=CLASSBUF,WORKA=RACFWA,          X
                MF=(E,RACFPL)
-         ST    R0,RACF_RC
-         ST    R1,RACF_RSN
+         L     R2,RACFPL
+         ST    R2,RACF_RC
+         L     R2,RACFPL+4
+         ST    R2,RACF_RSN
          J     SAVERC
 
 AUTHALTER DS   0H
@@ -122,8 +128,10 @@ AUTHALTER DS   0H
          RACROUTE REQUEST=AUTH,RELEASE=2.4,                            X
                ENTITYX=ENTITYBUF,CLASS=CLASSBUF,WORKA=RACFWA,          X
                MF=(E,RACFPL)
-         ST    R0,RACF_RC
-         ST    R1,RACF_RSN
+         L     R2,RACFPL
+         ST    R2,RACF_RC
+         L     R2,RACFPL+4
+         ST    R2,RACF_RSN
          J     SAVERC
 
 AUTHACCESS DS  0H
@@ -131,8 +139,10 @@ AUTHACCESS DS  0H
          RACROUTE REQUEST=AUTH,RELEASE=2.4,                            X
                ENTITYX=ENTITYBUF,CLASS=CLASSBUF,WORKA=RACFWA,          X
                MF=(E,RACFPL)
-         ST    R0,RACF_RC
-         ST    R1,RACF_RSN
+         L     R2,RACFPL
+         ST    R2,RACF_RC
+         L     R2,RACFPL+4
+         ST    R2,RACF_RSN
          J     SAVERC
 
 BADINPUT DS    0H

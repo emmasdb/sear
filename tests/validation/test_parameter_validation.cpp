@@ -104,8 +104,8 @@ void test_auth_resource_access_status() {
   std::string request_json =
       get_json_sample(TEST_AUTH_RESOURCE_ACCESS_STATUS_REQUEST_JSON);
   racroute_auth_rc_mock          = 0;
-  racroute_auth_racf_rc_mock     = 0;
-  racroute_auth_racf_reason_mock = 0x04;
+  racroute_auth_racf_rc_mock     = 0x14;
+  racroute_auth_racf_reason_mock = 0x08;
 
   sear_result_t *result =
       sear(request_json.c_str(), request_json.length(), false);
@@ -114,8 +114,8 @@ void test_auth_resource_access_status() {
   TEST_ASSERT_TRUE(result_json["authorized"].get<bool>());
   TEST_ASSERT_EQUAL_STRING("UPDATE", result_json["access"].get<std::string>().c_str());
   TEST_ASSERT_EQUAL_INT32(0, result_json["return_codes"]["saf_return_code"]);
-  TEST_ASSERT_EQUAL_INT32(0, result_json["return_codes"]["racf_return_code"]);
-  TEST_ASSERT_EQUAL_INT32(0x04, result_json["return_codes"]["racf_reason_code"]);
+  TEST_ASSERT_EQUAL_INT32(0x14, result_json["return_codes"]["racf_return_code"]);
+  TEST_ASSERT_EQUAL_INT32(0x08, result_json["return_codes"]["racf_reason_code"]);
   TEST_ASSERT_EQUAL_INT32(0, result_json["return_codes"]["sear_return_code"]);
   TEST_ASSERT_EQUAL_INT32(0x02, racroute_auth_access_code_actual);
   TEST_ASSERT_EQUAL_INT32(1, racroute_auth_status_code_actual);
