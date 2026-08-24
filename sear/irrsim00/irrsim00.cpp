@@ -11,12 +11,6 @@
 #include "logger.hpp"
 #include "sear_error.hpp"
 
-#ifdef __TOS_390__
-#include <unistd.h>
-#else
-#include "zoslib.h"
-#endif
-
 namespace SEAR {
 void IRRSIM00::map(SecurityRequest &request) {
   auto arg_area_unique_ptr = std::make_unique<irrsim00_arg_area_t>();
@@ -85,15 +79,15 @@ void IRRSIM00::buildRequest(irrsim00_arg_area_t *p_arg_area,
   IRRSIM00::copyText(&p_arg_area->application_userid.length,
                      p_arg_area->application_userid.value,
                      sizeof(p_arg_area->application_userid.value),
-                     request.getApplicationUserID(), true);
+                     request.getApplicationUserID());
   IRRSIM00::copyText(&p_arg_area->distinguished_name.length,
                      p_arg_area->distinguished_name.value,
                      sizeof(p_arg_area->distinguished_name.value),
-                     request.getDistinguishedName(), false);
+                     request.getDistinguishedName());
   IRRSIM00::copyText(&p_arg_area->registry_name.length,
                      p_arg_area->registry_name.value,
                      sizeof(p_arg_area->registry_name.value),
-                     request.getRegistryName(), false);
+                     request.getRegistryName());
 }
 
 char *IRRSIM00::cloneBuffer(const char *p_buffer, int buffer_length) {
@@ -112,12 +106,11 @@ void IRRSIM00::copyRACFUserID(irrsim00_racf_userid_t *p_target,
                  [](unsigned char c) { return std::toupper(c); });
   p_target->length = userid.length();
   std::memcpy(p_target->value, userid.c_str(), userid.length());
-  __a2e_l(p_target->value, userid.length());
 }
 
 void IRRSIM00::copyText(uint16_t *p_length, char *p_target,
-                        std::size_t target_size, const std::string &value,
-                        bool ebcdic) {
+                        std::size_t target_size,
+                        const std::string &value) {
   if (value.empty()) {
     return;
   }
@@ -126,9 +119,6 @@ void IRRSIM00::copyText(uint16_t *p_length, char *p_target,
   }
   *p_length = htons((uint16_t)value.length());
   std::memcpy(p_target, value.c_str(), value.length());
-  if (ebcdic) {
-    __a2e_l(p_target, value.length());
-  }
 }
 
 void IRRSIM00::readCertificate(const std::string &filename,
@@ -156,17 +146,15 @@ nlohmann::json IRRSIM00::buildResultJSON(const irrsim00_arg_area_t &arg_area,
                                          uint16_t function_code) {
   nlohmann::json result_json;
 
-    if (function_code == UMAP_R_TO_L || function_code == UMAP_R_TO_N ||
+  if (function_code == UMAP_R_TO_L || function_code == UMAP_R_TO_N ||
       function_code == UMAP_R_TO_K || function_code == UMAP_R_TO_E) {
     uint16_t application_userid_length =
         ntohs(arg_area.application_userid.length);
     std::string application_userid(arg_area.application_userid.value,
                                    application_userid_length);
-    __e2a_l(application_userid.data(), application_userid.length());
     result_json["application_userid"] = application_userid;
   } else {
     std::string userid(arg_area.racf_userid.value, arg_area.racf_userid.length);
-    __e2a_l(userid.data(), userid.length());
     result_json["userid"] = userid;
   }
 

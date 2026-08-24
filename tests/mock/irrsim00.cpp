@@ -1,10 +1,8 @@
-#include "irrsim00.hpp"
+#include "sear/irrsim00/irrsim00.hpp"
 
 #include <arpa/inet.h>
 
 #include <cstring>
-
-#include "zoslib.h"
 
 #ifndef __TOS_390__
 char *irrsim00_userid_mock             = NULL;
@@ -32,7 +30,6 @@ extern void IRRSIM00(char *work_area, uint32_t alet_saf_rc, int *saf_rc,
     p_racf_userid->length = std::strlen(irrsim00_userid_mock);
     std::memcpy(p_racf_userid->value, irrsim00_userid_mock,
                 p_racf_userid->length);
-    __a2e_l(p_racf_userid->value, p_racf_userid->length);
   }
 
   if (irrsim00_application_userid_mock != NULL) {
@@ -42,8 +39,6 @@ extern void IRRSIM00(char *work_area, uint32_t alet_saf_rc, int *saf_rc,
         htons(std::strlen(irrsim00_application_userid_mock));
     std::memcpy(p_application_userid->value, irrsim00_application_userid_mock,
                 std::strlen(irrsim00_application_userid_mock));
-    __a2e_l(p_application_userid->value,
-            std::strlen(irrsim00_application_userid_mock));
   }
 
   *saf_rc   = irrsim00_saf_rc_mock;

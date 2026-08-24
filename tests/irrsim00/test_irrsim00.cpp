@@ -6,7 +6,6 @@
 #include "sear/sear.h"
 #include "tests/mock/irrsim00.hpp"
 #include "tests/unity/unity.h"
-#include "zoslib.h"
 
 static void reset_irrsim00_mocks() {
   irrsim00_userid_mock             = NULL;
@@ -31,7 +30,6 @@ void test_generate_map_userid_to_application_user_request() {
   char userid[9] = {0};
   std::memcpy(userid, p_arg_area->racf_userid.value,
               p_arg_area->racf_userid.length);
-  __e2a_l(userid, p_arg_area->racf_userid.length);
 
   TEST_ASSERT_EQUAL_INT32(sizeof(irrsim00_arg_area_t),
                           result->raw_request_length);
