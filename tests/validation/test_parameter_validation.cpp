@@ -99,7 +99,7 @@ void test_auth_resource_allowed() {
   TEST_ASSERT_EQUAL_INT32(0x02, racroute_auth_access_code_actual);
   TEST_ASSERT_EQUAL_INT32(0, racroute_auth_status_code_actual);
   TEST_ASSERT_EQUAL_INT32(0, racroute_auth_identity_type_actual);
-  TEST_ASSERT_EQUAL_STRING("CHECKUSR", racroute_auth_authid_actual);
+  TEST_ASSERT_EQUAL_STRING("", racroute_auth_authid_actual);
 }
 
 void test_auth_resource_access_status() {
@@ -121,8 +121,8 @@ void test_auth_resource_access_status() {
   TEST_ASSERT_EQUAL_INT32(0, result_json["return_codes"]["sear_return_code"]);
   TEST_ASSERT_EQUAL_INT32(0x02, racroute_auth_access_code_actual);
   TEST_ASSERT_EQUAL_INT32(1, racroute_auth_status_code_actual);
-  TEST_ASSERT_EQUAL_INT32(1, racroute_auth_identity_type_actual);
-  TEST_ASSERT_EQUAL_STRING("CHECKGRP", racroute_auth_authid_actual);
+  TEST_ASSERT_EQUAL_INT32(0, racroute_auth_identity_type_actual);
+  TEST_ASSERT_EQUAL_STRING("", racroute_auth_authid_actual);
 }
 
 void test_auth_dataset_denied() {
@@ -143,10 +143,10 @@ void test_auth_dataset_denied() {
   TEST_ASSERT_EQUAL_INT32(0x80, racroute_auth_access_code_actual);
   TEST_ASSERT_EQUAL_INT32(0, racroute_auth_status_code_actual);
   TEST_ASSERT_EQUAL_INT32(0, racroute_auth_identity_type_actual);
-  TEST_ASSERT_EQUAL_STRING("CHECKUSR", racroute_auth_authid_actual);
+  TEST_ASSERT_EQUAL_STRING("", racroute_auth_authid_actual);
 }
 
-void test_auth_missing_identity_error() {
-  test_validation_errors(TEST_AUTH_MISSING_IDENTITY_REQUEST_JSON,
+void test_auth_unsupported_identity_error() {
+  test_validation_errors(TEST_AUTH_UNSUPPORTED_IDENTITY_REQUEST_JSON,
                          TEST_PARAMETER_VALIDATION_ERROR_RESULT_JSON, false);
 }

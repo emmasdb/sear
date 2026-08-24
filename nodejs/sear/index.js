@@ -149,12 +149,8 @@ function validateRequest(request) {
         }
         const hasUserid = Object.prototype.hasOwnProperty.call(request, 'userid');
         const hasGroup = Object.prototype.hasOwnProperty.call(request, 'group');
-        if (hasUserid === hasGroup) {
-            errors.push('exactly one of userid or group is required for auth');
-        } else if (hasUserid && (typeof request.userid !== 'string' || request.userid.length < 1 || request.userid.length > 8)) {
-            errors.push('userid must be a string between 1 and 8 characters');
-        } else if (hasGroup && (typeof request.group !== 'string' || request.group.length < 1 || request.group.length > 8)) {
-            errors.push('group must be a string between 1 and 8 characters');
+        if (hasUserid || hasGroup) {
+            errors.push('auth checks the current security context; userid and group are not supported');
         }
         if (!request.access) {
             errors.push('access is required for auth');

@@ -30,8 +30,8 @@
   VALIDATION_REQUEST_SAMPLES "test_auth_resource_access_status_request.json"
 #define TEST_AUTH_DATASET_DENIED_REQUEST_JSON \
   VALIDATION_REQUEST_SAMPLES "test_auth_dataset_denied_request.json"
-#define TEST_AUTH_MISSING_IDENTITY_REQUEST_JSON \
-  VALIDATION_REQUEST_SAMPLES "test_auth_missing_identity_request.json"
+#define TEST_AUTH_UNSUPPORTED_IDENTITY_REQUEST_JSON \
+  VALIDATION_REQUEST_SAMPLES "test_auth_unsupported_identity_request.json"
 
 // Result Samples
 #define TEST_SYNTAX_ERROR_RESULT_JSON \
@@ -54,6 +54,6 @@ void test_parse_parameters_nonstring_error();
 void test_auth_resource_allowed();
 void test_auth_resource_access_status();
 void test_auth_dataset_denied();
-void test_auth_missing_identity_error();
+void test_auth_unsupported_identity_error();
 
 #endif

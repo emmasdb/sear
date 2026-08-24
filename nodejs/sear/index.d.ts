@@ -45,12 +45,12 @@ export interface SearRequest {
         | 'racf-options';
 
     /**
-    * User ID (required for extract admin_type='user'; one of userid/group is required for auth)
+    * User ID (required for extract admin_type='user'; not supported for auth)
      */
     userid?: string;
 
     /**
-    * Group name/ID (canonical field for group operations; one of userid/group is required for auth)
+    * Group name/ID (canonical field for group operations; not supported for auth)
      */
     group?: string;
 

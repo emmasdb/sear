@@ -3,6 +3,5 @@
   "admin_type": "resource",
   "resource": "IRR.IRRSMO00.PRECHECK",
   "class": "XFACILIT",
-  "userid": "CHECKUSR",
   "access": "READ"
 }

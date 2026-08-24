@@ -27,7 +27,7 @@ int main() {
     RUN_TEST(test_auth_resource_allowed);
         RUN_TEST(test_auth_resource_access_status);
     RUN_TEST(test_auth_dataset_denied);
-    RUN_TEST(test_auth_missing_identity_error);
+    RUN_TEST(test_auth_unsupported_identity_error);
 
   /*************************************************************************/
   /* IRRSMO00                                                              */

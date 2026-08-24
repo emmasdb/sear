@@ -970,12 +970,6 @@
         "class": {
           "$ref": "#/$defs/eightCharacterString"
         },
-        "userid": {
-          "$ref": "#/$defs/eightCharacterString"
-        },
-        "group": {
-          "$ref": "#/$defs/eightCharacterString"
-        },
         "access": {
           "$ref": "#/$defs/accessLevel"
         },
@@ -990,18 +984,6 @@
         "class",
         "access"
       ],
-      "oneOf": [
-        {
-          "required": [
-            "userid"
-          ]
-        },
-        {
-          "required": [
-            "group"
-          ]
-        }
-      ],
       "additionalProperties": false
     },
     {
@@ -1015,12 +997,6 @@
         "dataset": {
           "$ref": "#/$defs/dataSetName"
         },
-        "userid": {
-          "$ref": "#/$defs/eightCharacterString"
-        },
-        "group": {
-          "$ref": "#/$defs/eightCharacterString"
-        },
         "access": {
           "$ref": "#/$defs/accessLevel"
         },
@@ -1033,18 +1009,6 @@
         "admin_type",
         "dataset",
         "access"
-      ],
-      "oneOf": [
-        {
-          "required": [
-            "userid"
-          ]
-        },
-        {
-          "required": [
-            "group"
-          ]
-        }
       ],
       "additionalProperties": false
     },
