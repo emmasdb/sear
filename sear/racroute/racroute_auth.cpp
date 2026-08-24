@@ -32,20 +32,6 @@ int RACRouteAuth::accessCode(std::string_view access) {
                   std::string(access) + "'");
 }
 
-std::string RACRouteAuth::accessName(int access_code) {
-  if (access_code == RACROUTE_AUTH_ACCESS_READ) {
-    return "READ";
-  } else if (access_code == RACROUTE_AUTH_ACCESS_UPDATE) {
-    return "UPDATE";
-  } else if (access_code == RACROUTE_AUTH_ACCESS_CONTROL) {
-    return "CONTROL";
-  } else if (access_code == RACROUTE_AUTH_ACCESS_ALTER) {
-    return "ALTER";
-  }
-
-  return "UNKNOWN";
-}
-
 std::string RACRouteAuth::statusAccessName(int access_code) {
   if (access_code == RACROUTE_AUTH_STATUS_ACCESS_NONE) {
     return "NONE";

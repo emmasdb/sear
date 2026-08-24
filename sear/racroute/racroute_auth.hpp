@@ -44,7 +44,6 @@ class RACRouteAuth {
 
  private:
   static int accessCode(std::string_view access);
-  static std::string accessName(int access_code);
   static std::string statusAccessName(int access_code);
   static int statusCode(const nlohmann::json &options);
 };
