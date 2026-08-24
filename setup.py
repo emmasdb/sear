@@ -19,14 +19,21 @@ class bdist_wheel(_bdist_wheel): # noqa: N801
         self.root_is_pure = True
         self.python_tag = f"py{sys.version_info.major}{sys.version_info.minor}"
 
-def assemble(asm_file: str, asm_directory: Path) -> None:
+def assemble(
+    asm_file: str,
+    asm_directory: Path,
+    extra_include_dirs: list[Path] | None = None,
+) -> None:
     """Assemble assembler code."""
     obj_file = asm_file.split(".")[0] + ".o"
     cwd = Path.cwd()
     source_file = cwd / asm_directory / asm_file
     obj_file = cwd / "artifacts" / obj_file
 
-    if obj_file.exists():
+    if (
+        obj_file.exists()
+        and obj_file.stat().st_mtime >= source_file.stat().st_mtime
+    ):
         return
 
     print(f"assembling {source_file}")
@@ -36,9 +43,9 @@ def assemble(asm_file: str, asm_directory: Path) -> None:
         print(mkdir_command)
         subprocess.run(mkdir_command, shell=True, check=True)
 
-    assemble_command = (
-        f"as -mGOFF -I{source_file.parents[0]} -o {obj_file} {source_file}"
-    )
+    include_dirs = [source_file.parents[0]] + (extra_include_dirs or [])
+    include_args = " ".join(f"-I{include_dir}" for include_dir in include_dirs)
+    assemble_command = f"as -mGOFF {include_args} -o {obj_file} {source_file}"
     print(assemble_command)
     subprocess.run(assemble_command, shell=True, check=True)
 
@@ -74,6 +81,11 @@ class BuildExtensionWithAssemblerAndC(build_ext):
         os.environ["CXXFLAGS"] = "-std=c++17"
         sear_source_path = Path("sear")
         assemble("irrseq00.s", sear_source_path / "irrseq00")
+        assemble(
+            "irrsim00.s",
+            sear_source_path / "irrsim00",
+            [sear_source_path / "irrseq00"],
+        )
         super().run()
 
 
@@ -102,7 +114,10 @@ def main():
         openssl_include_path = os.environ["ZOPEN_ROOTFS"] +  "/usr/local/include/"
         zoslib_lib_path = os.environ["ZOPEN_ROOTFS"] + "/usr/local/lib/"
 
-    assembled_object_path = cwd / "artifacts" / "irrseq00.o"
+    assembled_object_paths = [
+        cwd / "artifacts" / "irrseq00.o",
+        cwd / "artifacts" / "irrsim00.o",
+    ]
     generate_json_schema_header()
     sear_cpp_sources = [
         source for source in glob("sear/**/*.cpp")
@@ -137,7 +152,7 @@ def main():
                     "-Wl," + openssl_lib_path + "libssl.a",
                     "-Wl," + zoslib_lib_path + "libzoslib.a",
                 ],
-                extra_objects=[f"{assembled_object_path}"],
+                extra_objects=[f"{path}" for path in assembled_object_paths],
             ),
         ],
         "cmdclass": {

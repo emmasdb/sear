@@ -71,6 +71,7 @@
       "-m64",
       "-Wl,-b,edit=no",
       "<!(node -p \"require('path').resolve('artifacts/irrseq00.o')\")",
+      "<!(node -p \"require('path').resolve('artifacts/irrsim00.o')\")",
       "-Wl,<(openssl_root)/lib/libcrypto.a",
       "-Wl,<(openssl_root)/lib/libssl.a",
       "-Wl,<(zoslib_root)/lib/libzoslib.a"

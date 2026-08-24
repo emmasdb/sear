@@ -7,6 +7,12 @@
 
 #include <nlohmann/json.hpp>
 
+#ifdef __TOS_390__
+#include <unistd.h>
+#else
+#include "zoslib.h"
+#endif
+
 #include "security_request.hpp"
 
 #define IRRSIM00_WORK_AREA_SIZE 1024
@@ -52,6 +58,24 @@ typedef struct {
 } irrsim00_registry_name_t;
 
 typedef struct {
+  char *__ptr32 p_work_area;
+  uint32_t *__ptr32 p_alet_saf_return_code;
+  int *__ptr32 p_saf_return_code;
+  uint32_t *__ptr32 p_alet_racf_return_code;
+  int *__ptr32 p_racf_return_code;
+  uint32_t *__ptr32 p_alet_racf_reason_code;
+  int *__ptr32 p_racf_reason_code;
+  uint32_t *__ptr32 p_alet_remainder;
+  uint16_t *__ptr32 p_function_code;
+  uint32_t *__ptr32 p_option_word;
+  irrsim00_racf_userid_t *__ptr32 p_racf_userid;
+  irrsim00_certificate_t *__ptr32 p_certificate;
+  irrsim00_application_userid_t *__ptr32 p_application_userid;
+  irrsim00_distinguished_name_t *__ptr32 p_distinguished_name;
+  irrsim00_registry_name_t *__ptr32 p_registry_name;
+} irrsim00_arg_pointers_t;
+
+typedef struct {
   alignas(8) char work_area[IRRSIM00_WORK_AREA_SIZE];
   uint32_t alet_saf_return_code;
   int saf_return_code;
@@ -67,27 +91,10 @@ typedef struct {
   irrsim00_application_userid_t application_userid;
   irrsim00_distinguished_name_t distinguished_name;
   irrsim00_registry_name_t registry_name;
+  irrsim00_arg_pointers_t arg_pointers;
 } irrsim00_arg_area_t;
 
-extern "C" {
-void IRRSIM00(char *,          // Workarea
-              uint32_t, int *, // safrc
-              uint32_t, int *, // racfrc
-              uint32_t, int *, // racfrsn
-              uint32_t,        // ALET for the remaining parameters
-              uint16_t *,      // Function code
-              uint32_t *,      // Option word
-              char *,          // RACF userid
-              char *,          // Certificate
-              char *,          // Application userid
-              char *,          // Distinguished name
-              char *           // Registry name
-);
-}
-
-#ifndef UNIT_TEST
-#pragma linkage(IRRSIM00, OS)
-#endif
+extern "C" uint32_t callIrrsim00(char *__ptr32);
 
 namespace SEAR {
 class IRRSIM00 {

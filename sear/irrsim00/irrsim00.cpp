@@ -4,16 +4,41 @@
 #include <algorithm>
 #include <cctype>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <memory>
+#include <new>
 #include <stdexcept>
 
 #include "logger.hpp"
 #include "sear_error.hpp"
 
 namespace SEAR {
+namespace {
+struct IRRSIM00ArgAreaDeleter {
+  void operator()(void *ptr) const {
+    Logger::getInstance().debugFree(ptr);
+    std::free(ptr);
+    Logger::getInstance().debug("Done");
+  }
+};
+
+std::unique_ptr<irrsim00_arg_area_t, IRRSIM00ArgAreaDeleter>
+makeIRRSIM00ArgArea() {
+  auto *p_arg_area = static_cast<irrsim00_arg_area_t *>(
+      __malloc31(sizeof(irrsim00_arg_area_t)));
+  if (p_arg_area == nullptr) {
+    throw std::bad_alloc();
+  }
+  Logger::getInstance().debugAllocate(p_arg_area, 31,
+                                      sizeof(irrsim00_arg_area_t));
+  return std::unique_ptr<irrsim00_arg_area_t, IRRSIM00ArgAreaDeleter>(
+      p_arg_area);
+}
+}  // namespace
+
 void IRRSIM00::map(SecurityRequest &request) {
-  auto arg_area_unique_ptr = std::make_unique<irrsim00_arg_area_t>();
+  auto arg_area_unique_ptr = makeIRRSIM00ArgArea();
   irrsim00_arg_area_t *p_arg_area = arg_area_unique_ptr.get();
   std::memset(p_arg_area, 0, sizeof(irrsim00_arg_area_t));
 
@@ -27,16 +52,7 @@ void IRRSIM00::map(SecurityRequest &request) {
                                 request.getRawRequestLength());
 
   Logger::getInstance().debug("Calling IRRSIM00 ...");
-  ::IRRSIM00(p_arg_area->work_area, p_arg_area->alet_saf_return_code,
-           &p_arg_area->saf_return_code, p_arg_area->alet_racf_return_code,
-           &p_arg_area->racf_return_code, p_arg_area->alet_racf_reason_code,
-           &p_arg_area->racf_reason_code, p_arg_area->alet_remainder,
-           &p_arg_area->function_code, &p_arg_area->option_word,
-           reinterpret_cast<char *>(&p_arg_area->racf_userid),
-           reinterpret_cast<char *>(&p_arg_area->certificate),
-           reinterpret_cast<char *>(&p_arg_area->application_userid),
-           reinterpret_cast<char *>(&p_arg_area->distinguished_name),
-           reinterpret_cast<char *>(&p_arg_area->registry_name));
+  callIrrsim00(reinterpret_cast<char *__ptr32>(&p_arg_area->arg_pointers));
   Logger::getInstance().debug("Done");
 
   request.setSAFReturnCode(p_arg_area->saf_return_code);
@@ -65,6 +81,33 @@ void IRRSIM00::buildRequest(irrsim00_arg_area_t *p_arg_area,
   p_arg_area->alet_remainder        = 0;
   p_arg_area->function_code         = request.getFunctionCode();
   p_arg_area->option_word           = 0;
+  p_arg_area->arg_pointers.p_work_area =
+      reinterpret_cast<char *__ptr32>(p_arg_area->work_area);
+  p_arg_area->arg_pointers.p_alet_saf_return_code =
+      &p_arg_area->alet_saf_return_code;
+  p_arg_area->arg_pointers.p_saf_return_code = &p_arg_area->saf_return_code;
+  p_arg_area->arg_pointers.p_alet_racf_return_code =
+      &p_arg_area->alet_racf_return_code;
+  p_arg_area->arg_pointers.p_racf_return_code =
+      &p_arg_area->racf_return_code;
+  p_arg_area->arg_pointers.p_alet_racf_reason_code =
+      &p_arg_area->alet_racf_reason_code;
+  p_arg_area->arg_pointers.p_racf_reason_code =
+      &p_arg_area->racf_reason_code;
+  p_arg_area->arg_pointers.p_alet_remainder = &p_arg_area->alet_remainder;
+  p_arg_area->arg_pointers.p_function_code = &p_arg_area->function_code;
+  p_arg_area->arg_pointers.p_option_word   = &p_arg_area->option_word;
+  p_arg_area->arg_pointers.p_racf_userid   = &p_arg_area->racf_userid;
+  p_arg_area->arg_pointers.p_certificate   = &p_arg_area->certificate;
+  p_arg_area->arg_pointers.p_application_userid =
+      &p_arg_area->application_userid;
+  p_arg_area->arg_pointers.p_distinguished_name =
+      &p_arg_area->distinguished_name;
+  p_arg_area->arg_pointers.p_registry_name = &p_arg_area->registry_name;
+#ifdef __TOS_390__
+  *(reinterpret_cast<uint32_t *__ptr32>(
+      &p_arg_area->arg_pointers.p_registry_name)) |= 0x80000000;
+#endif
 
   if (!request.getProfileName().empty()) {
     IRRSIM00::copyRACFUserID(&p_arg_area->racf_userid,

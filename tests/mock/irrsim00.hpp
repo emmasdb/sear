@@ -23,19 +23,7 @@ uint32_t irrsim00_option_word_actual   = 0;
 #endif
 
 extern "C" {
-void IRRSIM00(char *,          // Workarea
-              uint32_t, int *, // safrc
-              uint32_t, int *, // racfrc
-              uint32_t, int *, // racfrsn
-              uint32_t,        // ALET for the remaining parameters
-              uint16_t *,      // Function code
-              uint32_t *,      // Option word
-              char *,          // RACF userid
-              char *,          // Certificate
-              char *,          // Application userid
-              char *,          // Distinguished name
-              char *           // Registry name
-);
+uint32_t callIrrsim00(char *__ptr32);
 }
 
 #endif

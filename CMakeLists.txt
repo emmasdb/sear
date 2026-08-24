@@ -63,16 +63,18 @@ find_package(OpenSSL REQUIRED)
 
 # If the SEAR_UNIT_TEST variable is ON, don't go look for ZOSLIB library,
 # add the tests/zoslib folder to sear include directories and skip the
-# assembly of irrseq00.s.
+# assembly of RACF service bridges.
 if (SEAR_UNIT_TEST)
     set(ZOSLIB "")
     set(ZOSLIB_INCLUDE "tests/zoslib")
     set(IRRSEQ00 "")
+    set(IRRSIM00 "")
     set(DEBUGFLAG "-g")
 else()
     find_library(ZOSLIB libzoslib.a REQUIRED)
     set(ZOSLIB_INCLUDE "")
     set(IRRSEQ00 "sear/irrseq00/irrseq00.s")
+    set(IRRSIM00 "sear/irrsim00/irrsim00.s")
     set(DEBUGFLAG "")
 endif()
 
@@ -85,7 +87,7 @@ add_library(
     sear/irrsdl00/keyring_modifier.cpp
     sear/irrsdl00/keyring_post_processor.cpp
 
-    # Assemblying irrseq00.s is dependent on the platform,
+    # Assembling RACF service bridges is dependent on the platform,
     # it only works on Z
     "${IRRSEQ00}"
     sear/irrseq00/profile_extractor.cpp
@@ -97,6 +99,7 @@ add_library(
     sear/irrsmo00/xml_parser.cpp
 
     sear/irrsim00/irrsim00.cpp
+    "${IRRSIM00}"
 
     sear/key_map/key_map.cpp
     sear/validation/trait_validation.cpp

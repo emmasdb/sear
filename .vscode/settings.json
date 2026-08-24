@@ -9,9 +9,11 @@
     "python.analysis.typeCheckingMode": "standard",
     "cSpell.words": [
         "adsp",
+        "alet",
         "APPC",
         "cics",
         "IRRSEQ",
+        "IRRSIM",
         "IRRSMO",
         "omvs",
         "pysear",
