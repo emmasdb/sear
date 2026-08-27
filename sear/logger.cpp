@@ -24,7 +24,7 @@ Logger& Logger::getInstance() {
 
 void Logger::setDebug(bool debug) { debug_ = debug; }
 
-void Logger::debug(const std::string& message, const std::string& body) const {
+void Logger::debug(std::string_view message, std::string_view body) const {
   if (!debug_) {
     return;
   }
