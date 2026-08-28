@@ -530,7 +530,7 @@ const trait_key_mapping_t RESOURCE_IDTPARMS_KEY_MAP[]{
      TRAIT_TYPE_PSEUDO_BOOLEAN,  {true, false, false, true},
     },
     {
-     "idtparms:protection_allowed", "protallowed",
+     "idtparms:protection_allowed", "idtprota",
      TRAIT_TYPE_PSEUDO_BOOLEAN, {true, false, false, true},
     },
     {
