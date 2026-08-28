@@ -1,4 +1,4 @@
-# SEAR.js - z/OS RACF Security Administration Interface
+# SEAR.js - Security API for RACF
 
 A Node.js wrapper for SEAR library, providing a unified interface to z/OS RACF callable services.
 
