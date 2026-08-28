@@ -1,6 +1,6 @@
 # SEAR.js - z/OS RACF Security Administration Interface
 
-A Node.js wrapper for SEAR (Security Administration Request) library, providing a unified interface to z/OS RACF callable services.
+A Node.js wrapper for SEAR library, providing a unified interface to z/OS RACF callable services.
 
 ## Installation
 
@@ -320,7 +320,7 @@ npm run build
 
 ## Platform Requirements
 
-- Node.js v18+ on z/OS (os390)
+- Node.js 20+ on z/OS
 - ibm-clang64/ibm-clang++64 compiler
 - z/OS RACF security kernel
 
