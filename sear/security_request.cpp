@@ -1,6 +1,7 @@
 #include "security_request.hpp"
 
 #include <algorithm>
+#include <cctype>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -330,6 +331,9 @@ void SecurityRequest::load(const nlohmann::json& request) {
 
   if (request.contains("run_as_userid")) {
     std::string surrogate_userid_string = request["run_as_userid"].get<std::string>();
+    std::transform(surrogate_userid_string.begin(),
+                   surrogate_userid_string.end(), surrogate_userid_string.begin(),
+                   [](unsigned char c) { return std::toupper(c); });
     surrogate_userid_string = fromUTF8(surrogate_userid_string);
     Logger::getInstance().debug("Running under the authority of user: " +
                                 surrogate_userid_string);
