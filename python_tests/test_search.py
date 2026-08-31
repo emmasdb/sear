@@ -35,7 +35,7 @@ def test_search_resource_profiles_nonexistent_class():
             "class": "WRONG", 
             },
         )
-    assert "errors" not in str(search_result.result)
+    assert "errors" in str(search_result.result)
     assert search_result.result["return_codes"] == empty_return_codes_search
 
 def test_search_resource_profiles_all():

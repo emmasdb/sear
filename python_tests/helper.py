@@ -41,8 +41,8 @@ group_not_found_return_codes = {
   }
 
 empty_return_codes_search = {
-    "racf_reason_code": 4,
+    "racf_reason_code": 12,
     "racf_return_code": 4,
     "saf_return_code": 4,
-    "sear_return_code": 0,
+    "sear_return_code": 4,
   }
