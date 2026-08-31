@@ -155,11 +155,11 @@ const trait_key_mapping_t RESOURCE_BASE_SEGMENT_MAP[]{
      TRAIT_TYPE_STRING, {false, false, false, false},
      },
     {
-     "base:member_class_name",   "member",
+     "base:member",   "member",
      TRAIT_TYPE_STRING,    {true, true, true, false},
      },
     {
-     "base:member_class_names",   "member",
+     "base:members",   "member",
      TRAIT_TYPE_REPEAT, {false, false, false, false},
      },
     {
@@ -274,7 +274,7 @@ const trait_key_mapping_t RESOURCE_CDTINFO_KEY_MAP[]{
      TRAIT_TYPE_UINT,   {true, false, false, true},
      },
     {
-     "cdtinfo:member_class_name", "cdtmembr",
+     "cdtinfo:member", "cdtmembr",
      TRAIT_TYPE_STRING,   {true, false, false, true},
      },
     {
@@ -316,6 +316,10 @@ const trait_key_mapping_t RESOURCE_CDTINFO_KEY_MAP[]{
 };
 
 const trait_key_mapping_t RESOURCE_CFDEF_KEY_MAP[]{
+    {
+     "cfdef:acee", "cfacee",
+     TRAIT_TYPE_BOOLEAN, {true, false, false, false},
+     },
     {
      "cfdef:custom_field_data_type", "cfdtype",
      TRAIT_TYPE_STRING, {true, false, false, false},
@@ -524,7 +528,19 @@ const trait_key_mapping_t RESOURCE_IDTPARMS_KEY_MAP[]{
     {
      "idtparms:use_for_any_application",  "anyappl",
      TRAIT_TYPE_PSEUDO_BOOLEAN,  {true, false, false, true},
-     }
+    },
+    {
+     "idtparms:protection_allowed", "idtprota",
+     TRAIT_TYPE_PSEUDO_BOOLEAN, {true, false, false, true},
+    },
+    {
+     "idtparms:signature_label_primary", "siglabp",
+     TRAIT_TYPE_STRING, {true, false, false, true},
+    },
+    {
+     "idtparms:signature_key_id_primary", "sigkidp",
+     TRAIT_TYPE_STRING, {true, false, false, true},
+    }
 };
 
 const trait_key_mapping_t RESOURCE_JES_KEY_MAP[]{

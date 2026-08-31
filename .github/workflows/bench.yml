@@ -1,0 +1,27 @@
+name: Benchmark Test
+on: [pull_request]
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Dependencies
+        run: sudo apt-get install -y clang cmake
+
+      - name: Benchmark test
+        run: |
+          cmake --preset linux-bench -DBUILD_SHARED_LIBS=on
+          cmake --build --preset linux-bench --target sear
+          cmake --build --preset linux-bench --target bench_runner
+
+      - name: Run Benchmarks
+        run: ./build/linux/bench_runner > benchmark_results.json
+
+      - name: Generate Job Summary
+        run: |
+          echo "### 🚀 Benchmark Results" >> $GITHUB_STEP_SUMMARY
+          echo "| Benchmark | Avg Time (ms) | Memory Growth (KB) |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------|----------------|---------------------|" >> $GITHUB_STEP_SUMMARY
+          jq -r '.[] | "| \(.name) | \(.avg_time_ms) | \(.mem_growth_kb) |"' benchmark_results.json >> $GITHUB_STEP_SUMMARY

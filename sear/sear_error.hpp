@@ -4,6 +4,7 @@
 #include <exception>
 #include <iostream>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace SEAR {
@@ -13,7 +14,7 @@ class SEARError : public std::exception {
 
  public:
   explicit SEARError(const std::vector<std::string>& errors);
-  explicit SEARError(const std::string& error);
+  explicit SEARError(std::string_view error);
   const std::vector<std::string>& getErrors() const;
 };
 }  // namespace SEAR

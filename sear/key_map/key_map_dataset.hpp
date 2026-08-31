@@ -116,7 +116,7 @@ const trait_key_mapping_t DATASET_BASE_SEGMENT_MAP[]{
      },
     {
      "base:model_profile_generic", "fgeneric",
-     TRAIT_TYPE_STRING,  {true, false, false, false},
+     TRAIT_TYPE_BOOLEAN,  {true, false, false, false},
      },
     {
      "base:tape_dataset_file_sequence_number",  "fileseq",
@@ -172,7 +172,7 @@ const trait_key_mapping_t DATASET_BASE_SEGMENT_MAP[]{
      },
     {
      "base:dataset_model_profile",    "model",
-     TRAIT_TYPE_STRING,  {true, false, false, false},
+     TRAIT_TYPE_BOOLEAN,  {true, false, false, false},
      },
     {
      "base:notify_userid",   "notify",
@@ -203,12 +203,16 @@ const trait_key_mapping_t DATASET_BASE_SEGMENT_MAP[]{
      TRAIT_TYPE_STRING,   {true, false, false, true},
      },
     {
+     "base:statistics", "stats",
+     TRAIT_TYPE_BOOLEAN, {false, false, false, false},
+     },
+    {
      "base:racf_indicated_dataset",      "set",
-     TRAIT_TYPE_STRING,   {true, false, false, true},
+     TRAIT_TYPE_BOOLEAN,   {true, false, false, true},
      },
     {
      "base:create_only_tape_vtoc_entry",  "setonly",
-     TRAIT_TYPE_STRING,  {true, false, false, false},
+     TRAIT_TYPE_BOOLEAN,   {true, false, false, false},
      },
     {
      "base:use_tape_dataset_profile",     "tape",
@@ -249,6 +253,10 @@ const trait_key_mapping_t DATASET_CSDATA_KEY_MAP[]{
 
 const trait_key_mapping_t DATASET_DFP_KEY_MAP[]{
     {
+     "dfp:encryption_type", "enctypes",
+     TRAIT_TYPE_STRING, {true, true, true, true},
+     },
+    {
      "dfp:owner", "resowner",
      TRAIT_TYPE_STRING, {false, false, false, false},
      },
@@ -260,8 +268,12 @@ const trait_key_mapping_t DATASET_DFP_KEY_MAP[]{
 
 const trait_key_mapping_t DATASET_TME_KEY_MAP[]{
     {
-     "tme:roles", "roles",
-     TRAIT_TYPE_STRING, {false, false, false, false},
+    "tme:role", "roles",
+    TRAIT_TYPE_STRING, {true, true, true, true},
+    },
+    {
+    "tme:roles", "rolen",
+    TRAIT_TYPE_REPEAT, {false, false, false, false},
      }
 };
 

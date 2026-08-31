@@ -1,5 +1,7 @@
 #include "keyring_post_processor.hpp"
 
+#include <cstring>
+
 namespace SEAR {
 void KeyringPostProcessor::postProcessExtractKeyring(SecurityRequest &request) {
   nlohmann::json keyring;
@@ -47,7 +49,7 @@ void KeyringPostProcessor::postProcessExtractKeyring(SecurityRequest &request) {
       std::memset(&union_work.RACF_user_id[0], 0, 9);
       help_len = *work;
       work++;
-      std::strncpy(&union_work.RACF_user_id[0], work, help_len);
+      std::memcpy(&union_work.RACF_user_id[0], work, help_len);
       __e2a_l(&union_work.RACF_user_id[0], help_len);
       repeat_group_certs[j]["owner"] = union_work.RACF_user_id;
       work += help_len;
@@ -55,7 +57,7 @@ void KeyringPostProcessor::postProcessExtractKeyring(SecurityRequest &request) {
       std::memset(&union_work.label[0], 0, 256);
       help_len = *work;
       work++;
-      std::strncpy(&union_work.label[0], work, help_len);
+      std::memcpy(&union_work.label[0], work, help_len);
       __e2a_l(&union_work.label[0], help_len);
       repeat_group_certs[j]["label"] = union_work.label;
       work += help_len;
@@ -77,6 +79,7 @@ void KeyringPostProcessor::postProcessExtractKeyring(SecurityRequest &request) {
           OPENSSL_free(lpDN);
           lpDN = nullptr;
         } else {
+          X509_NAME_free(x509_name_out);
           throw SEARError(std::string("X509_NAME_oneline failed"));
         }
         X509_NAME_free(x509_name_out);
@@ -132,39 +135,39 @@ void KeyringPostProcessor::postProcessExtractKeyring(SecurityRequest &request) {
         repeat_group_certs[j]["version"] = version;
 
         // Serial number
-        const ASN1_INTEGER *serial = X509_get_serialNumber(x509_cert);
+        const ASN1_INTEGER *serial = X509_get0_serialNumber(x509_cert);
         repeat_group_certs[j]["serialNumber"] =
-            strToHex(serial->data, serial->length);
+            strToHex(ASN1_STRING_get0_data(serial), ASN1_STRING_length(serial));
 
         // Issuer
-        x509_name_out = X509_get_issuer_name(x509_cert);
-        if (x509_name_out) {
-          char *lpDN = X509_NAME_oneline(x509_name_out, 0, 0);
+        const X509_NAME *issuer_name = X509_get_issuer_name(x509_cert);
+        if (issuer_name) {
+          char *lpDN = X509_NAME_oneline(issuer_name, 0, 0);
           if (lpDN) {
             repeat_group_certs[j]["issuer"] = lpDN;
             OPENSSL_free(lpDN);
             lpDN = nullptr;
           } else {
+            X509_free(x509_cert);
             throw SEARError(std::string("X509_NAME_oneline failed"));
           }
         } else {
+          X509_free(x509_cert);
           throw SEARError(std::string("X509_get_issuer_name failed"));
         }
 
         // Validity
-        ASN1_TIME *not_before = X509_get_notBefore(x509_cert);
+        const ASN1_TIME *not_before = X509_get0_notBefore(x509_cert);
         if (not_before) {
           convertASN1TIME(not_before, &union_work.datestr[0],
                           sizeof(union_work.datestr));
           repeat_group_certs[j]["notBefore"] = union_work.datestr;
-          ASN1_STRING_free(not_before);
         }
-        ASN1_TIME *not_after = X509_get_notAfter(x509_cert);
+        const ASN1_TIME *not_after = X509_get0_notAfter(x509_cert);
         if (not_after) {
           convertASN1TIME(not_after, &union_work.datestr[0],
                           sizeof(union_work.datestr));
           repeat_group_certs[j]["notAfter"] = union_work.datestr;
-          ASN1_STRING_free(not_after);
         }
 
         // Hash's
@@ -181,7 +184,7 @@ void KeyringPostProcessor::postProcessExtractKeyring(SecurityRequest &request) {
         if (p_ext_stack) {
           for (int k = 0; k < sk_X509_EXTENSION_num(p_ext_stack); k++) {
             X509_EXTENSION *p_ext = sk_X509_EXTENSION_value(p_ext_stack, k);
-            ASN1_OBJECT *p_obj    = X509_EXTENSION_get_object(p_ext);
+            const ASN1_OBJECT *p_obj    = X509_EXTENSION_get_object(p_ext);
 
             unsigned int nid      = OBJ_obj2nid(p_obj);
 
@@ -194,8 +197,7 @@ void KeyringPostProcessor::postProcessExtractKeyring(SecurityRequest &request) {
 
             if (nid == NID_undef) {
               char extname[256];
-              OBJ_obj2txt(extname, sizeof(extname),
-                          reinterpret_cast<ASN1_OBJECT *>(p_obj), 1);
+              OBJ_obj2txt(extname, sizeof(extname), p_obj, 1);
               repeat_group_extensions[k]["name"] = extname;
             } else {
               const char *p_extname = OBJ_nid2sn(nid);
@@ -223,17 +225,13 @@ void KeyringPostProcessor::postProcessExtractKeyring(SecurityRequest &request) {
 
               repeat_group_extensions[k]["name"] = p_extname;
             }
-
-            ASN1_OBJECT_free(p_obj);
-
-            X509_EXTENSION_free(p_ext);
           }
 
           repeat_group_certs[j]["extensions"] = repeat_group_extensions;
           repeat_group_extensions.clear();
         }
 
-        OPENSSL_free(x509_cert);
+        X509_free(x509_cert);
       }
 
       cert_index++;
@@ -246,7 +244,7 @@ void KeyringPostProcessor::postProcessExtractKeyring(SecurityRequest &request) {
   request.setIntermediateResultJSON(keyring);
 }
 
-void KeyringPostProcessor::convertASN1TIME(ASN1_TIME *t, char *p_buf,
+void KeyringPostProcessor::convertASN1TIME(const ASN1_TIME *t, char *p_buf,
                                            size_t buf_len) {
   int rc;
 
@@ -272,11 +270,15 @@ bool KeyringPostProcessor::addSignature(nlohmann::json &add_to_json,
 
   X509_get0_signature(&asn1_sig, &sig_type, x509_cert);
 
+  const ASN1_OBJECT *sig_obj = nullptr;
+  X509_ALGOR_get0(&sig_obj, nullptr, nullptr, sig_type);
+
   char algo[128];
-  OBJ_obj2txt(algo, sizeof(algo), sig_type->algorithm, 0);
+  OBJ_obj2txt(algo, sizeof(algo), sig_obj, 0);
 
   signature["algorithm"]   = algo;
-  signature["value"]       = strToHex(asn1_sig->data, asn1_sig->length);
+  signature["value"]       = strToHex(ASN1_STRING_get0_data(asn1_sig),
+                                      ASN1_STRING_length(asn1_sig));
 
   add_to_json["signature"] = signature;
 
@@ -349,8 +351,13 @@ bool KeyringPostProcessor::addUsages(nlohmann::json &add_to_json,
   ASN1_BIT_STRING *usage =
       reinterpret_cast<ASN1_BIT_STRING *>(X509V3_EXT_d2i(p_ext));
 
-  int flags = usage->data[0];
-  if (usage->length > 1) flags |= usage->data[1] << 8;
+  const unsigned char *usage_data = ASN1_STRING_get0_data(usage);
+  int usage_length                = ASN1_STRING_length(usage);
+
+  int flags = usage_data[0];
+  if (usage_length > 1) flags |= usage_data[1] << 8;
+
+  ASN1_BIT_STRING_free(usage);
 
   if (flags & X509v3_KU_DIGITAL_SIGNATURE)
     repeat_group_usages.push_back("digitalSignature");
@@ -415,25 +422,28 @@ bool KeyringPostProcessor::addSubjectAltName(nlohmann::json &add_to_json,
     if (name->type == GEN_DNS) {
       repeat_group_altnames.push_back(nlohmann::json::object());
 
+      const unsigned char *dns_name = ASN1_STRING_get0_data(name->d.dNSName);
+      int dns_name_length           = ASN1_STRING_length(name->d.dNSName);
       repeat_group_altnames[l]["type"] = "DNS";
-      repeat_group_altnames[l]["name"] =
-          reinterpret_cast<char *>(name->d.dNSName->data);
+      repeat_group_altnames[l]["name"] = std::string(
+          reinterpret_cast<const char *>(dns_name), dns_name_length);
     } else if (name->type == GEN_IPADD) {
       repeat_group_altnames.push_back(nlohmann::json::object());
 
-      if (name->d.iPAddress->length == 4) {
-        std::sprintf(&name_buffer[0], "%d.%d.%d.%d", name->d.iPAddress->data[0],
-                     name->d.iPAddress->data[1], name->d.iPAddress->data[2],
-                     name->d.iPAddress->data[3]);
+      const unsigned char *ip_address = ASN1_STRING_get0_data(name->d.iPAddress);
+      int ip_address_length           = ASN1_STRING_length(name->d.iPAddress);
+      if (ip_address_length == 4) {
+        std::snprintf(&name_buffer[0], sizeof(name_buffer), "%d.%d.%d.%d",
+                      ip_address[0], ip_address[1], ip_address[2],
+                      ip_address[3]);
         repeat_group_altnames[l]["type"] = "IPv4";
         repeat_group_altnames[l]["name"] = name_buffer;
-      } else if (name->d.iPAddress->length == 16) {
-        std::sprintf(&name_buffer[0],
-                     "%4.4X:%4.4X:%4.4X:%4.4X:%4.4X:%4.4X:%4.4X:%4.4X",
-                     name->d.iPAddress->data[0], name->d.iPAddress->data[1],
-                     name->d.iPAddress->data[2], name->d.iPAddress->data[3],
-                     name->d.iPAddress->data[4], name->d.iPAddress->data[5],
-                     name->d.iPAddress->data[6], name->d.iPAddress->data[7]);
+      } else if (ip_address_length == 16) {
+        std::snprintf(&name_buffer[0], sizeof(name_buffer),
+                      "%4.4X:%4.4X:%4.4X:%4.4X:%4.4X:%4.4X:%4.4X:%4.4X",
+                      ip_address[0], ip_address[1], ip_address[2],
+                      ip_address[3], ip_address[4], ip_address[5],
+                      ip_address[6], ip_address[7]);
         repeat_group_altnames[l]["type"] = "IPv6";
         repeat_group_altnames[l]["name"] = name_buffer;
       }
@@ -491,23 +501,15 @@ bool KeyringPostProcessor::addGenericExtension(nlohmann::json &add_to_json,
 
   X509V3_EXT_print(ext_bio, p_ext, 0, 0);
 
-  BUF_MEM *bptr;
+  char *bio_data  = nullptr;
+  long bio_length = BIO_get_mem_data(ext_bio, &bio_data);
 
-  BIO_get_mem_ptr(ext_bio, &bptr);
-  BIO_set_close(ext_bio, BIO_NOCLOSE);
-
-  int lastchar = bptr->length;
-  if (lastchar > 1 &&
-      (bptr->data[lastchar - 2] == '\n' || bptr->data[lastchar - 2] == '\r')) {
-    bptr->data[lastchar - 2] = 0;
-  } else if (lastchar > 0 && (bptr->data[lastchar - 1] == '\n' ||
-                              bptr->data[lastchar - 1] == '\r')) {
-    bptr->data[lastchar - 1] = 0;
-  } else {
-    bptr->data[lastchar] = 0;
+  std::string value(bio_data, bio_length);
+  while (!value.empty() && (value.back() == '\n' || value.back() == '\r')) {
+    value.pop_back();
   }
 
-  add_to_json["value"] = bptr->data;
+  add_to_json["value"] = value;
 
   BIO_free_all(ext_bio);
 

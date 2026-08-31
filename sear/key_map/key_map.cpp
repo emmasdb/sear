@@ -2,7 +2,11 @@
 
 #include <stdio.h>
 
+#include <algorithm>
+#include <cctype>
 #include <cstring>
+#include <string>
+#include <string_view>
 
 static const trait_key_mapping_t *get_key_mapping(
     const char *profile_type,  // The profile type (i.e., 'user')
@@ -42,12 +46,16 @@ const char *get_racf_key(const char *profile_type, const char *segment,
   return key_mapping->racf_key;
 }
 
-const char get_trait_type(const std::string &profile_type,
-                          const std::string &segment,
-                          const std::string &sear_key) {
+const char get_trait_type(std::string_view profile_type,
+                          std::string_view segment,
+                          std::string_view sear_key) {
+  std::string profile_type_string{profile_type};
+  std::string segment_string{segment};
+  std::string sear_key_string{sear_key};
   const trait_key_mapping_t *key_mapping =
-      get_key_mapping(profile_type.c_str(), segment.c_str(), nullptr,
-                      sear_key.c_str(), TRAIT_TYPE_NULL, OPERATOR_ANY, false);
+      get_key_mapping(profile_type_string.c_str(), segment_string.c_str(),
+                      nullptr, sear_key_string.c_str(), TRAIT_TYPE_NULL,
+                      OPERATOR_ANY, false);
   if (key_mapping == nullptr) {
     return TRAIT_TYPE_BAD;
   }
@@ -153,22 +161,24 @@ static bool check_trait_operator(int8_t trait_operator,
   }
 }
 
-int8_t map_operator(std::string trait_operator) {
+int8_t map_operator(std::string_view trait_operator) {
   if (trait_operator.empty()) {
     return OPERATOR_ANY;
   }
-  std::transform(trait_operator.begin(), trait_operator.end(),
-                 trait_operator.begin(), ::tolower);
-  if (trait_operator == "set") {
+  std::string normalized_operator{trait_operator};
+  std::transform(normalized_operator.begin(), normalized_operator.end(),
+                 normalized_operator.begin(),
+                 [](unsigned char c) { return std::tolower(c); });
+  if (normalized_operator == "set") {
     return OPERATOR_SET;
   }
-  if (trait_operator == "add") {
+  if (normalized_operator == "add") {
     return OPERATOR_ADD;
   }
-  if (trait_operator == "remove") {
+  if (normalized_operator == "remove") {
     return OPERATOR_REMOVE;
   }
-  if (trait_operator == "delete") {
+  if (normalized_operator == "delete") {
     return OPERATOR_DELETE;
   }
   return OPERATOR_BAD;
@@ -181,7 +191,7 @@ int8_t map_trait_type(const nlohmann::json &trait) {
   if (trait.is_boolean()) {
     return TRAIT_TYPE_BOOLEAN;
   }
-  if (trait.is_string() or trait.is_array()) {
+  if (trait.is_string() || trait.is_array()) {
     return TRAIT_TYPE_STRING;
   }
   if (trait.is_number_unsigned()) {

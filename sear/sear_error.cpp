@@ -8,7 +8,8 @@ SEARError::SEARError(const std::vector<std::string>& errors) : errors_(errors) {
                 [](std::string& error) { error = "sear: " + error; });
 }
 
-SEARError::SEARError(const std::string& error) : errors_({"sear: " + error}) {}
+SEARError::SEARError(std::string_view error)
+  : errors_({"sear: " + std::string(error)}) {}
 
 const std::vector<std::string>& SEARError::getErrors() const { return errors_; }
 

@@ -18,6 +18,12 @@ class ProfilePostProcessor {
 
  private:
   static void postprocessRRSFOffsetField(nlohmann::json &profile, const std::string &key, const char *p_profile, int offset);
+  static void postprocessRRSFDirectionFlags(nlohmann::json &profile,
+                                            const std::string &key,
+                                            uint8_t flags);
+  static void postprocessRRSFSetSettings(nlohmann::json &profile,
+                                         const std::string &key,
+                                         const racf_rrsf_set_settings_t *settings);
   static void processGenericField(nlohmann::json &json_field,
                                   const generic_field_descriptor_t *p_field,
                                   const char *p_profile,

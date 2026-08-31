@@ -104,14 +104,19 @@ def main():
 
     assembled_object_path = cwd / "artifacts" / "irrseq00.o"
     generate_json_schema_header()
+    sear_cpp_sources = [
+        source for source in glob("sear/**/*.cpp")
+        if Path(source).parts[:2] != ("sear", "nodejs")
+    ]
     setup_args = {
         "ext_modules": [
             Extension(
                 "sear._C",
                 sources=(
-                    glob("sear/**/*.cpp")
+                    sear_cpp_sources
                     + glob("sear/*.cpp")
                     + glob("externals/json-schema-validator/*.cpp")
+                    + glob("externals/pugixml/*.cpp")
                     + ["sear/python/_sear.c"]
                 ),
                 include_dirs=(
@@ -120,6 +125,7 @@ def main():
                         "sear",
                         "externals/json",
                         "externals/json-schema-validator",
+                        "externals/pugixml",
                         "externals/iconv",
                         openssl_include_path,
                     ]

@@ -20,6 +20,12 @@
 #     cmake --preset linux-test -DBUILD_SHARED_LIBS=on                 #
 #     cmake --build --preset linux-test --target sear                  #
 #     cmake --build --preset linux-test --target test_runner           #
+#                                                                      #   
+# - bench_runner                                                       #
+#   - as a stand alone executable (that requires libsear.so)           #
+#     cmake --preset linux-bench -DBUILD_SHARED_LIBS=on                #
+#     cmake --build --preset linux-bench --target sear                 #
+#     cmake --build --preset linux-bench --target bench_runner         #
 #                                                                      #
 # - debug                                                              #
 #   - as a stand alone executable                                      #
@@ -50,6 +56,8 @@ option(SEAR_ENABLE_PYTHON "Enables building the Python language module." OFF)
 
 # This option is used on Linux to build SEAR with mocked unit tests
 option(SEAR_UNIT_TEST "Builds tests" OFF)
+
+option(SEAR_BUILD_BENCHMARKS "Build performance benchmarks" OFF)
 
 find_package(OpenSSL REQUIRED)
 
@@ -103,6 +111,8 @@ add_library(
     externals/json-schema-validator/json-validator.cpp
     externals/json-schema-validator/smtp-address-validator.cpp
     externals/json-schema-validator/string-format-check.cpp
+
+    externals/pugixml/pugixml.cpp
 )
 # SEAR's include directories
 target_include_directories(
@@ -116,6 +126,7 @@ target_include_directories(
     externals/json
     externals/json-schema-validator
     externals/iconv
+    externals/pugixml
     # tests/zoslib include directory only needed on Linux build
     "${ZOSLIB_INCLUDE}"
     # add generated header to include path
@@ -183,6 +194,7 @@ target_include_directories(
     externals/json
     externals/json-schema-validator
     externals/iconv
+    externals/pugixml
     tests/irrsdl00
     tests/zoslib
 )
@@ -192,6 +204,37 @@ target_compile_definitions(test_runner PUBLIC UNIT_TEST UNITY_OUTPUT_COLOR)
 target_compile_options(test_runner PUBLIC "${DEBUGFLAG}")
 # Create the test_runner target
 target_link_libraries(test_runner PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/libsear.so")
+
+if (SEAR_BUILD_BENCHMARKS)
+    # Benchmark executable
+    add_executable(
+        bench_runner
+        tests/bench_runner.cpp
+        tests/unit_test_utilities.cpp
+        tests/unity/unity.c
+        tests/mock/irrsdl64.cpp
+        tests/mock/irrseq00.cpp
+        tests/mock/irrsmo64.cpp
+        tests/zoslib/zoslib.cpp
+    )
+    # bench_runner's include directories
+    target_include_directories(
+        bench_runner PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        sear
+        sear/irrsdl00
+        sear/irrseq00
+        sear/irrsmo00
+        externals/json
+        externals/pugixml
+        tests/zoslib
+    )
+
+    target_compile_options(bench_runner PUBLIC -O3)
+    target_compile_definitions(bench_runner PUBLIC BENCHMARK_MODE)
+    # Create the bench_runner target
+    target_link_libraries(bench_runner PRIVATE sear OpenSSL::SSL)
+endif()
 
 # The debug executable
 add_executable(
@@ -273,6 +316,8 @@ add_executable(
     externals/json-schema-validator/json-validator.cpp
     externals/json-schema-validator/smtp-address-validator.cpp
     externals/json-schema-validator/string-format-check.cpp
+
+    externals/pugixml/pugixml.cpp
 )
 # fuzz's include directories
 target_include_directories(
@@ -287,6 +332,7 @@ target_include_directories(
     externals/json
     externals/json-schema-validator
     externals/iconv
+    externals/pugixml
     tests/irrsdl00
     tests/zoslib
     "${CMAKE_CURRENT_BINARY_DIR}/sear"

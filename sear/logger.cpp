@@ -24,7 +24,7 @@ Logger& Logger::getInstance() {
 
 void Logger::setDebug(bool debug) { debug_ = debug; }
 
-void Logger::debug(const std::string& message, const std::string& body) const {
+void Logger::debug(std::string_view message, std::string_view body) const {
   if (!debug_) {
     return;
   }
@@ -109,8 +109,8 @@ void Logger::hexDump(const char* p_buffer, int length) const {
       }
     } else {
       if (isatty(fileno(stdout))) {
-        if (decoded_unique_ptr.get()[i] == '\t' or
-            decoded_unique_ptr.get()[i] == '\r' or
+        if (decoded_unique_ptr.get()[i] == '\t' ||
+            decoded_unique_ptr.get()[i] == '\r' ||
             decoded_unique_ptr.get()[i] == '\n') {
           hex_stream << ansi_bright_yellow_;
           decoded_stream << ansi_bright_yellow_ << '.' << ansi_reset_;

@@ -17,6 +17,37 @@
 #include "xml_parser.hpp"
 
 namespace SEAR {
+#ifdef SEAR_NODEJS_BUILD
+static bool handle_nodejs_duplicate_add_result(SecurityRequest &request) {
+  const nlohmann::json &results = request.getIntermediateResultJSON();
+  if (request.getOperation() != "add" || results.contains("command") ||
+      results.contains("error") || results.contains("errors")) {
+    return false;
+  }
+
+  const std::string &admin_type = request.getAdminType();
+  if (admin_type != "user" && admin_type != "group" &&
+      admin_type != "dataset" && admin_type != "resource") {
+    return false;
+  }
+
+  request.setSEARReturnCode(4);
+  const std::string &profile_name = request.getProfileName();
+  const std::string &class_name = request.getClassName();
+  if (class_name.empty()) {
+    request.setErrors({"sear: unable to add '" + profile_name +
+                       "' because a '" + admin_type +
+                       "' profile already exists with that name"});
+  } else {
+    request.setErrors({"sear: unable to add '" + profile_name + "' in the '" +
+                       class_name + "' class because a '" + admin_type +
+                       "' profile already exists in the '" + class_name +
+                       "' class with that name"});
+  }
+  return true;
+}
+#endif
+
 SecurityAdmin::SecurityAdmin(sear_result_t *p_result, bool debug) {
   Logger::getInstance().setDebug(debug);
   request_ = SecurityRequest(p_result);
@@ -26,13 +57,11 @@ void SecurityAdmin::makeRequest(const char *p_request_json_string, int length) {
   nlohmann::json request_json;
 
   try {
-    // Ensure Request JSON is a NULL terminated string.
-    auto request_json_unique_ptr = std::make_unique<char[]>(length + 1);
-    std::memset(request_json_unique_ptr.get(), 0, length + 1);
-    std::strncpy(request_json_unique_ptr.get(), p_request_json_string, length);
+    std::string request_str(p_request_json_string, length);
+
     // Parse Request JSON
     try {
-      request_json = nlohmann::json::parse(request_json_unique_ptr.get());
+      request_json = nlohmann::json::parse(request_str);
     } catch (const nlohmann::json::parse_error &ex) {
       request_.setSEARReturnCode(8);
       throw SEARError(std::string("Syntax error in request JSON at byte ") +
@@ -131,9 +160,9 @@ void SecurityAdmin::doAddAlterDelete() {
   const std::string &admin_type   = request_.getAdminType();
   const std::string &profile_name = request_.getProfileName();
   const std::string &class_name   = request_.getClassName();
-  if ((operation == "alter") and
-      ((admin_type == "group") or (admin_type == "user") or
-       (admin_type == "dataset") or (admin_type == "resource"))) {
+  if ((operation == "alter") &&
+      ((admin_type == "group") || (admin_type == "user") ||
+       (admin_type == "dataset") || (admin_type == "resource"))) {
     Logger::getInstance().debug("Verifying that profile existis for alter ...");
     if (!irrsmo00.does_profile_exist(request_)) {
       request_.setSEARReturnCode(8);
@@ -149,16 +178,19 @@ void SecurityAdmin::doAddAlterDelete() {
 
     // Since the profile exists check was successful,
     // we can clean up the preserved result information.
-    Logger::getInstance().debugFree(request_.getRawRequestPointer());
-    std::free(request_.getRawRequestPointer());
-    Logger::getInstance().debug("Done");
-    request_.setRawRequestPointer(nullptr);
-    request_.setRawRequestLength(0);
-    Logger::getInstance().debugFree(request_.getRawResultPointer());
-    std::free(request_.getRawResultPointer());
-    Logger::getInstance().debug("Done");
-    request_.setRawResultPointer(nullptr);
-    request_.setRawResultLength(0);
+    if (void *req_ptr = request_.getRawRequestPointer()) {
+      Logger::getInstance().debugFree(req_ptr);
+      delete[] static_cast<char *>(req_ptr);
+      request_.setRawRequestPointer(nullptr);
+      request_.setRawRequestLength(0);
+    }
+
+    if (void *res_ptr = request_.getRawResultPointer()) {
+      Logger::getInstance().debugFree(res_ptr);
+      delete[] static_cast<char *>(res_ptr);
+      request_.setRawResultPointer(nullptr);
+      request_.setRawResultLength(0);
+    }
 
     Logger::getInstance().debug("Done");
   }
@@ -171,11 +203,28 @@ void SecurityAdmin::doAddAlterDelete() {
   Logger::getInstance().debug("Done");
 
   // Parse Result
-  XMLParser parser;
-  request_.setIntermediateResultJSON(parser.buildJSONString(request_));
+  request_.setIntermediateResultJSON(XMLParser::buildJSONString(request_));
 
   // Post-Process Result
+#ifdef SEAR_NODEJS_BUILD
+  if (!handle_nodejs_duplicate_add_result(request_)) {
+    irrsmo00.post_process_smo_json(request_);
+  }
+#else
   irrsmo00.post_process_smo_json(request_);
+#endif
+
+  if (void *final_req = request_.getRawRequestPointer()) {
+    delete[] static_cast<char *>(final_req);
+    request_.setRawRequestPointer(nullptr);
+    request_.setRawRequestLength(0);
+  }
+
+  if (void *final_res = request_.getRawResultPointer()) {
+    delete[] static_cast<char *>(final_res);
+    request_.setRawResultPointer(nullptr);
+    request_.setRawResultLength(0);
+  }
 
   Logger::getInstance().debug("Done");
 }

@@ -2,7 +2,9 @@
 #define __SEAR_XML_GENERATOR_H_
 
 #include <nlohmann/json.hpp>
+#include <pugixml.hpp>
 #include <string>
+#include <string_view>
 
 #include "logger.hpp"
 #include "security_request.hpp"
@@ -11,26 +13,21 @@ namespace SEAR {
 // XMLGenerator Generates an XML String from a JSON string
 class XMLGenerator {
  private:
-  std::string xml_string_;
-  static std::string replaceXMLChars(std::string data);
-  void buildOpenTag(std::string tag);
-  void buildMetaTag();
-  void buildAttribute(std::string name, std::string value);
-  void buildValue(std::string value);
-  void buildEndNestedTag();
-  void buildFullCloseTag(std::string tag);
-  void buildCloseTagNoValue();
-  void buildSingleTrait(const std::string& tag, const std::string& operation,
-                        const std::string& value);
-  void buildXMLHeaderAttributes(const SEAR::SecurityRequest& request,
-                                const std::string& true_admin_type);
-  void buildRequestData(const std::string& true_admin_type,
-                        const std::string& admin_type,
-                        nlohmann::json request_data);
-  static std::string convertOperation(const std::string& operation);
-  static std::string convertOperator(const std::string& trait_operator);
-  static std::string convertAdminType(const std::string& admin_type);
+  static std::string convertOperation(std::string_view operation);
+  static std::string convertOperator(std::string_view trait_operator);
+  static std::string convertAdminType(std::string_view admin_type);
   std::string JSONValueToString(const nlohmann::json& trait);
+  void buildPugixmlHeaderAttributes(pugi::xml_node& node,
+                                    const SEAR::SecurityRequest& request,
+                                    std::string_view true_admin_type);
+  void buildPugixmlRequestData(pugi::xml_node& node,
+                               std::string_view true_admin_type,
+                               std::string_view admin_type,
+                               nlohmann::json request_data);
+  static void buildPugixmlSingleTrait(pugi::xml_node& node,
+                                      std::string_view tag,
+                                      std::string_view operation,
+                                      std::string_view value);
 
  public:
   void buildXMLString(SEAR::SecurityRequest& request);

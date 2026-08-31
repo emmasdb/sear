@@ -261,21 +261,34 @@ const uint8_t RRSF_DIRECTION_FLAG_NOTIFICATION_ACTIVE = 0x80;
 const uint8_t RRSF_DIRECTION_FLAG_OUTPUT_ACTIVE       = 0x40;
 
 // RRSF bit flags
-const uint32_t RRSF_SET_AUTODIRECT_ACTIVE       = 0x80000000;
-const uint32_t RRSF_SET_AUTO_PASSWORD_DIRECTION = 0x40000000;
-const uint32_t RRSF_SET_PASSWORD_SYNC_ACTIVE    = 0x20000000;
-const uint32_t RRSF_SET_AUTODIRECT_APP_UPDATES  = 0x10000000;
-const uint32_t RRSF_FULLRRSFCOMM_ACTIVE         = 0x08000000;
-const uint32_t RRSF_SET_TRACE_IMAGE_ACTIVE      = 0x04000000;
-const uint32_t RRSF_SET_TRACE_APPC_ACTIVE       = 0x02000000;
-const uint32_t RRSF_SET_TRACE_SSL_ACTIVE        = 0x01000000;
-const uint32_t RRSF_SET_TRACE_RRSF_ACTIVE       = 0x00800000;
-const uint32_t RRSF_NOT_ENOUGH_SPACE            = 0x00400000;
-const uint32_t RRSF_NOT_AUTHORIZED_SET_LIST     = 0x00200000;
-const uint32_t RRSF_NOT_AUTHORIZED_TARGET_LIST  = 0x00100000;
-const uint32_t RRSF_TRUSTED_ATTRIBUTE           = 0x00080000;
+const uint32_t RRSF_SET_AUTODIRECT_ACTIVE           = 0x80000000;
+const uint32_t RRSF_SET_AUTO_PASSWORD_DIRECTION     = 0x40000000;
+const uint32_t RRSF_SET_PASSWORD_SYNC_ACTIVE        = 0x20000000;
+const uint32_t RRSF_SET_AUTODIRECT_APP_UPDATES      = 0x10000000;
+const uint32_t RRSF_FULL_RRSF_COMMUNICATION_ACTIVE  = 0x08000000;
+const uint32_t RRSF_SET_TRACE_IMAGE_ACTIVE          = 0x04000000;
+const uint32_t RRSF_SET_TRACE_APPC_ACTIVE           = 0x02000000;
+const uint32_t RRSF_SET_TRACE_SSL_ACTIVE            = 0x01000000;
+const uint32_t RRSF_SET_TRACE_RRSF_ACTIVE           = 0x00800000;
+const uint32_t RRSF_NOT_ENOUGH_SPACE                = 0x00400000;
+const uint32_t RRSF_NOT_AUTHORIZED_SET_LIST         = 0x00200000;
+const uint32_t RRSF_NOT_AUTHORIZED_TARGET_LIST      = 0x00100000;
+const uint32_t RRSF_TRUSTED_ATTRIBUTE               = 0x00080000;
 // And lastly the little prep school kid
-const uint32_t RRSF_PRIVILEGED_ATTRIBUTE        = 0x00040000;
+const uint32_t RRSF_PRIVILEGED_ATTRIBUTE            = 0x00040000;
+
+// RRSF node definition bit flags
+const uint32_t RRSF_NODE_LOCAL                       = 0x80000000;
+const uint32_t RRSF_NODE_MULTISYSTEM_NODE            = 0x40000000;
+const uint32_t RRSF_NODE_MAIN_NODE                   = 0x20000000;
+const uint32_t RRSF_NODE_INMSG_ALLOCATED             = 0x10000000;
+const uint32_t RRSF_NODE_OUTMSG_ALLOCATED            = 0x08000000;
+const uint32_t RRSF_NODE_INMSG2_ALLOCATED            = 0x04000000;
+const uint32_t RRSF_NODE_OUTMSG2_ALLOCATED           = 0x02000000;
+const uint32_t RRSF_NODE_OUTMSG_BEING_READ           = 0x01000000;
+const uint32_t RRSF_NODE_OUTMSG2_BEING_READ          = 0x00800000;
+const uint32_t RRSF_NODE_MSN_PENDING_EX_MAIN         = 0x00400000;
+const uint32_t RRSF_NODE_SECOND_PROTOCOL_NODE        = 0x00200000;
 
 typedef struct {
   uint32_t length;
@@ -324,10 +337,10 @@ typedef struct {
   uint32_t offset_tcpip_tls_rule;
   uint32_t offset_tcpip_cipher_policy;
   uint32_t offset_tcpip_certificate_user;
-  uint8_t offset_tcpip_client_authentication;
+  uint32_t offset_tcpip_client_authentication;
   uint8_t tcpip_listener_status;
-  uint16_t appc_listener_status;
-  uint16_t reserved[2];
+  uint8_t appc_listener_status;
+  uint16_t reserved_space2;
   uint32_t offset_appc_lu_name;
   uint32_t offset_appc_modename;
   uint32_t offset_appc_tp_name;

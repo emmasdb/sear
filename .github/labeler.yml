@@ -2,21 +2,48 @@ documentation:
   - changed-files:
     - any-glob-to-any-file: '**.md'
 
+meta:
+  - changed-files:
+    - any-glob-to-any-file:
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.vscode/**'
+      - '.github/labeler.yml'
+      - '.github/PULL_REQUEST_TEMPLATE.md'
+      - 'logo.svg'
+
 build:
   - changed-files:
-    - any-glob-to-any-file: 'pyproject.toml'
-    - any-glob-to-any-file: 'setup.py'
-    - any-glob-to-any-file: .github/**
-    - any-glob-to-any-file: '**.cmake'
-    - any-glob-to-any-file: 'CMakeLists.txt'
-    - any-glob-to-any-file: 'CMakePresets.json'
-    - any-glob-to-any-file: 'Makefile'
+    - any-glob-to-any-file:
+      - 'pyproject.toml'
+      - 'setup.py'
+      - '.github/workflows/**'
+      - 'cmake/**'
+      - '**.cmake'
+      - 'CMakeLists.txt'
+      - 'CMakePresets.json'
+      - 'Makefile'
+
+core:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'sear/**/*'
+      - 'schema.json'
 
 tests:
   - changed-files:
-    - any-glob-to-any-file: 'tests/**'
-    - any-glob-to-any-file: 'python_tests/**'
+    - any-glob-to-any-file:
+      - 'tests/**/*'
+      - 'python_tests/**'
+      - 'lua_tests/**'
+      - 'go_tests/**'
+      - 'java_tests/**'
 
 python:
   - changed-files:
     - any-glob-to-any-file: 'python/**.py'
+
+nodejs:
+  - changed-files:
+    - any-glob-to-any-file: 'nodejs/**.js'
+    - any-glob-to-any-file: 'nodejs/**.ts'
+    - any-glob-to-any-file: 'nodejs/**.d.ts'

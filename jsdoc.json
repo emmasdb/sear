@@ -1,0 +1,28 @@
+{
+  "source": {
+    "include": [
+      "nodejs/sear"
+    ],
+    "exclude": [
+      "nodejs/sear/test.js"
+    ],
+    "includePattern": ".+\\.js(doc|x)?$",
+    "excludePattern": "(^|\\/|\\\\)_"
+  },
+  "opts": {
+    "encoding": "utf8",
+    "destination": "./docs",
+    "recurse": true,
+    "templates": "node_modules/better-docs",
+    "readme": "nodejs/sear/README.md"
+  },
+  "templates": {
+    "better-docs": {},
+    "default": {
+      "staticFiles": {
+        "include": []
+      },
+      "includeDate": false
+    }
+  }
+}
