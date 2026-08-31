@@ -46,3 +46,10 @@ empty_return_codes_search = {
     "saf_return_code": 4,
     "sear_return_code": 4,
   }
+
+search_seartest_class_return_codes = {
+    "racf_reason_code": 12,
+    "racf_return_code": 4,
+    "saf_return_code": 4,
+    "sear_return_code": 4,
+  }

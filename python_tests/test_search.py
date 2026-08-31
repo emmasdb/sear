@@ -1,5 +1,5 @@
 
-from helper import successful_return_codes, empty_return_codes_search
+from helper import successful_return_codes, empty_return_codes_search, search_seartest_class_return_codes
 
 # Import SEAR
 from sear import sear
@@ -48,7 +48,7 @@ def test_search_resource_profiles_all():
             },
         )
     assert "errors" not in str(search_result.result)
-    assert search_result.result["return_codes"] == successful_return_codes
+    assert search_result.result["return_codes"] == search_seartest_class_return_codes
 
 def test_search_resource_profiles_filter(create_resources_in_search_class):
     """This test is supposed to succeed"""
