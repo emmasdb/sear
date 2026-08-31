@@ -208,11 +208,11 @@ const trait_key_mapping_t DATASET_BASE_SEGMENT_MAP[]{
      },
     {
      "base:racf_indicated_dataset",      "set",
-        TRAIT_TYPE_BOOLEAN,   {true, false, false, true},
+     TRAIT_TYPE_BOOLEAN,   {true, false, false, true},
      },
     {
      "base:create_only_tape_vtoc_entry",  "setonly",
-        TRAIT_TYPE_BOOLEAN,   {true, false, false, false},
+     TRAIT_TYPE_BOOLEAN,   {true, false, false, false},
      },
     {
      "base:use_tape_dataset_profile",     "tape",
