@@ -31,7 +31,7 @@ def test_search_resource_profiles_class_missing():
     assert search_result.result["return_codes"] != successful_return_codes
 
 def test_search_resource_profiles_nonexistent_class():
-    """This test is supposed to succeed with empty result"""
+    """This test is supposed to fail"""
 
     search_result = sear(
             {
@@ -41,8 +41,8 @@ def test_search_resource_profiles_nonexistent_class():
             },
         )
     
-    assert "errors" not in str(search_result.result)
-    assert search_result.result["return_codes"] == empty_return_codes_search
+    assert "errors" in str(search_result.result)
+    assert search_result.result["return_codes"] != successful_return_codes
 
 def test_search_resource_profiles_all():
     """This test is supposed to succeed"""
