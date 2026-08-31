@@ -240,11 +240,11 @@ def test_add_user_omvs_traits(delete_user):
     
     assert "errors" not in str(add_result.result)
     assert add_result.result["return_codes"] == successful_return_codes
-    assert type(extract_result.result["profile"]["base"]["omvs:uid"]) == int
-    assert type(extract_result.result["profile"]["base"]["omvs:max_files_per_process"]) == int
-    assert type(extract_result.result["profile"]["base"]["omvs:home_directory"]) == str
+    assert type(extract_result.result["profile"]["omvs"]["omvs:uid"]) == int
+    assert type(extract_result.result["profile"]["omvs"]["omvs:max_files_per_process"]) == int
+    assert type(extract_result.result["profile"]["omvs"]["omvs:home_directory"]) == str
     assert type(extract_result.result["profile"]["base"]["base:installation_data"]) == str
-    assert type(extract_result.result["profile"]["base"]["omvs:default_shell"]) == str
+    assert type(extract_result.result["profile"]["omvs"]["omvs:default_shell"]) == str
 
 def test_extract_user(create_user):
     """This test is supposed to succeed"""
