@@ -61,41 +61,17 @@ option(SEAR_BUILD_BENCHMARKS "Build performance benchmarks" OFF)
 
 find_package(OpenSSL REQUIRED)
 
-# If the SEAR_UNIT_TEST variable is ON, don't go look for ZOSLIB library,
-# add the tests/zoslib folder to sear include directories and skip the
-# assembly of irrseq00.s.
-if (SEAR_UNIT_TEST)
-    set(ZOSLIB "")
-    set(ZOSLIB_INCLUDE "tests/zoslib")
-    set(IRRSEQ00 "")
-    set(DEBUGFLAG "-g")
-else()
-    find_library(ZOSLIB libzoslib.a REQUIRED)
-    set(ZOSLIB_INCLUDE "")
-    set(IRRSEQ00 "sear/irrseq00/irrseq00.s")
-    set(DEBUGFLAG "")
-endif()
-
-# The library for SEAR
-add_library(
-    sear
-
+set(SEAR_SOURCES
     sear/irrsdl00/irrsdl00.cpp
     sear/irrsdl00/keyring_extractor.cpp
     sear/irrsdl00/keyring_modifier.cpp
     sear/irrsdl00/keyring_post_processor.cpp
-
-    # Assemblying irrseq00.s is dependent on the platform,
-    # it only works on Z
-    "${IRRSEQ00}"
     sear/irrseq00/profile_extractor.cpp
     sear/irrseq00/profile_post_processor.cpp
-
     sear/irrsmo00/irrsmo00_error.cpp
     sear/irrsmo00/irrsmo00.cpp
     sear/irrsmo00/xml_generator.cpp
     sear/irrsmo00/xml_parser.cpp
-
     sear/key_map/key_map.cpp
     sear/validation/trait_validation.cpp
     sear/logger.cpp
@@ -104,19 +80,16 @@ add_library(
     sear/security_admin.cpp
     sear/security_request.cpp
     sear/conversion.cpp
-
     externals/json-schema-validator/json-patch.cpp
     externals/json-schema-validator/json-schema-draft7.json.cpp
     externals/json-schema-validator/json-uri.cpp
     externals/json-schema-validator/json-validator.cpp
     externals/json-schema-validator/smtp-address-validator.cpp
     externals/json-schema-validator/string-format-check.cpp
-
     externals/pugixml/pugixml.cpp
 )
-# SEAR's include directories
-target_include_directories(
-    sear PUBLIC
+
+set(SEAR_INCLUDE_DIRS
     sear
     sear/irrsdl00
     sear/irrseq00
@@ -127,29 +100,45 @@ target_include_directories(
     externals/json-schema-validator
     externals/iconv
     externals/pugixml
-    # tests/zoslib include directory only needed on Linux build
-    "${ZOSLIB_INCLUDE}"
-    # add generated header to include path
-    "${CMAKE_CURRENT_BINARY_DIR}/sear"
 )
-# Extra defines for compiling SEAR
-target_compile_definitions(sear PUBLIC _POSIX_C_SOURCE=200112L)
-# Compile with debug, only on linux
-target_compile_options(sear PUBLIC "${DEBUGFLAG}")
 
-# Embed json schema into sear_schema.hpp
+set(SEAR_MOCK_SOURCES
+    tests/mock/irrsdl64.cpp
+    tests/mock/irrseq00.cpp
+    tests/mock/irrsmo64.cpp
+)
+
+set(TEST_SUPPORT_SOURCES
+    tests/unit_test_utilities.cpp
+    tests/unity/unity.c
+    tests/zoslib/zoslib.cpp
+)
+
+if (SEAR_UNIT_TEST)
+    set(SEAR_PLATFORM_INCLUDE_DIRS tests/zoslib)
+    set(SEAR_DEBUG_OPTIONS -g)
+else()
+    find_library(SEAR_ZOSLIB libzoslib.a REQUIRED)
+    set(SEAR_PLATFORM_SOURCES sear/irrseq00/irrseq00.s)
+endif()
+
 file(READ schema.json SEAR_SCHEMA)
 configure_file(sear/sear_schema.hpp.in sear/sear_schema.hpp)
 
-# Ugly hack to get shared library to work on Z
-set(STRT "")
+add_library(sear ${SEAR_SOURCES} ${SEAR_PLATFORM_SOURCES})
+target_include_directories(
+    sear PUBLIC
+    ${SEAR_INCLUDE_DIRS}
+    ${SEAR_PLATFORM_INCLUDE_DIRS}
+    "${CMAKE_CURRENT_BINARY_DIR}/sear"
+)
+target_compile_definitions(sear PUBLIC _POSIX_C_SOURCE=200112L)
+target_compile_options(sear PUBLIC ${SEAR_DEBUG_OPTIONS})
+target_link_libraries(sear PRIVATE OpenSSL::SSL ${SEAR_ZOSLIB})
 
 if (BUILD_SHARED_LIBS AND NOT SEAR_UNIT_TEST)
-    set(STRT "-Wl,-e,CELQSTRT")
+    target_link_options(sear PRIVATE -Wl,-e,CELQSTRT)
 endif()
-
-# Create the sear target
-target_link_libraries(sear PRIVATE "${STRT}" OpenSSL::SSL "${ZOSLIB}")
 
 # If we're building the Python wheel
 if (SEAR_ENABLE_PYTHON)
@@ -166,73 +155,43 @@ if (SEAR_ENABLE_PYTHON)
     endif()
 endif()
 
-# The test_runner executable
 add_executable(
     test_runner
     tests/test_runner.cpp
-    tests/unit_test_utilities.cpp
     tests/irrsdl00/test_irrsdl00.cpp
     tests/irrseq00/test_irrseq00.cpp
     tests/irrsmo00/test_irrsmo00.cpp
-    tests/mock/irrsdl64.cpp
-    tests/mock/irrseq00.cpp
-    tests/mock/irrsmo64.cpp
-    tests/unity/unity.c
     tests/validation/test_parameter_validation.cpp
-    tests/zoslib/zoslib.cpp
+    ${SEAR_MOCK_SOURCES}
+    ${TEST_SUPPORT_SOURCES}
 )
-# test_runner's include directories
 target_include_directories(
     test_runner PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
-    sear
-    sear/irrsdl00
-    sear/irrseq00
-    sear/irrsmo00
-    sear/key_map
-    sear/validation
-    externals/json
-    externals/json-schema-validator
-    externals/iconv
-    externals/pugixml
+    ${SEAR_INCLUDE_DIRS}
     tests/irrsdl00
     tests/zoslib
 )
-# Extra defines for compiling test_runner
 target_compile_definitions(test_runner PUBLIC UNIT_TEST UNITY_OUTPUT_COLOR)
-# Compile with debug, only on linux
-target_compile_options(test_runner PUBLIC "${DEBUGFLAG}")
-# Create the test_runner target
-target_link_libraries(test_runner PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/libsear.so")
+target_compile_options(test_runner PUBLIC ${SEAR_DEBUG_OPTIONS})
+target_link_libraries(test_runner PRIVATE sear)
 
 if (SEAR_BUILD_BENCHMARKS)
-    # Benchmark executable
     add_executable(
         bench_runner
         tests/bench_runner.cpp
-        tests/unit_test_utilities.cpp
-        tests/unity/unity.c
-        tests/mock/irrsdl64.cpp
-        tests/mock/irrseq00.cpp
-        tests/mock/irrsmo64.cpp
-        tests/zoslib/zoslib.cpp
+        ${SEAR_MOCK_SOURCES}
+        ${TEST_SUPPORT_SOURCES}
     )
-    # bench_runner's include directories
     target_include_directories(
         bench_runner PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
-        sear
-        sear/irrsdl00
-        sear/irrseq00
-        sear/irrsmo00
-        externals/json
-        externals/pugixml
+        ${SEAR_INCLUDE_DIRS}
         tests/zoslib
     )
 
     target_compile_options(bench_runner PUBLIC -O3)
     target_compile_definitions(bench_runner PUBLIC BENCHMARK_MODE)
-    # Create the bench_runner target
     target_link_libraries(bench_runner PRIVATE sear OpenSSL::SSL)
 endif()
 
@@ -241,8 +200,6 @@ add_executable(
     debug
     debug/debug.c
 )
-# Create the debug target
-target_link_libraries(debug PRIVATE)
 
 # Custom target 'link', executes clang-format for most .cpp and .hpp files
 add_custom_target(lint ALL
@@ -278,68 +235,21 @@ add_custom_target(check ALL
                 "${CMAKE_CURRENT_SOURCE_DIR}/sear"
 )
 
-# The fuzz executable
 add_executable(
     fuzz
-
     tests/fuzz.cpp
-    tests/mock/irrsdl64.cpp
-    tests/mock/irrseq00.cpp
-    tests/mock/irrsmo64.cpp
+    ${SEAR_MOCK_SOURCES}
     tests/zoslib/zoslib.cpp
-
-    sear/irrsdl00/irrsdl00.cpp
-    sear/irrsdl00/keyring_extractor.cpp
-    sear/irrsdl00/keyring_modifier.cpp
-    sear/irrsdl00/keyring_post_processor.cpp
-
-    sear/irrseq00/profile_extractor.cpp
-    sear/irrseq00/profile_post_processor.cpp
-
-    sear/irrsmo00/irrsmo00_error.cpp
-    sear/irrsmo00/irrsmo00.cpp
-    sear/irrsmo00/xml_generator.cpp
-    sear/irrsmo00/xml_parser.cpp
-
-    sear/key_map/key_map.cpp
-    sear/validation/trait_validation.cpp
-    sear/logger.cpp
-    sear/sear_error.cpp
-    sear/sear.cpp
-    sear/security_admin.cpp
-    sear/security_request.cpp
-    sear/conversion.cpp
-
-    externals/json-schema-validator/json-patch.cpp
-    externals/json-schema-validator/json-schema-draft7.json.cpp
-    externals/json-schema-validator/json-uri.cpp
-    externals/json-schema-validator/json-validator.cpp
-    externals/json-schema-validator/smtp-address-validator.cpp
-    externals/json-schema-validator/string-format-check.cpp
-
-    externals/pugixml/pugixml.cpp
+    ${SEAR_SOURCES}
 )
-# fuzz's include directories
 target_include_directories(
     fuzz PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
-    sear
-    sear/irrsdl00
-    sear/irrseq00
-    sear/irrsmo00
-    sear/key_map
-    sear/validation
-    externals/json
-    externals/json-schema-validator
-    externals/iconv
-    externals/pugixml
+    ${SEAR_INCLUDE_DIRS}
     tests/irrsdl00
     tests/zoslib
     "${CMAKE_CURRENT_BINARY_DIR}/sear"
 )
-# Add sanitize flags to fuzz compilation
 target_compile_options(fuzz PUBLIC -fsanitize=fuzzer -fsanitize=undefined -fsanitize=address)
-# Add sanitize flags to fuzz linking
 target_link_options(fuzz PUBLIC -fsanitize=fuzzer -fsanitize=undefined -fsanitize=address)
-# Create the fuzz target
-target_link_libraries(fuzz PRIVATE OpenSSL::SSL "${ZOSLIB}")
+target_link_libraries(fuzz PRIVATE OpenSSL::SSL ${SEAR_ZOSLIB})
