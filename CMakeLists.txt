@@ -48,16 +48,23 @@
 
 cmake_minimum_required(VERSION 3.24)
 
-project(sear C CXX ASM)
-set(CXX_STANDARD 17)
+project(sear C CXX)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 # This option is used when building the Python wheel
 option(SEAR_ENABLE_PYTHON "Enables building the Python language module." OFF)
 
-# This option is used on Linux to build SEAR with mocked unit tests
-option(SEAR_UNIT_TEST "Builds tests" OFF)
+option(SEAR_BUILD_TESTS "Build C++ unit tests and fuzzing targets" OFF)
+
+option(SEAR_ENABLE_ZOS_SERVICES "Build against z/OS callable services" OFF)
 
 option(SEAR_BUILD_BENCHMARKS "Build performance benchmarks" OFF)
+
+include(CTest)
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 find_package(OpenSSL REQUIRED)
 
@@ -114,12 +121,16 @@ set(TEST_SUPPORT_SOURCES
     tests/zoslib/zoslib.cpp
 )
 
-if (SEAR_UNIT_TEST)
-    set(SEAR_PLATFORM_INCLUDE_DIRS tests/zoslib)
-    set(SEAR_DEBUG_OPTIONS -g)
-else()
+if (SEAR_ENABLE_ZOS_SERVICES)
+    enable_language(ASM)
     find_library(SEAR_ZOSLIB libzoslib.a REQUIRED)
     set(SEAR_PLATFORM_SOURCES sear/irrseq00/irrseq00.s)
+else()
+    set(SEAR_PLATFORM_INCLUDE_DIRS tests/zoslib)
+endif()
+
+if (SEAR_BUILD_TESTS)
+    set(SEAR_DEBUG_OPTIONS -g)
 endif()
 
 file(READ schema.json SEAR_SCHEMA)
@@ -136,7 +147,7 @@ target_compile_definitions(sear PUBLIC _POSIX_C_SOURCE=200112L)
 target_compile_options(sear PUBLIC ${SEAR_DEBUG_OPTIONS})
 target_link_libraries(sear PRIVATE OpenSSL::SSL ${SEAR_ZOSLIB})
 
-if (BUILD_SHARED_LIBS AND NOT SEAR_UNIT_TEST)
+if (BUILD_SHARED_LIBS AND SEAR_ENABLE_ZOS_SERVICES)
     target_link_options(sear PRIVATE -Wl,-e,CELQSTRT)
 endif()
 
@@ -155,44 +166,47 @@ if (SEAR_ENABLE_PYTHON)
     endif()
 endif()
 
-add_executable(
-    test_runner
-    tests/test_runner.cpp
-    tests/irrsdl00/test_irrsdl00.cpp
-    tests/irrseq00/test_irrseq00.cpp
-    tests/irrsmo00/test_irrsmo00.cpp
-    tests/validation/test_parameter_validation.cpp
-    ${SEAR_MOCK_SOURCES}
-    ${TEST_SUPPORT_SOURCES}
-)
-target_include_directories(
-    test_runner PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${SEAR_INCLUDE_DIRS}
-    tests/irrsdl00
-    tests/zoslib
-)
-target_compile_definitions(test_runner PUBLIC UNIT_TEST UNITY_OUTPUT_COLOR)
-target_compile_options(test_runner PUBLIC ${SEAR_DEBUG_OPTIONS})
-target_link_libraries(test_runner PRIVATE sear)
-
-if (SEAR_BUILD_BENCHMARKS)
+if (SEAR_BUILD_TESTS AND BUILD_TESTING)
     add_executable(
-        bench_runner
-        tests/bench_runner.cpp
+        test_runner
+        tests/test_runner.cpp
+        tests/irrsdl00/test_irrsdl00.cpp
+        tests/irrseq00/test_irrseq00.cpp
+        tests/irrsmo00/test_irrsmo00.cpp
+        tests/validation/test_parameter_validation.cpp
         ${SEAR_MOCK_SOURCES}
         ${TEST_SUPPORT_SOURCES}
     )
     target_include_directories(
-        bench_runner PUBLIC
+        test_runner PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${SEAR_INCLUDE_DIRS}
+        tests/irrsdl00
         tests/zoslib
     )
+    target_compile_definitions(test_runner PUBLIC UNIT_TEST UNITY_OUTPUT_COLOR)
+    target_compile_options(test_runner PUBLIC ${SEAR_DEBUG_OPTIONS})
+    target_link_libraries(test_runner PRIVATE sear)
+    add_test(NAME sear-unit COMMAND test_runner)
 
-    target_compile_options(bench_runner PUBLIC -O3)
-    target_compile_definitions(bench_runner PUBLIC BENCHMARK_MODE)
-    target_link_libraries(bench_runner PRIVATE sear OpenSSL::SSL)
+    if (SEAR_BUILD_BENCHMARKS)
+        add_executable(
+            bench_runner
+            tests/bench_runner.cpp
+            ${SEAR_MOCK_SOURCES}
+            ${TEST_SUPPORT_SOURCES}
+        )
+        target_include_directories(
+            bench_runner PUBLIC
+            ${CMAKE_CURRENT_SOURCE_DIR}
+            ${SEAR_INCLUDE_DIRS}
+            tests/zoslib
+        )
+
+        target_compile_options(bench_runner PUBLIC -O3)
+        target_compile_definitions(bench_runner PUBLIC BENCHMARK_MODE)
+        target_link_libraries(bench_runner PRIVATE sear OpenSSL::SSL)
+    endif()
 endif()
 
 # The debug executable
@@ -201,16 +215,25 @@ add_executable(
     debug/debug.c
 )
 
-# Custom target 'link', executes clang-format for most .cpp and .hpp files
-add_custom_target(lint ALL
-    COMMAND find ${CMAKE_CURRENT_SOURCE_DIR}/sear/ -type f -name "*.cpp" -exec clang-format-19 --verbose --Werror --dry-run -i {} "\;"
-    COMMAND find ${CMAKE_CURRENT_SOURCE_DIR}/sear/ -type f -name "*.hpp" -exec clang-format-19 --verbose --Werror --dry-run -i {} "\;"
-    COMMAND find ${CMAKE_CURRENT_SOURCE_DIR}/tests/ -type f -name "*.cpp" -exec clang-format-19 --verbose --Werror --dry-run -i {} "\;"
-    COMMAND find ${CMAKE_CURRENT_SOURCE_DIR}/tests/ -type f -name "*.hpp" -exec clang-format-19 --verbose --Werror --dry-run -i {} "\;"
+find_program(CLANG_FORMAT NAMES clang-format-19 clang-format)
+file(GLOB_RECURSE SEAR_FORMAT_SOURCES CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/sear/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/sear/*.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/tests/*.hpp"
 )
+if (CLANG_FORMAT)
+    add_custom_target(lint
+        COMMAND "${CLANG_FORMAT}" --verbose --Werror --dry-run ${SEAR_FORMAT_SOURCES}
+    )
+else()
+    add_custom_target(lint
+        COMMAND "${CMAKE_COMMAND}" -E echo "clang-format is required for the lint target"
+        COMMAND "${CMAKE_COMMAND}" -E false
+    )
+endif()
 
-# Custom target 'check', executes 'cppcheck' on the sear code
-add_custom_target(check ALL
+add_custom_target(check
     COMMAND "cppcheck"
                 "--suppress='missingIncludeSystem'"
                 "--suppress='useStlAlgorithm'"
@@ -222,34 +245,27 @@ add_custom_target(check ALL
                 "--check-level=exhaustive"
                 "--inconclusive"
                 "--error-exitcode=1"
-                "-D __ptr32="
-                "-D _POSIX_C_SOURCE=200112L"
-                "-I${CMAKE_CURRENT_SOURCE_DIR}/sear"
-                "-I${CMAKE_CURRENT_SOURCE_DIR}/sear/irrsdl00"
-                "-I${CMAKE_CURRENT_SOURCE_DIR}/sear/irrseq00"
-                "-I${CMAKE_CURRENT_SOURCE_DIR}/sear/irrsmo00"
-                "-I${CMAKE_CURRENT_SOURCE_DIR}/sear/key_map"
-                "-I${CMAKE_CURRENT_SOURCE_DIR}/sear/validation"
-                "-I${CMAKE_CURRENT_SOURCE_DIR}/tests/zoslib"
-                "-I${CMAKE_CURRENT_BINARY_DIR}/sear"
-                "${CMAKE_CURRENT_SOURCE_DIR}/sear"
+                "--project=${CMAKE_BINARY_DIR}/compile_commands.json"
+                "--file-filter=${CMAKE_CURRENT_SOURCE_DIR}/sear/*"
 )
 
-add_executable(
-    fuzz
-    tests/fuzz.cpp
-    ${SEAR_MOCK_SOURCES}
-    tests/zoslib/zoslib.cpp
-    ${SEAR_SOURCES}
-)
-target_include_directories(
-    fuzz PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${SEAR_INCLUDE_DIRS}
-    tests/irrsdl00
-    tests/zoslib
-    "${CMAKE_CURRENT_BINARY_DIR}/sear"
-)
-target_compile_options(fuzz PUBLIC -fsanitize=fuzzer -fsanitize=undefined -fsanitize=address)
-target_link_options(fuzz PUBLIC -fsanitize=fuzzer -fsanitize=undefined -fsanitize=address)
-target_link_libraries(fuzz PRIVATE OpenSSL::SSL ${SEAR_ZOSLIB})
+if (SEAR_BUILD_TESTS)
+    add_executable(
+        fuzz
+        tests/fuzz.cpp
+        ${SEAR_MOCK_SOURCES}
+        tests/zoslib/zoslib.cpp
+        ${SEAR_SOURCES}
+    )
+    target_include_directories(
+        fuzz PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${SEAR_INCLUDE_DIRS}
+        tests/irrsdl00
+        tests/zoslib
+        "${CMAKE_CURRENT_BINARY_DIR}/sear"
+    )
+    target_compile_options(fuzz PUBLIC -fsanitize=fuzzer -fsanitize=undefined -fsanitize=address)
+    target_link_options(fuzz PUBLIC -fsanitize=fuzzer -fsanitize=undefined -fsanitize=address)
+    target_link_libraries(fuzz PRIVATE OpenSSL::SSL ${SEAR_ZOSLIB})
+endif()

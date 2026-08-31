@@ -9,14 +9,20 @@
             "name": "default",
             "displayName": "Default Preset",
             "description": "Default preset, provides no platform specific features. Works for non-z/OS systems.",
-            "binaryDir": "${sourceDir}/build/default"
+            "binaryDir": "${sourceDir}/build/default",
+            "cacheVariables": {
+                "SEAR_ENABLE_ZOS_SERVICES": "OFF"
+            }
         },
         {
             "name": "zos",
             "displayName": "z/OS Preset",
             "description": "Builds for z/OS systems, activates the IBM-Clang-based toolchain.",
             "binaryDir": "${sourceDir}/build/zos",
-            "toolchainFile": "cmake/ibm-clang.cmake"
+            "toolchainFile": "cmake/ibm-clang.cmake",
+            "cacheVariables": {
+                "SEAR_ENABLE_ZOS_SERVICES": "ON"
+            }
         },
         {
             "name": "zos-pysear",
@@ -30,21 +36,23 @@
             "name": "linux-test",
             "displayName": "Linux Testing",
             "description": "Used for unit testing under Linux",
-            "binaryDir": "${sourceDir}/build/linux",
+            "binaryDir": "${sourceDir}/build/linux-test",
             "toolchainFile": "cmake/clang.cmake",
             "cacheVariables": {
-                "SEAR_UNIT_TEST": "ON"
+                "SEAR_BUILD_TESTS": "ON",
+                "SEAR_ENABLE_ZOS_SERVICES": "OFF"
             }
         },
         {
             "name": "linux-bench",
             "displayName": "Linux Benchmarking",
             "description": "Used for benchmarking under Linux",
-            "binaryDir": "${sourceDir}/build/linux",
+            "binaryDir": "${sourceDir}/build/linux-bench",
             "toolchainFile": "cmake/clang.cmake",
             "cacheVariables": {
                 "SEAR_BUILD_BENCHMARKS": "ON",
-                "SEAR_UNIT_TEST": "ON"
+                "SEAR_BUILD_TESTS": "ON",
+                "SEAR_ENABLE_ZOS_SERVICES": "OFF"
             }
         }
     ],
