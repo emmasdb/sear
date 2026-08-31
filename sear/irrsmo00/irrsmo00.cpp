@@ -25,10 +25,13 @@ void IRRSMO00::call_irrsmo00(SecurityRequest &request,
   char work_area[1024];
   char req_handle[64]                    = {0};
 
-  const char *surrogate_userid = request.getSurrogateUserID();
-  const size_t surrogate_userid_length =
-      std::min(std::strlen(surrogate_userid),
-               sizeof(running_userid_t::running_userid));
+    const char *surrogate_userid = request.getSurrogateUserID();
+    const char *surrogate_userid_end =
+      std::find(surrogate_userid,
+          surrogate_userid + sizeof(running_userid_t::running_userid),
+          '\0');
+    const size_t surrogate_userid_length =
+      static_cast<size_t>(surrogate_userid_end - surrogate_userid);
   running_userid_t running_userid_struct = {
       (unsigned char)surrogate_userid_length, {0}};
   std::memcpy(running_userid_struct.running_userid, surrogate_userid,
