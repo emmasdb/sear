@@ -1,5 +1,7 @@
 #include "security_request.hpp"
 
+#include <algorithm>
+#include <cctype>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -329,13 +331,16 @@ void SecurityRequest::load(const nlohmann::json& request) {
 
   if (request.contains("run_as_userid")) {
     std::string surrogate_userid_string = request["run_as_userid"].get<std::string>();
+    std::transform(surrogate_userid_string.begin(),
+                   surrogate_userid_string.end(), surrogate_userid_string.begin(),
+                   [](unsigned char c) { return std::toupper(c); });
     surrogate_userid_string = fromUTF8(surrogate_userid_string);
     Logger::getInstance().debug("Running under the authority of user: " +
                                 surrogate_userid_string);
-    const int userid_length = surrogate_userid_string.length();
-    std::strncpy(surrogate_userid_,
-                 surrogate_userid_string.c_str(),
-                 userid_length );
+    const size_t userid_length = std::min(surrogate_userid_string.length(),
+                                          sizeof(surrogate_userid_));
+    std::memcpy(surrogate_userid_, surrogate_userid_string.c_str(),
+                userid_length);
   }
 }
 
@@ -387,8 +392,8 @@ void SecurityRequest::buildResult() {
                                         result_json_string.length() + 1);
     std::memset(result_json_unique_ptr.get(), 0,
                 result_json_string.length() + 1);
-    std::strncpy(result_json_unique_ptr.get(), result_json_string.c_str(),
-                 result_json_string.length());
+    std::memcpy(result_json_unique_ptr.get(), result_json_string.c_str(),
+                result_json_string.length());
     p_result_->result_json        = result_json_unique_ptr.get();
     p_result_->result_json_length = result_json_string.length();
     result_json_unique_ptr.release();

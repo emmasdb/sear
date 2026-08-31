@@ -1,5 +1,6 @@
 #include "irrsmo00.hpp"
 
+#include <algorithm>
 #include <cstring>
 #include <iostream>
 #include <memory>
@@ -24,11 +25,17 @@ void IRRSMO00::call_irrsmo00(SecurityRequest &request,
   char work_area[1024];
   char req_handle[64]                    = {0};
 
-  const char *surrogate_userid           = request.getSurrogateUserID();
+    const char *surrogate_userid = request.getSurrogateUserID();
+    const char *surrogate_userid_end =
+      std::find(surrogate_userid,
+          surrogate_userid + sizeof(running_userid_t::running_userid),
+          '\0');
+    const size_t surrogate_userid_length =
+      static_cast<size_t>(surrogate_userid_end - surrogate_userid);
   running_userid_t running_userid_struct = {
-      (unsigned char)std::strlen(surrogate_userid), {0}};
-  std::strncpy(running_userid_struct.running_userid, surrogate_userid,
-               running_userid_struct.running_userid_length);
+      (unsigned char)surrogate_userid_length, {0}};
+  std::memcpy(running_userid_struct.running_userid, surrogate_userid,
+              surrogate_userid_length);
 
   unsigned int alet    = 0;
   unsigned int acee    = 0;
@@ -133,7 +140,7 @@ bool IRRSMO00::does_profile_exist(SecurityRequest &request) {
 
   auto request_unique_ptr_ebcdic = std::make_unique<char[]>(request_str_ebcdic.length());
 
-  std::strncpy(request_unique_ptr_ebcdic.get(), request_str_ebcdic.c_str(), request_str_ebcdic.length());
+  std::memcpy(request_unique_ptr_ebcdic.get(), request_str_ebcdic.c_str(), request_str_ebcdic.length());
 
   Logger::getInstance().debug("EBCDIC encoded request XML:");
   Logger::getInstance().hexDump(request_unique_ptr_ebcdic.get(), request_str_ebcdic.length());

@@ -49,7 +49,7 @@ void KeyringPostProcessor::postProcessExtractKeyring(SecurityRequest &request) {
       std::memset(&union_work.RACF_user_id[0], 0, 9);
       help_len = *work;
       work++;
-      std::strncpy(&union_work.RACF_user_id[0], work, help_len);
+      std::memcpy(&union_work.RACF_user_id[0], work, help_len);
       __e2a_l(&union_work.RACF_user_id[0], help_len);
       repeat_group_certs[j]["owner"] = union_work.RACF_user_id;
       work += help_len;
@@ -57,7 +57,7 @@ void KeyringPostProcessor::postProcessExtractKeyring(SecurityRequest &request) {
       std::memset(&union_work.label[0], 0, 256);
       help_len = *work;
       work++;
-      std::strncpy(&union_work.label[0], work, help_len);
+      std::memcpy(&union_work.label[0], work, help_len);
       __e2a_l(&union_work.label[0], help_len);
       repeat_group_certs[j]["label"] = union_work.label;
       work += help_len;
@@ -79,6 +79,7 @@ void KeyringPostProcessor::postProcessExtractKeyring(SecurityRequest &request) {
           OPENSSL_free(lpDN);
           lpDN = nullptr;
         } else {
+          X509_NAME_free(x509_name_out);
           throw SEARError(std::string("X509_NAME_oneline failed"));
         }
         X509_NAME_free(x509_name_out);
@@ -147,9 +148,11 @@ void KeyringPostProcessor::postProcessExtractKeyring(SecurityRequest &request) {
             OPENSSL_free(lpDN);
             lpDN = nullptr;
           } else {
+            X509_free(x509_cert);
             throw SEARError(std::string("X509_NAME_oneline failed"));
           }
         } else {
+          X509_free(x509_cert);
           throw SEARError(std::string("X509_get_issuer_name failed"));
         }
 
@@ -353,6 +356,8 @@ bool KeyringPostProcessor::addUsages(nlohmann::json &add_to_json,
 
   int flags = usage_data[0];
   if (usage_length > 1) flags |= usage_data[1] << 8;
+
+  ASN1_BIT_STRING_free(usage);
 
   if (flags & X509v3_KU_DIGITAL_SIGNATURE)
     repeat_group_usages.push_back("digitalSignature");
