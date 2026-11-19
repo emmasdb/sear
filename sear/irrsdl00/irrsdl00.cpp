@@ -1,5 +1,7 @@
 #include "irrsdl00.hpp"
 
+#include <cstddef>
+
 namespace SEAR {
 void IRRSDL00::callIRRSDL00(keyring_args_t *p_args,
                             uint32_t *p_parmlist_version, void *p_parmlist) {
@@ -341,6 +343,16 @@ void IRRSDL00::addCertificate(SecurityRequest &request,
 
   Logger::getInstance().hexDump(reinterpret_cast<char *>(p_parm_put_cert),
                                 sizeof(cddlx_put_cert_t));
+  Logger::getInstance().debug("IRRSDL64 DataPut common arguments:");
+  Logger::getInstance().hexDump(
+      reinterpret_cast<char *>(&p_arg_area_keyring->args.function_code),
+      sizeof(keyring_args_t) - offsetof(keyring_args_t, function_code));
+  if (p_parm_put_cert->cddlx_pcert_ptr != nullptr) {
+    Logger::getInstance().debug("DataPut certificate DER prefix:");
+    Logger::getInstance().hexDump(
+        reinterpret_cast<char *>(p_parm_put_cert->cddlx_pcert_ptr),
+        std::min<size_t>(16, p_parm_put_cert->cddlx_pcert_len));
+  }
 
   IRRSDL00::callIRRSDL00(&p_arg_area_keyring->args, &parmlist_version,
                          p_parm_put_cert);
