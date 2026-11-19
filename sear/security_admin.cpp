@@ -3,6 +3,7 @@
 #include <arpa/inet.h>
 
 #include <memory>
+#include <nlohmann/json-schema.hpp>
 #include <nlohmann/json.hpp>
 
 #include "irrsmo00.hpp"
@@ -13,10 +14,19 @@
 #include "profile_extractor.hpp"
 #include "profile_post_processor.hpp"
 #include "sear_error.hpp"
+#include "sear_schema.hpp"
 #include "xml_generator.hpp"
 #include "xml_parser.hpp"
 
 namespace SEAR {
+namespace {
+nlohmann::json_schema::json_validator &schemaValidator() {
+  static const nlohmann::json schema_json = SEAR_SCHEMA;
+  static nlohmann::json_schema::json_validator validator{schema_json};
+  return validator;
+}
+}  // namespace
+
 #ifdef SEAR_NODEJS_BUILD
 static bool handle_nodejs_duplicate_add_result(SecurityRequest &request) {
   const nlohmann::json &results = request.getIntermediateResultJSON();
@@ -70,7 +80,7 @@ void SecurityAdmin::makeRequest(const char *p_request_json_string, int length) {
 
     Logger::getInstance().debug("Validating parameters ...");
     try {
-      SEAR_SCHEMA_VALIDATOR.validate(request_json);
+      schemaValidator().validate(request_json);
     } catch (const std::exception &ex) {
       request_.setSEARReturnCode(8);
       throw SEARError(

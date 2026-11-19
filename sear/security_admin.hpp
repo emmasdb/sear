@@ -2,21 +2,14 @@
 #define __SEAR_SECURITY_ADMIN_H_
 
 #include <cstdint>
-#include <nlohmann/json-schema.hpp>
-#include <nlohmann/json.hpp>
 
 #include "extractor.hpp"
 #include "keyring_modifier.hpp"
 #include "logger.hpp"
 #include "sear_result.h"
-#include "sear_schema.hpp"
 #include "security_request.hpp"
 
 namespace SEAR {
-static const nlohmann::json SEAR_SCHEMA_JSON = SEAR_SCHEMA;
-static const nlohmann::json_schema::json_validator SEAR_SCHEMA_VALIDATOR{
-    SEAR_SCHEMA_JSON};
-
 class SecurityAdmin {
  private:
   SecurityRequest request_;
