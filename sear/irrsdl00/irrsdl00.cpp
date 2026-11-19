@@ -428,7 +428,7 @@ void IRRSDL00::readFile(const std::string &filename, void **p_p_data,
   int data_length;
 
   // open file
-  FILE *fp = fopen(filename.c_str(), "r");
+  FILE *fp = fopen(filename.c_str(), "rb");
   if (fp == nullptr) {
     throw SEARError(
         std::string("Unable to open file '" + filename + "' for reading."));
