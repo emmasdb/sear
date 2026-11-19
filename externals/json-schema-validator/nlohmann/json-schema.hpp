@@ -122,13 +122,14 @@ public:
 		return l.as_tuple() == r.as_tuple();
 	}
 
-	friend std::ostream &operator<<(std::ostream &os, const json_uri &u);
+	// exported explicitly, the export of the class does not include its friends
+	friend JSON_SCHEMA_VALIDATOR_API std::ostream &operator<<(std::ostream &os, const json_uri &u);
 };
 
 namespace json_schema
 {
 
-extern json draft7_schema_builtin;
+extern JSON_SCHEMA_VALIDATOR_API json draft7_schema_builtin;
 
 typedef std::function<void(const json_uri & /*id*/, json & /*value*/)> schema_loader;
 typedef std::function<void(const std::string & /*format*/, const std::string & /*value*/)> format_checker;
