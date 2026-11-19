@@ -331,11 +331,13 @@ void IRRSDL00::addCertificate(SecurityRequest &request,
   std::transform(owner.begin(), owner.end(), owner.begin(),
                  [](unsigned char c) { return std::toupper(c); });
 
-  p_parm_put_cert->cddlx_pcert_userid[0] = owner.length();
-  std::memcpy(&p_parm_put_cert->cddlx_pcert_userid[1], owner.c_str(),
-              owner.length());
+    size_t owner_length = std::min(owner.length(), size_t{8});
+    p_parm_put_cert->cddlx_pcert_userid[0] = 8;
+    std::memset(&p_parm_put_cert->cddlx_pcert_userid[1], ' ', 8);
+    std::memcpy(&p_parm_put_cert->cddlx_pcert_userid[1], owner.c_str(),
+          owner_length);
   __a2e_l(reinterpret_cast<char *>(&p_parm_put_cert->cddlx_pcert_userid[1]),
-          owner.length());
+      8);
 
   Logger::getInstance().hexDump(reinterpret_cast<char *>(p_parm_put_cert),
                                 sizeof(cddlx_put_cert_t));
@@ -398,16 +400,16 @@ void IRRSDL00::deleteCertificate(
   p_parm_remove_cert->cddlx_rlabel_ptr =
       reinterpret_cast<unsigned char *>(p_cert_label);
 
-    std::string owner = request.getOwner();
-    std::transform(owner.begin(), owner.end(), owner.begin(),
-       [](unsigned char c) { return std::toupper(c); });
-    size_t owner_length = std::min(owner.length(), size_t{8});
-    p_parm_remove_cert->cddlx_rcert_userid[0] = 8;
-    std::memset(&p_parm_remove_cert->cddlx_rcert_userid[1], ' ', 8);
-    std::memcpy(&p_parm_remove_cert->cddlx_rcert_userid[1], owner.c_str(),
-          owner_length);
+  std::string owner = request.getOwner();
+  std::transform(owner.begin(), owner.end(), owner.begin(),
+                 [](unsigned char c) { return std::toupper(c); });
+  size_t owner_length = std::min(owner.length(), size_t{8});
+  p_parm_remove_cert->cddlx_rcert_userid[0] = 8;
+  std::memset(&p_parm_remove_cert->cddlx_rcert_userid[1], ' ', 8);
+  std::memcpy(&p_parm_remove_cert->cddlx_rcert_userid[1], owner.c_str(),
+              owner_length);
   __a2e_l(reinterpret_cast<char *>(&p_parm_remove_cert->cddlx_rcert_userid[1]),
-      8);
+          8);
 
   Logger::getInstance().hexDump(reinterpret_cast<char *>(p_parm_remove_cert),
                                 sizeof(cddlx_remove_cert_t));
